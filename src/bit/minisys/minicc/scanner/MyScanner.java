@@ -19,8 +19,48 @@ enum DFA_STATE {
     DFA_STATE_ADD_1,
     DFA_STATE_SM,
 
+    //state_pre_str can be replaced when implements in code
+    state_char_start,
+    state_char_single,
+    state_char_fin,
+    state_char_escape,
+    state_char_hexdecimal,
+    state_char_octa_digit,
+    state_pre_str_8,
+    state_str,
+    state_str_escape,
+    state_str_fin,
+    state_str_hexdecimal,
+    state_str_octa_digit,
+
     DFA_STATE_UNKNW
+
 }
+
+enum CONSTANT_STATE {
+    initial,
+    constant_digital_zero,
+    int_octa,
+    int_hex,
+    int_decimal,
+    int_nonzero,
+    int_unsigned_suffix,
+    int_long_suffix,
+    float_hex_dot,
+    const_digit_dot,
+    float_hex,
+    float_dot_1,
+    float_digit_fin,
+    float_exponent_part,
+    float_exponent_part_digit_sequence,
+    float_exponent_part_sign,
+    float_suffix,
+    float_binary_exponent,
+    float_binary_exponent_sign,
+    float_binary_exponent_fin,
+    undefine_state
+}
+
 
 public class MyScanner implements IMiniCCScanner {
 
@@ -30,6 +70,7 @@ public class MyScanner implements IMiniCCScanner {
     private ArrayList<String> srcLines;
 
     private HashSet<String> keywordSet;
+
 
     //todo: add key words here!
     public MyScanner() {
@@ -48,6 +89,7 @@ public class MyScanner implements IMiniCCScanner {
         this.keywordSet.add("extern");
         this.keywordSet.add("float");
         this.keywordSet.add("for");
+        this.keywordSet.add("goto");
 
         this.keywordSet.add("∗");
         this.keywordSet.add("if");
@@ -82,13 +124,138 @@ public class MyScanner implements IMiniCCScanner {
         this.keywordSet.add("_Thread_local");
     }
 
+    //todo:constant DFA
+    private int analyzeConstType(String lexme) {
+        //IntegerConstant 0
+        //FloatingConstant 1
+        CONSTANT_STATE state = CONSTANT_STATE.initial;
+        for (int i = 0; i < lexme.length(); i++) {
+            char c = lexme.charAt(i);
+            boolean is_fin = false;
+            if (i == lexme.length() - 1) {
+                is_fin = true;
+            }
+            //todo:fix bugs of decimal interger
+            switch (state) {
+                case initial:
+                    if (c == '0') {
+                        state = CONSTANT_STATE.constant_digital_zero;
+                    } else if (c >= '1' && c <= '9') {
+                        state = CONSTANT_STATE.int_nonzero;
+                    } else if (c == '.') {
+                        state = CONSTANT_STATE.const_digit_dot;
+                    }
+                    break;
+                case constant_digital_zero:
+                    if (c >= '0' && c <= '7') {
+                        state = CONSTANT_STATE.int_octa;
+                    } else if (c == 'x' || c == 'X') {
+                        state = CONSTANT_STATE.int_hex;
+                    }
+                    break;
+                case int_octa:
+                    if (c >= '0' && c <= '7') {
+                    } else if (c == 'u' || c == 'U') {
+                        state = CONSTANT_STATE.int_unsigned_suffix;
+                    } else if (c == 'l' || c == 'L') {
+                        state = CONSTANT_STATE.int_long_suffix;
+                    }
+                    if (is_fin) {
+                        return 0;
+                    }
+                case int_hex:
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+
+                    } else if (c == 'u' || c == 'U') {
+                        state = CONSTANT_STATE.int_unsigned_suffix;
+                    } else if (c == 'l' || c == 'L') {
+                        state = CONSTANT_STATE.int_long_suffix;
+                    }
+                    if (is_fin) {
+                        return 0;
+                    }
+                    break;
+                case int_nonzero:
+                    if (c >= '0' && c <= '9') {
+                        state = CONSTANT_STATE.int_decimal;
+                    }
+                    break;
+                case int_long_suffix:
+                    if (c == 'l' || c == 'L') {
+
+                    } else if (c == 'u' || c == 'U') {
+                        state = CONSTANT_STATE.int_unsigned_suffix;
+                    }
+                    if (is_fin) {
+                        return 0;
+                    }
+                    break;
+
+                case int_unsigned_suffix:
+                    if (c == 'l' || c == 'L') {
+                        state = CONSTANT_STATE.int_long_suffix;
+                    } else if (c == 'u' || c == 'U') {
+                    }
+                    if (is_fin) {
+                        return 0;
+                    }
+                    break;
+                case int_decimal:
+                    if (c >= '0' && c <= '9') {
+
+                    } else if (c == 'u' || c == 'U') {
+                        state = CONSTANT_STATE.int_unsigned_suffix;
+                    } else if (c == 'l' || c == 'L') {
+                        state = CONSTANT_STATE.int_long_suffix;
+                    } else if (c == 'e' || c == 'E') {
+                        state = CONSTANT_STATE.float_exponent_part;
+                    } else if (c == '.') {
+                        state = CONSTANT_STATE.float_dot_1;
+                    }
+                    if (is_fin) {
+                        return 0;
+                    }
+                    break;
+                //todo:fix float DFA
+//                case const_digit_dot:
+//                    if (c >= '0' && c <= '9') {
+//                        state = CONSTANT_STATE.float_digit_fin;
+//                    }
+//                    break;
+//                case float_digit_fin:
+//                    if (c >= '0' && c <= '9') {
+//                        state = CONSTANT_STATE.float_digit_fin;
+//                    } else if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+//                        state = CONSTANT_STATE.float_hex;
+//                    } else if (c == 'e' || c == 'E') {
+//                        state = CONSTANT_STATE.float_exponent_part;
+//                    }
+//                    if (is_fin) {
+//                        return 0;
+//                    }
+
+//                    break;
+
+                default:
+                    break;
+            }
+        }
+        return -1;
+    }
+
     char getNextChar() {
         char c = Character.MAX_VALUE;
         while (true) {
             if (lIndex < this.srcLines.size()) {
                 String line = this.srcLines.get(lIndex);
-                if (cIndex < line.length()) {
-                    c = line.charAt(cIndex);
+                if (cIndex <= line.length()) {
+                    //todo:add comment support
+                    if (cIndex == line.length()) {
+
+                        c = '\n';
+                    } else
+                        c = line.charAt(cIndex);
+
                     cIndex++;
                     break;
                 } else {
@@ -136,6 +303,21 @@ public class MyScanner implements IMiniCCScanner {
         return strToken;
     }
 
+    private boolean isSchar(char c) {
+        if (c == '\"' || c == '\\' || c == '\n') {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isCchar(char c) {
+        if (c == '\'' || c == '\\' || c == '\n') {
+            return false;
+        }
+        return true;
+    }
+
+
     @Override
     public String run(String iFile) throws Exception {
 
@@ -151,26 +333,62 @@ public class MyScanner implements IMiniCCScanner {
         boolean keep = false;    //keep current char
         boolean end = false;
 
+        boolean is_state_str_pre = false; //use this to implement the L u U at the beginning of string and char easily
+
         while (!end) {                //scanning loop
             if (!keep) {
                 c = getNextChar();
             }
 
             keep = false;
+            is_state_str_pre = false;
 
             switch (state) {
                 case DFA_STATE_INITIAL:
                     lexme = "";
+                    //comment ignore
+                    //todo: modify getNextChar to support comment removal
+                    if (c == '/') {
+                        if (getNextChar() == '/') {
+                            while (getNextChar() != '\n') ;
+                            continue;
+                        } else {
+                            cIndex--;
+                        }
+                    }
+
 
                     //todo: add number support
                     if (isAlphaOrDigit(c)) {
+                        //remember!
+                        if (c == 'L' || c == 'u' || c == 'U') {
+                            is_state_str_pre = true;
+                        }
+
                         state = DFA_STATE.DFA_STATE_ID_0;
+
+
                         lexme = lexme + c;
-                    } else if (c == '+') {
+                    }
+                    //TODO: add string support
+                    else if (c == '\'') {
+                        state = DFA_STATE.state_char_start;
+                        lexme += c;
+                    } else if (c == '\"') {
+                        state = DFA_STATE.state_str;
+                        lexme += c;
+                    }
+
+                    //teacher's code
+                    else if (c == '+') {
                         state = DFA_STATE.DFA_STATE_ADD_0;
                         lexme = lexme + c;
                     } else if (c == '-') {
                         strTokens += genToken(iTknNum, "-", "'-'");
+                        iTknNum++;
+                        state = DFA_STATE.DFA_STATE_INITIAL;
+                    } else if (c == '/') {
+                        strTokens += genToken(iTknNum, "/", "'/'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
                     } else if (c == '{') {
@@ -204,6 +422,8 @@ public class MyScanner implements IMiniCCScanner {
                         strTokens += genToken(iTknNum, "<EOF>", "EOF");
                         end = true;
                     }
+                    //todo: support operator
+
                     break;
                 case DFA_STATE_ADD_0:
                     if (c == '+') {
@@ -212,13 +432,23 @@ public class MyScanner implements IMiniCCScanner {
                         strTokens += genToken2(iTknNum, "+", "'+'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                        keep = true;
+                        keep = true;//keep will preserve previous character
                     }
                     state = DFA_STATE.DFA_STATE_INITIAL;
                     break;
                 case DFA_STATE_ID_0:
-                    // TODO: judge c; then use number/./
-                    if (isAlphaOrDigit(c)) {
+                    if ((c == '\"' || c == '\'' || c == '8') && is_state_str_pre) {
+                        //using this \" or \' to judge string or char!
+                        lexme = lexme + c;
+                        if (c == '\"') {
+                            state = DFA_STATE.state_str;
+                        } else if (c == '\'') {
+                            state = DFA_STATE.state_char_start;
+                        } else if (c == '8') {
+                            state = DFA_STATE.state_pre_str_8;
+                        } else state = DFA_STATE.DFA_STATE_UNKNW;
+                        is_state_str_pre = false;
+                    } else if (isAlphaOrDigit(c)) {
                         lexme = lexme + c;
                     } else {
                         if (this.keywordSet.contains(lexme)) {
@@ -226,14 +456,151 @@ public class MyScanner implements IMiniCCScanner {
                             strTokens += genToken2(iTknNum, lexme, "'" + lexme + "'");
                         } else {
                             //and the whole char have stored in the lexme, just scan it and indentify whether this is string/const
-                            //todo:scan the leme and modify the "Identifier to the true type"
-                            strTokens += genToken2(iTknNum, lexme, "Identifier");
+                            //number can be done here but string cannot
+                            //todo:scan the lexme and modify the "Identifier to the true type"
+                            //0:int 1:float -1:no
+
+                            if (lexme.length() > 0) {
+                                int ans = -1;
+                                if (lexme.charAt(0) == '.' || (lexme.charAt(0) >= '0' && lexme.charAt(0) <= '9')) {
+                                    ans = this.analyzeConstType(lexme);
+                                }
+                                if (ans == 0) {
+                                    strTokens += genToken2(iTknNum, lexme, "IntegerConstant");
+
+                                } else if (ans == 1) {
+                                    strTokens += genToken2(iTknNum, lexme, "FloatingConstant");
+
+                                } else {
+                                    strTokens += genToken2(iTknNum, lexme, "Identifier");
+                                }
+                            } else {
+                                strTokens += genToken2(iTknNum, lexme, "Identifier");
+                            }
+
                         }
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
                         keep = true;
                     }
+
                     break;
+
+                case state_char_start:
+                    if (isCchar(c)) {
+                        lexme += c;
+                        state = DFA_STATE.state_char_single;
+                    } else if (c == '\\') {
+                        lexme += c;
+                        state = DFA_STATE.state_char_escape;
+                    } else state = DFA_STATE.DFA_STATE_UNKNW;
+                    break;
+                case state_char_single:
+                    if (c == '\'') {
+                        //actually it is fin, but fin will go to the initial
+                        lexme += c;
+                        state = DFA_STATE.state_char_fin;
+                    } else {
+                        state = DFA_STATE.DFA_STATE_UNKNW;
+                    }
+                    break;
+                case state_char_escape:
+                    lexme += c;
+                    if (c == '\'' || c == '\"' || c == '?' || c == '\\' || c == 'a' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't' || c == 'v') {
+                        state = DFA_STATE.state_char_single;
+                    } else if (c >= '0' && c <= '7') {
+                        state = DFA_STATE.state_char_octa_digit;
+                    } else if (c == 'x') {
+                        state = DFA_STATE.state_char_hexdecimal;
+                    } else {
+                        state = DFA_STATE.DFA_STATE_UNKNW;
+                    }
+                    break;
+
+                case state_char_octa_digit:
+                    lexme += c;
+                    if (c >= '0' && c <= '7') {
+
+                    } else if (c == '\'') {
+                        state = DFA_STATE.state_char_fin;
+                    } else state = DFA_STATE.DFA_STATE_UNKNW;
+                    break;
+
+                case state_char_hexdecimal:
+                    lexme += c;
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+//todo:some other time may analyze \'
+                    } else {
+                        state = DFA_STATE.state_char_fin;
+                    }
+                    break;
+
+                case state_char_fin:
+
+                    strTokens += genToken(iTknNum, lexme, "CharacterConstant");
+
+                    //the generic operation when every thing is done
+                    iTknNum++;
+                    state = DFA_STATE.DFA_STATE_INITIAL;
+                    keep = true;
+                    break;
+
+                case state_pre_str_8:
+                    lexme += c;
+                    if (c == '\"') {
+                        state = DFA_STATE.state_str;
+                    } else state = DFA_STATE.DFA_STATE_UNKNW;
+
+
+                case state_str:
+                    lexme += c;
+                    if (isSchar(c)) {
+
+                    } else if (c == '\\') {
+                        state = DFA_STATE.state_str_escape;
+                    } else if (c == '\"') {
+                        state = DFA_STATE.state_str_fin;
+                    } else state = DFA_STATE.DFA_STATE_UNKNW;
+                    break;
+                case state_str_escape:
+                    lexme += c;
+                    if (c == '\'' || c == '\"' || c == '?' || c == '\\' || c == 'a' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't' || c == 'v') {
+                        state = DFA_STATE.state_str;
+                    } else if (c >= '0' && c <= '7') {
+                        state = DFA_STATE.state_str_octa_digit;
+                    } else if (c == 'x') {
+                        state = DFA_STATE.state_str_hexdecimal;
+                    } else
+                        state = DFA_STATE.DFA_STATE_UNKNW;
+                    break;
+                case state_str_octa_digit:
+                    lexme += c;
+                    if (c >= '0' && c <= '7') {
+
+                    } else if (isSchar(c)) {
+                        state = DFA_STATE.state_str;
+                    } else if (c == '\"') {
+                        state = DFA_STATE.state_str_fin;
+                    } else state = DFA_STATE.DFA_STATE_UNKNW;
+                    break;
+                case state_str_hexdecimal:
+                    lexme += c;
+                    if (isSchar(c)) {
+                        state = DFA_STATE.state_str;
+                    } else if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+
+                    } else state = DFA_STATE.state_str_fin;
+
+                    break;
+                case state_str_fin:
+                    strTokens += genToken(iTknNum, lexme, "StringLiteral");
+
+                    //the generic operation when every thing is done
+                    iTknNum++;
+                    state = DFA_STATE.DFA_STATE_INITIAL;
+                    keep = true;
+                    break;
+                //Error process
                 default:
                     System.out.println("[ERROR]Scanner:line " + lIndex + ", column=" + cIndex + ", unreachable state!");
                     break;
