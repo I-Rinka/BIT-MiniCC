@@ -210,15 +210,47 @@ public class MyScanner implements IMiniCCScanner {
                         state = 11;
                     } else if (c == 'l' || c == 'L') {
                         state = 9;
+                    } else if (c == 'p' || c == 'P') {
+                        state = 18;
+                    } else if (c == '.') {
+                        state = 16;
                     } else state = -1;
+                    break;
                 case 15:
                     state = -1;
+                    break;
+                case 16:
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                        state = 17;
+                    } else state = -1;
+                    break;
+                case 17:
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                        state = 17;
+                    } else if (c == 'p' || c == 'P') {
+                        state = 18;
+                    } else state = -1;
+                    break;
+                case 18:
+                    if (c == '-' || c == '+') {
+                        state = 19;
+                    } else if (c >= '0' && c <= '9') {
+                        state = 20;
+                    } else state = -1;
+                    break;
+                case 20:
+                    if (c >= '0' && c <= '9') {
+                        state = 20;
+                    }
+                    if (c == 'f' || c == 'F' || c == 'l' || c == 'L') {
+                        state = 15;
+                    } else state = -1;
                     break;
                 default:
                     break;
             }
         }
-        if (state == 6 || state == 15) {
+        if (state == 6 || state == 15 || state == 20 || state == 18) {
             return 1;
         } else if (state == 1 || state == 2 || state == 4 || (state >= 9 && state <= 14)) {
             return 0;
@@ -342,7 +374,7 @@ public class MyScanner implements IMiniCCScanner {
 
 
                     //todo: add number support
-                    if (isAlphaOrDigit(c)||c=='.'||c=='_') {
+                    if (isAlphaOrDigit(c) || c == '.' || c == '_') {
                         //remember!
                         if (c == 'L' || c == 'u' || c == 'U') {
                             is_state_str_pre = true;
@@ -431,7 +463,7 @@ public class MyScanner implements IMiniCCScanner {
                             state = DFA_STATE.state_pre_str_8;
                         } else state = DFA_STATE.DFA_STATE_UNKNW;
                         is_state_str_pre = false;
-                    } else if (isAlphaOrDigit(c)||c=='.'||c=='_') {
+                    } else if (isAlphaOrDigit(c) || c == '.' || c == '_') {
                         lexme = lexme + c;
                     } else {
                         if (this.keywordSet.contains(lexme)) {
