@@ -169,7 +169,7 @@ public class MyScanner implements IMiniCCScanner {
                 case 7:
                     if (c >= '0' && c <= '9') {
                         state = 6;
-                    } else if (c == '-') {
+                    } else if (c == '-' || c == '+') {
                         state = 8;
                     } else state = -1;
                     break;
@@ -324,7 +324,7 @@ public class MyScanner implements IMiniCCScanner {
             }
 
             keep = false;
-            is_state_str_pre = false;
+
 
             switch (state) {
                 case DFA_STATE_INITIAL:
@@ -342,7 +342,7 @@ public class MyScanner implements IMiniCCScanner {
 
 
                     //todo: add number support
-                    if (isAlphaOrDigit(c)) {
+                    if (isAlphaOrDigit(c)||c=='.'||c=='_') {
                         //remember!
                         if (c == 'L' || c == 'u' || c == 'U') {
                             is_state_str_pre = true;
@@ -431,7 +431,7 @@ public class MyScanner implements IMiniCCScanner {
                             state = DFA_STATE.state_pre_str_8;
                         } else state = DFA_STATE.DFA_STATE_UNKNW;
                         is_state_str_pre = false;
-                    } else if (isAlphaOrDigit(c)) {
+                    } else if (isAlphaOrDigit(c)||c=='.'||c=='_') {
                         lexme = lexme + c;
                     } else {
                         if (this.keywordSet.contains(lexme)) {
@@ -533,7 +533,7 @@ public class MyScanner implements IMiniCCScanner {
                     if (c == '\"') {
                         state = DFA_STATE.state_str;
                     } else state = DFA_STATE.DFA_STATE_UNKNW;
-
+                    break;
 
                 case state_str:
                     lexme += c;
