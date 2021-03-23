@@ -37,31 +37,6 @@ enum DFA_STATE {
 
 }
 
-enum CONSTANT_STATE {
-    initial,
-    constant_digital_zero,
-    int_octa,
-    int_hex,
-    int_decimal,
-    int_nonzero,
-    int_unsigned_suffix,
-    int_long_suffix,
-    float_hex_dot,
-    const_digit_dot,
-    float_hex,
-    float_dot_1,
-    float_digit_fin,
-    float_exponent_part,
-    float_exponent_part_digit_sequence,
-    float_exponent_part_sign,
-    float_suffix,
-    float_binary_exponent,
-    float_binary_exponent_sign,
-    float_binary_exponent_fin,
-    undefine_state
-}
-
-
 public class MyScanner implements IMiniCCScanner {
 
     private int lIndex = 0;
@@ -126,121 +101,129 @@ public class MyScanner implements IMiniCCScanner {
 
     //todo:constant DFA
     private int analyzeConstType(String lexme) {
-        //IntegerConstant 0
-        //FloatingConstant 1
-        CONSTANT_STATE state = CONSTANT_STATE.initial;
+        int state = 0;
         for (int i = 0; i < lexme.length(); i++) {
             char c = lexme.charAt(i);
-            boolean is_fin = false;
-            if (i == lexme.length() - 1) {
-                is_fin = true;
-            }
             //todo:fix bugs of decimal interger
             switch (state) {
-                case initial:
+                case 0:
                     if (c == '0') {
-                        state = CONSTANT_STATE.constant_digital_zero;
+                        state = 1;
                     } else if (c >= '1' && c <= '9') {
-                        state = CONSTANT_STATE.int_nonzero;
+                        state = 2;
                     } else if (c == '.') {
-                        state = CONSTANT_STATE.const_digit_dot;
-                    }
+                        state = 5;
+                    } else state = -1;
                     break;
-                case constant_digital_zero:
-                    if (c >= '0' && c <= '7') {
-                        state = CONSTANT_STATE.int_octa;
+                case 1:
+                    if (c == 'u' || c == 'U') {
+                        state = 11;
+                    } else if (c == 'l' || c == 'L') {
+                        state = 9;
                     } else if (c == 'x' || c == 'X') {
-                        state = CONSTANT_STATE.int_hex;
-                    }
-                    break;
-                case int_octa:
-                    if (c >= '0' && c <= '7') {
-                    } else if (c == 'u' || c == 'U') {
-                        state = CONSTANT_STATE.int_unsigned_suffix;
-                    } else if (c == 'l' || c == 'L') {
-                        state = CONSTANT_STATE.int_long_suffix;
-                    }
-                    if (is_fin) {
-                        return 0;
-                    }
-                case int_hex:
-                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-
-                    } else if (c == 'u' || c == 'U') {
-                        state = CONSTANT_STATE.int_unsigned_suffix;
-                    } else if (c == 'l' || c == 'L') {
-                        state = CONSTANT_STATE.int_long_suffix;
-                    }
-                    if (is_fin) {
-                        return 0;
-                    }
-                    break;
-                case int_nonzero:
-                    if (c >= '0' && c <= '9') {
-                        state = CONSTANT_STATE.int_decimal;
-                    }
-                    break;
-                case int_long_suffix:
-                    if (c == 'l' || c == 'L') {
-
-                    } else if (c == 'u' || c == 'U') {
-                        state = CONSTANT_STATE.int_unsigned_suffix;
-                    }
-                    if (is_fin) {
-                        return 0;
-                    }
-                    break;
-
-                case int_unsigned_suffix:
-                    if (c == 'l' || c == 'L') {
-                        state = CONSTANT_STATE.int_long_suffix;
-                    } else if (c == 'u' || c == 'U') {
-                    }
-                    if (is_fin) {
-                        return 0;
-                    }
-                    break;
-                case int_decimal:
-                    if (c >= '0' && c <= '9') {
-
-                    } else if (c == 'u' || c == 'U') {
-                        state = CONSTANT_STATE.int_unsigned_suffix;
-                    } else if (c == 'l' || c == 'L') {
-                        state = CONSTANT_STATE.int_long_suffix;
-                    } else if (c == 'e' || c == 'E') {
-                        state = CONSTANT_STATE.float_exponent_part;
+                        state = 3;
+                    } else if (c >= '0' && c <= '7') {
+                        state = 4;
                     } else if (c == '.') {
-                        state = CONSTANT_STATE.float_dot_1;
-                    }
-                    if (is_fin) {
-                        return 0;
-                    }
+                        state = 5;
+                    } else state = -1;
                     break;
-                //todo:fix float DFA
-//                case const_digit_dot:
-//                    if (c >= '0' && c <= '9') {
-//                        state = CONSTANT_STATE.float_digit_fin;
-//                    }
-//                    break;
-//                case float_digit_fin:
-//                    if (c >= '0' && c <= '9') {
-//                        state = CONSTANT_STATE.float_digit_fin;
-//                    } else if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-//                        state = CONSTANT_STATE.float_hex;
-//                    } else if (c == 'e' || c == 'E') {
-//                        state = CONSTANT_STATE.float_exponent_part;
-//                    }
-//                    if (is_fin) {
-//                        return 0;
-//                    }
-
-//                    break;
-
+                case 2:
+                    if (c >= '0' && c <= '9') {
+                        state = 2;
+                    } else if (c == 'u' || c == 'U') {
+                        state = 11;
+                    } else if (c == 'l' || c == 'L') {
+                        state = 9;
+                    } else if (c == '.') {
+                        state = 5;
+                    } else state = -1;
+                    break;
+                case 3:
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                        state = 14;
+                    } else state = -1;
+                    break;
+                case 4:
+                    if (c >= '0' && c <= '7') {
+                        state = 4;
+                    } else if (c == 'u' || c == 'U') {
+                        state = 11;
+                    } else if (c == 'l' || c == 'L') {
+                        state = 9;
+                    } else state = -1;
+                    break;
+                case 5:
+                    if (c >= '0' && c <= '9') {
+                        state = 6;
+                    } else state = -1;
+                case 6:
+                    if (c >= '0' && c <= '9') {
+                        state = 6;
+                    } else if (c == 'e' || c == 'E') {
+                        state = 7;
+                    } else if (c == 'f' || c == 'F' || c == 'l' || c == 'L') {
+                        state = 15;
+                    } else state = -1;
+                    break;
+                case 7:
+                    if (c >= '0' && c <= '9') {
+                        state = 6;
+                    } else if (c == '-') {
+                        state = 8;
+                    } else state = -1;
+                    break;
+                case 8:
+                    if (c >= '0' && c <= '9') {
+                        state = 6;
+                    } else state = -1;
+                    break;
+                case 9:
+                    if (c == 'u' || c == 'U') {
+                        state = 12;
+                    } else if (c == 'l' || c == 'L') {
+                        state = 10;
+                    } else state = -1;
+                    break;
+                case 10:
+                    if (c == 'u' || c == 'U') {
+                        state = 13;
+                    } else state = -1;
+                    break;
+                case 11:
+                    if (c == 'l' || c == 'L') {
+                        state = 12;
+                    } else state = -1;
+                    break;
+                case 12:
+                    if (c == 'l' || c == 'L') {
+                        state = 13;
+                    } else state = -1;
+                    break;
+                case 13:
+                    state = -1;
+                    break;
+                case 14:
+                    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                        state = 14;
+                    } else if (c == 'u' || c == 'U') {
+                        state = 11;
+                    } else if (c == 'l' || c == 'L') {
+                        state = 9;
+                    } else state = -1;
+                case 15:
+                    state = -1;
+                    break;
                 default:
                     break;
             }
         }
-        return -1;
+        if (state == 6 || state == 15) {
+            return 1;
+        } else if (state == 1 || state == 2 || state == 4 || (state >= 9 && state <= 14)) {
+            return 0;
+        } else
+            return -1;
     }
 
     char getNextChar() {
