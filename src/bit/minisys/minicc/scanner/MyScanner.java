@@ -1,13 +1,13 @@
 package bit.minisys.minicc.scanner;
 
-        import java.util.ArrayList;
-        import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashSet;
 
-        import bit.minisys.minicc.MiniCCCfg;
-        import bit.minisys.minicc.internal.util.MiniCCUtil;
+import bit.minisys.minicc.MiniCCCfg;
+import bit.minisys.minicc.internal.util.MiniCCUtil;
 
 
-enum DFA_STATE{
+enum DFA_STATE {
     DFA_STATE_INITIAL,
     DFA_STATE_ID_0,
     DFA_STATE_ID_1,
@@ -31,30 +31,75 @@ public class MyScanner implements IMiniCCScanner {
 
     private HashSet<String> keywordSet;
 
-    public MyScanner(){
+    //todo: add key words here!
+    public MyScanner() {
         this.keywordSet = new HashSet<String>();
+        this.keywordSet.add("auto");
+        this.keywordSet.add("break");
+        this.keywordSet.add("case");
+        this.keywordSet.add("char");
+        this.keywordSet.add("const");
+        this.keywordSet.add("continue");
+        this.keywordSet.add("default");
+        this.keywordSet.add("do");
+        this.keywordSet.add("double");
+        this.keywordSet.add("else");
+        this.keywordSet.add("enum");
+        this.keywordSet.add("extern");
+        this.keywordSet.add("float");
+        this.keywordSet.add("for");
+
+        this.keywordSet.add("∗");
+        this.keywordSet.add("if");
+        this.keywordSet.add("inline");
         this.keywordSet.add("int");
+        this.keywordSet.add("long");
+        this.keywordSet.add("register");
+        this.keywordSet.add("restrict");
         this.keywordSet.add("return");
+        this.keywordSet.add("short");
+        this.keywordSet.add("signed");
+        this.keywordSet.add("sizeof");
+        this.keywordSet.add("static");
+        this.keywordSet.add("struct");
+        this.keywordSet.add("switch");
+        this.keywordSet.add("typedef");
+        this.keywordSet.add("union");
+
+        this.keywordSet.add("unsigned");
+        this.keywordSet.add("void");
+        this.keywordSet.add("volatile");
+        this.keywordSet.add("while");
+        this.keywordSet.add("_Alignas");
+        this.keywordSet.add("_Alignof");
+        this.keywordSet.add("_Atomic");
+        this.keywordSet.add("_Bool");
+        this.keywordSet.add("_Complex");
+        this.keywordSet.add("_Generic");
+        this.keywordSet.add("_Imaginary");
+        this.keywordSet.add("_Noreturn");
+        this.keywordSet.add("_Static_assert");
+        this.keywordSet.add("_Thread_local");
     }
 
-    private char getNextChar() {
+    char getNextChar() {
         char c = Character.MAX_VALUE;
-        while(true) {
-            if(lIndex < this.srcLines.size()) {
+        while (true) {
+            if (lIndex < this.srcLines.size()) {
                 String line = this.srcLines.get(lIndex);
-                if(cIndex < line.length()) {
+                if (cIndex < line.length()) {
                     c = line.charAt(cIndex);
                     cIndex++;
                     break;
-                }else {
+                } else {
                     lIndex++;
                     cIndex = 0;
                 }
-            }else {
+            } else {
                 break;
             }
         }
-        if(c == '\u001a') {
+        if (c == '\u001a') {
             c = Character.MAX_VALUE;
         }
         return c;
@@ -75,9 +120,11 @@ public class MyScanner implements IMiniCCScanner {
     private String genToken(int num, String lexme, String type) {
         return genToken(num, lexme, type, this.cIndex - 1, this.lIndex);
     }
+
     private String genToken2(int num, String lexme, String type) {
         return genToken(num, lexme, type, this.cIndex - 2, this.lIndex);
     }
+
     //token:[@9,41:42='10',<IntegerConstant>,5:2]
     //[@token_number,start:end='word',<type>,line_number:col_num(ignore start up white pace)]
     private String genToken(int num, String lexme, String type, int cIndex, int lIndex) {
@@ -98,70 +145,70 @@ public class MyScanner implements IMiniCCScanner {
 
         this.srcLines = MiniCCUtil.readFile(iFile);
 
-        DFA_STATE state = DFA_STATE.DFA_STATE_INITIAL;		//FA state
-        String lexme 	= "";		//token lexme
-        char c 			= ' ';		//next char
-        boolean keep 	= false;	//keep current char
-        boolean end 	= false;
+        DFA_STATE state = DFA_STATE.DFA_STATE_INITIAL;        //FA state
+        String lexme = "";        //token lexme
+        char c = ' ';        //next char
+        boolean keep = false;    //keep current char
+        boolean end = false;
 
-        while(!end) {				//scanning loop
-            if(!keep) {
+        while (!end) {                //scanning loop
+            if (!keep) {
                 c = getNextChar();
             }
 
             keep = false;
 
-            switch(state) {
+            switch (state) {
                 case DFA_STATE_INITIAL:
                     lexme = "";
 
-                    if(isAlpha(c)) {
+                    //todo: add number support
+                    if (isAlphaOrDigit(c)) {
                         state = DFA_STATE.DFA_STATE_ID_0;
                         lexme = lexme + c;
-                    }else if(c == '+') {
+                    } else if (c == '+') {
                         state = DFA_STATE.DFA_STATE_ADD_0;
                         lexme = lexme + c;
-                    }else if(c == '-') {
+                    } else if (c == '-') {
                         strTokens += genToken(iTknNum, "-", "'-'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if(c == '{') {
+                    } else if (c == '{') {
                         strTokens += genToken(iTknNum, "{", "'{'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if(c == '}') {
+                    } else if (c == '}') {
                         strTokens += genToken(iTknNum, "}", "'}'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if(c == '(') {
+                    } else if (c == '(') {
                         strTokens += genToken(iTknNum, "(", "'('");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if(c == ')') {
+                    } else if (c == ')') {
                         strTokens += genToken(iTknNum, ")", "')'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if(c == ';') {
+                    } else if (c == ';') {
                         strTokens += genToken(iTknNum, ";", "';'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }
-                    else if(c == ',') {
+                    } else if (c == ',') {
                         strTokens += genToken(iTknNum, ",", "','");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if(Character.isSpace(c)) {
+                    } else if (Character.isSpace(c)) {
 
-                    }else if(c == Character.MAX_VALUE) {
+                    } else if (c == Character.MAX_VALUE) {
                         cIndex = 5;
                         strTokens += genToken(iTknNum, "<EOF>", "EOF");
                         end = true;
                     }
                     break;
                 case DFA_STATE_ADD_0:
-                    if(c == '+') {
+                    if (c == '+') {
                         //TODO:++
-                    }else {
+                    } else {
                         strTokens += genToken2(iTknNum, "+", "'+'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
@@ -170,12 +217,16 @@ public class MyScanner implements IMiniCCScanner {
                     state = DFA_STATE.DFA_STATE_INITIAL;
                     break;
                 case DFA_STATE_ID_0:
-                    if(isAlphaOrDigit(c)) {
+                    // TODO: judge c; then use number/./
+                    if (isAlphaOrDigit(c)) {
                         lexme = lexme + c;
-                    }else {
-                        if(this.keywordSet.contains(lexme)) {
+                    } else {
+                        if (this.keywordSet.contains(lexme)) {
+                            //key word have done here
                             strTokens += genToken2(iTknNum, lexme, "'" + lexme + "'");
-                        }else {
+                        } else {
+                            //and the whole char have stored in the lexme, just scan it and indentify whether this is string/const
+                            //todo:scan the leme and modify the "Identifier to the true type"
                             strTokens += genToken2(iTknNum, lexme, "Identifier");
                         }
                         iTknNum++;

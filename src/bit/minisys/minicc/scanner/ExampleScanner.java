@@ -145,7 +145,7 @@ public class ExampleScanner implements IMiniCCScanner {
 					iTknNum++;
 					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}
-				else if(c == ',') {
+		else if(c == ',') {
 					strTokens += genToken(iTknNum, ",", "','");
 					iTknNum++;
 					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;

@@ -3,8 +3,8 @@
   <phases>
     <phase>
       <phase skip="true" type="java" path="" name="preprocess" />
-<!--      <phase skip="false" type="java" path="bit.minisys.minicc.scanner.ExampleScanner" name="scan" />-->
-            <phase skip="false" type="java" path="" name="scan" />
+      <phase skip="false" type="java" path="bit.minisys.minicc.scanner.MyScanner" name="scan" />
+<!--            <phase skip="false" type="java" path="" name="scan" />-->
       <phase skip="true" type="java" path="" name="parse" />
       <phase skip="true" type="java" path="" name="semantic" />
       <phase skip="true" type="java" path="" name="icgen" />
@@ -14,4 +14,3 @@
     </phase>
   </phases>
 </config>
-
