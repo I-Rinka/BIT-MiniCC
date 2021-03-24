@@ -67,6 +67,7 @@ public class MyScanner implements IMiniCCScanner {
         this.operatorSet.add("=");
         this.operatorSet.add("==");
         this.operatorSet.add("!=");
+        this.operatorSet.add("!");
         this.operatorSet.add("&&");
         this.operatorSet.add("&");
         this.operatorSet.add("||");
@@ -81,6 +82,19 @@ public class MyScanner implements IMiniCCScanner {
         this.operatorSet.add("-=");
         this.operatorSet.add("<<=");
         this.operatorSet.add(">>=");
+        this.operatorSet.add("<:");
+        this.operatorSet.add(":>");
+        this.operatorSet.add("%>");
+        this.operatorSet.add("<%");
+        this.operatorSet.add(":");
+        this.operatorSet.add("%:");
+        this.operatorSet.add("^");
+        this.operatorSet.add("^=");
+        this.operatorSet.add("|=");
+        this.operatorSet.add("&=");
+        this.operatorSet.add("#");
+        this.operatorSet.add("##");
+        this.operatorSet.add("->");
     }
 
     //todo: add key words here!
@@ -471,13 +485,27 @@ public class MyScanner implements IMiniCCScanner {
 //
                     else if (isMultipleOperatorChar(c)) {
                         lexme += c;
-                        state= DFA_STATE.state_multiple_char;
-
-                    } else if (c == '{') {
+                        state = DFA_STATE.state_multiple_char;
+                    }else if (c == '{') {
                         strTokens += genToken(iTknNum, "{", "'{'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    } else if (c == '}') {
+                    }else if (c == '?') {
+                        strTokens += genToken(iTknNum, "?", "'?'");
+                        iTknNum++;
+                        state = DFA_STATE.DFA_STATE_INITIAL;
+                    }
+                    else if (c == '[') {
+                        strTokens += genToken(iTknNum, "[", "'['");
+                        iTknNum++;
+                        state = DFA_STATE.DFA_STATE_INITIAL;
+                    }
+                    else if (c == ']') {
+                        strTokens += genToken(iTknNum, "]", "']'");
+                        iTknNum++;
+                        state = DFA_STATE.DFA_STATE_INITIAL;
+                    }
+                    else if (c == '}') {
                         strTokens += genToken(iTknNum, "}", "'}'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
