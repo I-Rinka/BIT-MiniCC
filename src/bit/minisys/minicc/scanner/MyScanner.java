@@ -366,7 +366,7 @@ public class MyScanner implements IMiniCCScanner {
     }
 
     private boolean isMultipleOperatorChar(char c) {
-        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '&' || c == '|' || c == '#' || c == '%' || c == ':' || c == '!') {
+        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '&' || c == '|' || c == '#' || c == '%' || c == ':' || c == '!'|| c == '^') {
             return true;
         }
         return false;
@@ -466,24 +466,6 @@ public class MyScanner implements IMiniCCScanner {
                         lexme += c;
                     }
 
-                    //teacher's code
-//                    else if (c == '+') {
-//                        state = DFA_STATE.DFA_STATE_ADD_0;
-//                        lexme = lexme + c;
-//                    } else if (c == '-') {
-//                        strTokens += genToken(iTknNum, "-", "'-'");
-//                        iTknNum++;
-//                        state = DFA_STATE.DFA_STATE_INITIAL;
-//                    } else if (c == '!') {
-//                        strTokens += genToken(iTknNum, "!", "'!'");
-//                        iTknNum++;
-//                        state = DFA_STATE.DFA_STATE_INITIAL;
-//                    } else if (c == '/') {
-//                        strTokens += genToken(iTknNum, "/", "'/'");
-//                        iTknNum++;
-//                        state = DFA_STATE.DFA_STATE_INITIAL;
-//                    }
-//
                     else if (isMultipleOperatorChar(c)) {
                         lexme += c;
                         state = DFA_STATE.state_multiple_char;
@@ -597,7 +579,7 @@ public class MyScanner implements IMiniCCScanner {
                                     ) {
                                         strTokens += genToken2(iTknNum, lexme.substring(0, lexme.indexOf(".")), "Identifier");
                                         lexme = lexme.substring(lexme.indexOf(".")+1, lexme.length());
-                                        strTokens += genToken2(iTknNum, ".", ".");
+                                        strTokens += genToken2(iTknNum, ".", "'.'");
                                     }
                                     strTokens += genToken2(iTknNum, lexme, "Identifier");
                                 }
