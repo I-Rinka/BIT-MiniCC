@@ -299,6 +299,7 @@ public class MyScanner implements IMiniCCScanner {
                     if (c >= '0' && c <= '9') {
                         state = 20;
                     } else state = -1;
+                    break;
                 case 20:
                     if (c >= '0' && c <= '9') {
                         state = 20;
@@ -591,13 +592,13 @@ public class MyScanner implements IMiniCCScanner {
                                     strTokens += genToken2(iTknNum, lexme, "FloatingConstant");
 //todo:analyze identifier
                                 } else {
-//                                    while (
-//                                            lexme.contains(".")
-//                                    ) {
-//                                        strTokens += genToken2(iTknNum, lexme.substring(0, lexme.indexOf(".")), "Identifier");
-//                                        lexme = lexme.substring(lexme.indexOf(".")+1, lexme.length());
-//                                        strTokens += genToken2(iTknNum, ".", ".");
-//                                    }
+                                    while (
+                                            lexme.contains(".")
+                                    ) {
+                                        strTokens += genToken2(iTknNum, lexme.substring(0, lexme.indexOf(".")), "Identifier");
+                                        lexme = lexme.substring(lexme.indexOf(".")+1, lexme.length());
+                                        strTokens += genToken2(iTknNum, ".", ".");
+                                    }
                                     strTokens += genToken2(iTknNum, lexme, "Identifier");
                                 }
                             }
