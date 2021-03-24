@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import bit.minisys.minicc.MiniCCCfg;
 import bit.minisys.minicc.internal.util.MiniCCUtil;
+import org.antlr.v4.runtime.dfa.DFAState;
 
 
 enum DFA_STATE {
@@ -19,6 +20,7 @@ enum DFA_STATE {
     DFA_STATE_ADD_1,
     DFA_STATE_SM,
 
+
     //state_pre_str can be replaced when implements in code
     state_char_start,
     state_char_single,
@@ -32,6 +34,7 @@ enum DFA_STATE {
     state_str_fin,
     state_str_hexdecimal,
     state_str_octa_digit,
+    state_multiple_char,
 
     DFA_STATE_UNKNW
 
@@ -46,9 +49,44 @@ public class MyScanner implements IMiniCCScanner {
 
     private HashSet<String> keywordSet;
 
+    private HashSet<String> operatorSet;
+
+    private void multipleOperatorAdd() {
+        this.operatorSet = new HashSet<String>();
+
+        this.operatorSet.add("++");
+        this.operatorSet.add("+");
+        this.operatorSet.add("--");
+        this.operatorSet.add("-");
+        this.operatorSet.add("<<");
+        this.operatorSet.add("<");
+        this.operatorSet.add(">>");
+        this.operatorSet.add(">");
+        this.operatorSet.add(">=");
+        this.operatorSet.add("<=");
+        this.operatorSet.add("=");
+        this.operatorSet.add("==");
+        this.operatorSet.add("!=");
+        this.operatorSet.add("&&");
+        this.operatorSet.add("&");
+        this.operatorSet.add("||");
+        this.operatorSet.add("|");
+        this.operatorSet.add("*=");
+        this.operatorSet.add("*");
+        this.operatorSet.add("/=");
+        this.operatorSet.add("/");
+        this.operatorSet.add("%=");
+        this.operatorSet.add("%");
+        this.operatorSet.add("+=");
+        this.operatorSet.add("-=");
+        this.operatorSet.add("<<=");
+        this.operatorSet.add(">>=");
+    }
 
     //todo: add key words here!
     public MyScanner() {
+        this.multipleOperatorAdd();
+
         this.keywordSet = new HashSet<String>();
         this.keywordSet.add("auto");
         this.keywordSet.add("break");
@@ -312,6 +350,13 @@ public class MyScanner implements IMiniCCScanner {
         return Character.isLetterOrDigit(c);
     }
 
+    private boolean isMultipleOperatorChar(char c) {
+        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '&' || c == '|' || c == '#' || c == '%' || c == ':' || c == '!') {
+            return true;
+        }
+        return false;
+    }
+
     private String genToken(int num, String lexme, String type) {
         return genToken(num, lexme, type, this.cIndex - 1, this.lIndex);
     }
@@ -385,7 +430,6 @@ public class MyScanner implements IMiniCCScanner {
                         }
                     }
 
-
                     //todo: add number support
                     if (isAlphaOrDigit(c) || c == '.' || c == '_') {
                         //remember!
@@ -408,17 +452,27 @@ public class MyScanner implements IMiniCCScanner {
                     }
 
                     //teacher's code
-                    else if (c == '+') {
-                        state = DFA_STATE.DFA_STATE_ADD_0;
-                        lexme = lexme + c;
-                    } else if (c == '-') {
-                        strTokens += genToken(iTknNum, "-", "'-'");
-                        iTknNum++;
-                        state = DFA_STATE.DFA_STATE_INITIAL;
-                    } else if (c == '/') {
-                        strTokens += genToken(iTknNum, "/", "'/'");
-                        iTknNum++;
-                        state = DFA_STATE.DFA_STATE_INITIAL;
+//                    else if (c == '+') {
+//                        state = DFA_STATE.DFA_STATE_ADD_0;
+//                        lexme = lexme + c;
+//                    } else if (c == '-') {
+//                        strTokens += genToken(iTknNum, "-", "'-'");
+//                        iTknNum++;
+//                        state = DFA_STATE.DFA_STATE_INITIAL;
+//                    } else if (c == '!') {
+//                        strTokens += genToken(iTknNum, "!", "'!'");
+//                        iTknNum++;
+//                        state = DFA_STATE.DFA_STATE_INITIAL;
+//                    } else if (c == '/') {
+//                        strTokens += genToken(iTknNum, "/", "'/'");
+//                        iTknNum++;
+//                        state = DFA_STATE.DFA_STATE_INITIAL;
+//                    }
+//
+                    else if (isMultipleOperatorChar(c)) {
+                        lexme += c;
+                        state= DFA_STATE.state_multiple_char;
+
                     } else if (c == '{') {
                         strTokens += genToken(iTknNum, "{", "'{'");
                         iTknNum++;
@@ -456,6 +510,9 @@ public class MyScanner implements IMiniCCScanner {
                 case DFA_STATE_ADD_0:
                     if (c == '+') {
                         //TODO:++
+                        strTokens += genToken2(iTknNum, "++", "'++'");
+                        iTknNum++;
+                        state = DFA_STATE.DFA_STATE_INITIAL;
                     } else {
                         strTokens += genToken2(iTknNum, "+", "'+'");
                         iTknNum++;
@@ -486,7 +543,6 @@ public class MyScanner implements IMiniCCScanner {
                                     lexme += tempc;
                                 } else cIndex--;
                             }
-
                         }
 
                     } else {
@@ -496,8 +552,6 @@ public class MyScanner implements IMiniCCScanner {
                         } else {
                             //and the whole char have stored in the lexme, just scan it and indentify whether this is string/const
                             //number can be done here but string cannot
-                            //todo:scan the lexme and modify the "Identifier to the true type"
-                            //todo:use a 'lock' to let the E/e+ p/P- go into this area
                             //0:int 1:float -1:no
 
                             if (lexme.length() > 0) {
@@ -522,6 +576,22 @@ public class MyScanner implements IMiniCCScanner {
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
                         keep = true;
+                    }
+
+                    break;
+                case state_multiple_char:
+                    if (isMultipleOperatorChar(c)) {
+                        lexme += c;
+                    } else {
+                        if (this.operatorSet.contains(lexme)) {
+                            //key word have done here
+                            strTokens += genToken2(iTknNum, lexme, "'" + lexme + "'");
+
+                            iTknNum++;
+                        }
+                        state = DFA_STATE.DFA_STATE_INITIAL;
+                        keep = true;
+                        break;
                     }
 
                     break;
