@@ -486,26 +486,23 @@ public class MyScanner implements IMiniCCScanner {
                     else if (isMultipleOperatorChar(c)) {
                         lexme += c;
                         state = DFA_STATE.state_multiple_char;
-                    }else if (c == '{') {
+                    } else if (c == '{') {
                         strTokens += genToken(iTknNum, "{", "'{'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }else if (c == '?') {
+                    } else if (c == '?') {
                         strTokens += genToken(iTknNum, "?", "'?'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }
-                    else if (c == '[') {
+                    } else if (c == '[') {
                         strTokens += genToken(iTknNum, "[", "'['");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }
-                    else if (c == ']') {
+                    } else if (c == ']') {
                         strTokens += genToken(iTknNum, "]", "']'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
-                    }
-                    else if (c == '}') {
+                    } else if (c == '}') {
                         strTokens += genToken(iTknNum, "}", "'}'");
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
@@ -592,14 +589,18 @@ public class MyScanner implements IMiniCCScanner {
 
                                 } else if (ans == 1) {
                                     strTokens += genToken2(iTknNum, lexme, "FloatingConstant");
-
+//todo:analyze identifier
                                 } else {
+//                                    while (
+//                                            lexme.contains(".")
+//                                    ) {
+//                                        strTokens += genToken2(iTknNum, lexme.substring(0, lexme.indexOf(".")), "Identifier");
+//                                        lexme = lexme.substring(lexme.indexOf(".")+1, lexme.length());
+//                                        strTokens += genToken2(iTknNum, ".", ".");
+//                                    }
                                     strTokens += genToken2(iTknNum, lexme, "Identifier");
                                 }
-                            } else {
-                                strTokens += genToken2(iTknNum, lexme, "Identifier");
                             }
-
                         }
                         iTknNum++;
                         state = DFA_STATE.DFA_STATE_INITIAL;
