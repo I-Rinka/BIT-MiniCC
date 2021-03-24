@@ -102,6 +102,9 @@ public class MyScanner implements IMiniCCScanner {
     //todo:constant DFA
     private int analyzeConstType(String lexme) {
         int state = 0;
+
+        //todo:how can a identifier get the + and -
+
         for (int i = 0; i < lexme.length(); i++) {
             char c = lexme.charAt(i);
             //todo:fix bugs of decimal interger
@@ -142,6 +145,8 @@ public class MyScanner implements IMiniCCScanner {
                 case 3:
                     if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
                         state = 14;
+                    } else if (c == '.') {
+                        state = 16;
                     } else state = -1;
                     break;
                 case 4:
@@ -238,6 +243,10 @@ public class MyScanner implements IMiniCCScanner {
                         state = 20;
                     } else state = -1;
                     break;
+                case 19:
+                    if (c >= '0' && c <= '9') {
+                        state = 20;
+                    } else state = -1;
                 case 20:
                     if (c >= '0' && c <= '9') {
                         state = 20;
@@ -250,7 +259,11 @@ public class MyScanner implements IMiniCCScanner {
                     break;
             }
         }
-        if (state == 6 || state == 15 || state == 20 || state == 18) {
+        if (state == 5 || state == 6 || state == 15 || state == 20 || state == 18) {
+            //note:if state==5 but some times it could not be the end point, such as only . present, so I choose to test whether there are num or alphabet exists
+            if (state == 5 && lexme.length() == 1) {
+                return -1;
+            }
             return 1;
         } else if (state == 1 || state == 2 || state == 4 || (state >= 9 && state <= 14)) {
             return 0;
@@ -459,12 +472,23 @@ public class MyScanner implements IMiniCCScanner {
                             state = DFA_STATE.state_str;
                         } else if (c == '\'') {
                             state = DFA_STATE.state_char_start;
+
                         } else if (c == '8') {
                             state = DFA_STATE.state_pre_str_8;
                         } else state = DFA_STATE.DFA_STATE_UNKNW;
                         is_state_str_pre = false;
                     } else if (isAlphaOrDigit(c) || c == '.' || c == '_') {
                         lexme = lexme + c;
+                        if (c == 'e' || c == 'E' || c == 'p' || c == 'P') {
+                            if (lexme.charAt(0) == '.' || (lexme.charAt(0) >= '0' && lexme.charAt(0) <= '9')) {
+                                char tempc = getNextChar();
+                                if (tempc == '+' || tempc == '-') {
+                                    lexme += tempc;
+                                } else cIndex--;
+                            }
+
+                        }
+
                     } else {
                         if (this.keywordSet.contains(lexme)) {
                             //key word have done here
@@ -473,6 +497,7 @@ public class MyScanner implements IMiniCCScanner {
                             //and the whole char have stored in the lexme, just scan it and indentify whether this is string/const
                             //number can be done here but string cannot
                             //todo:scan the lexme and modify the "Identifier to the true type"
+                            //todo:use a 'lock' to let the E/e+ p/P- go into this area
                             //0:int 1:float -1:no
 
                             if (lexme.length() > 0) {
