@@ -1,6 +1,8 @@
 # BIT-MiniCC
 BIT Mini C Compiler is a C compiler framework in Java for teaching.
 
+源代码是闭源的，而我们作业的内容是将闭源的部分使用自己的接口实现。
+
 # Building & Running
 ## Requirements
 * JDK 1.8 or higher
@@ -28,6 +30,7 @@ BIT Mini C Compiler is a C compiler framework in Java for teaching.
 * Weixing Ji (jwx@bit.edu.cn) 
 
 # Contributor
+* 2021: Rinka Wang (Me)
 * 2020: Hang Li
 * 2019: Chensheng Yu, Yueyan Zhao
 * 2017: Yu Hao
