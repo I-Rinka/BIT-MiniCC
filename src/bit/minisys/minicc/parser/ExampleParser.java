@@ -56,10 +56,10 @@ public class ExampleParser implements IMiniCCParser {
 		String oFile = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT;
 		String tFile = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_SCANNER_OUTPUT_EXT;
 		
-		tknList = loadTokens(tFile);
+		tknList = loadTokens(tFile);//没有token
 		tokenIndex = 0;
 
-		ASTNode root = program();
+		ASTNode root = program();//antlr的类
 		
 		
 		String[] dummyStrs = new String[16];
@@ -72,7 +72,7 @@ public class ExampleParser implements IMiniCCParser {
 		//TODO: write to file
 		
 		
-		return oFile;
+		return oFile;//
 	}
 	
 

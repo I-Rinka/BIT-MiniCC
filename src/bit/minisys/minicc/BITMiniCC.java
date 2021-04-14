@@ -7,12 +7,13 @@ public class BITMiniCC {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {		
-		if(args.length < 1){
-			usage();
-			return;
-		}
+		// if(args.length < 1){
+		// 	usage();
+		// 	return;
+		// }
 		
-		String file = args[0];
+		// String file = args[0];
+		String file="test\\nc_tests\\1_Fibonacci.c";
 		if(!file.endsWith(".c")){
 			System.out.println("Incorrect input file:" + file);
 			return;
