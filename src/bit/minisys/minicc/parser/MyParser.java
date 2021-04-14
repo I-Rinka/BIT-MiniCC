@@ -11,8 +11,8 @@ import bit.minisys.minicc.MiniCCCfg;
 import bit.minisys.minicc.internal.util.MiniCCUtil;
 
 public class MyParser implements IMiniCCParser {
-    //类里面搞个全局变量一样的东西来方便GAJS访问
-
+    //类里面搞个全局变量一样的东西来方便GAJS访问语法树
+    String code_source;
     private String GetAstJsonString() {
         return "hello";
     }
@@ -20,7 +20,7 @@ public class MyParser implements IMiniCCParser {
         System.out.println("Parser");
         System.out.println(iFile);
         String ast_json_file = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT;
-
+        
         // 显示语法树的功能砍掉
 
         // 往ast_json里面写东西 就不用json了，直接字符串走起
