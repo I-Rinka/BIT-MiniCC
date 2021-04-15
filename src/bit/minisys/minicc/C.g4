@@ -19,34 +19,34 @@ genericAssociation:
 	| 'default' ':' assignmentExpression;
 
 postfixExpression:
-	primaryExpression
-	| postfixExpression '[' expression ']'
-	| postfixExpression '(' argumentExpressionList? ')'
-	| postfixExpression '.' Identifier
-	| postfixExpression '->' Identifier
-	| postfixExpression '++'
-	| postfixExpression '--'
-	| '(' typeName ')' '{' initializerList '}'
-	| '(' typeName ')' '{' initializerList ',' '}';
+	primaryExpression									# postfixExpression_else
+	| postfixExpression '[' expression ']'				# ArrayAccess
+	| postfixExpression '(' argumentExpressionList? ')'	# FunctionCall
+	| postfixExpression '.' Identifier					# postfixExpression__
+	| postfixExpression '->' Identifier					# postfixExpression__
+	| postfixExpression '++'							# postfixExpression__
+	| postfixExpression '--'							# postfixExpression__
+	| '(' typeName ')' '{' initializerList '}'			# postfixExpression__
+	| '(' typeName ')' '{' initializerList ',' '}'		# postfixExpression__;
 
 argumentExpressionList:
 	assignmentExpression
 	| argumentExpressionList ',' assignmentExpression;
 
 unaryExpression:
-	postfixExpression
-	| '++' unaryExpression
-	| '--' unaryExpression
-	| unaryOperator castExpression
-	| 'sizeof' unaryExpression
-	| 'sizeof' '(' typeName ')';
+	postfixExpression				# UnaryExpression_else
+	| '++' unaryExpression			# UnaryExpression_
+	| '--' unaryExpression			# UnaryExpression_
+	| unaryOperator castExpression	# UnaryExpression_
+	| 'sizeof' unaryExpression		# UnaryTypeName_
+	| 'sizeof' '(' typeName ')'		# UnaryTypeName_;
 
 unaryOperator: '&' | '*' | '+' | '-' | '~' | '!';
 
 castExpression:
-	'(' typeName ')' castExpression
-	| unaryExpression
-	| DigitSequence; // for
+	'(' typeName ')' castExpression	# CastExpression_
+	| unaryExpression				# CastExpression_else
+	| DigitSequence					# CastExpression_else; // for 
 
 multiplicativeExpression:
 	castExpression
@@ -55,9 +55,12 @@ multiplicativeExpression:
 	| multiplicativeExpression '%' castExpression;
 
 additiveExpression:
-	multiplicativeExpression
-	| additiveExpression '+' multiplicativeExpression
-	| additiveExpression '-' multiplicativeExpression;
+	castExpression						# BinaryExpression_else
+	| castExpression '+' castExpression	# BinaryExpression
+	| castExpression '-' castExpression	# BinaryExpression
+	| castExpression '*' castExpression	# BinaryExpression
+	| castExpression '/' castExpression	# BinaryExpression
+	| castExpression '%' castExpression	# BinaryExpression;
 
 shiftExpression:
 	additiveExpression
@@ -102,9 +105,9 @@ conditionalExpression:
 	)?;
 
 assignmentExpression:
-	conditionalExpression
-	| unaryExpression assignmentOperator assignmentExpression
-	| DigitSequence;
+	conditionalExpression										# assignmentExpression1
+	| unaryExpression assignmentOperator assignmentExpression	# assignmentExpression2
+	| DigitSequence												# assignmentExpression_digit;
 
 assignmentOperator:
 	'='
@@ -200,14 +203,14 @@ typeQualifier: 'const';
 declarator: pointer? directDeclarator;
 
 directDeclarator:
-	Identifier
-	| '(' declarator ')'
-	| directDeclarator '[' typeQualifierList? assignmentExpression? ']'
-	| directDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'
-	| directDeclarator '[' typeQualifierList 'static' assignmentExpression ']'
-	| directDeclarator '[' typeQualifierList? '*' ']'
-	| directDeclarator '(' parameterTypeList ')'
-	| directDeclarator '(' identifierList? ')';
+	Identifier																	# variableDeclarator
+	| '(' declarator ')'														# variableDeclarator
+	| directDeclarator '[' typeQualifierList? assignmentExpression? ']'			# arrayDeclarator
+	| directDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'	# arrayDeclarator
+	| directDeclarator '[' typeQualifierList 'static' assignmentExpression ']'	# arrayDeclarator
+	| directDeclarator '[' typeQualifierList? '*' ']'							# arrayDeclarator
+	| directDeclarator '(' parameterTypeList ')'								# functionDeclarator
+	| directDeclarator '(' identifierList? ')'									# functionDeclarator;
 
 pointer:
 	'*' typeQualifierList?
@@ -229,7 +232,7 @@ parameterDeclaration:
 
 identifierList: Identifier | identifierList ',' Identifier;
 
-typeName: specifierQualifierList abstractDeclarator?;
+typeName: specifierQualifierList abstractDeclarator?; //typeName?
 
 abstractDeclarator: pointer | pointer? directAbstractDeclarator;
 
@@ -248,9 +251,9 @@ directAbstractDeclarator:
 typedefName: Identifier;
 
 initializer:
-	assignmentExpression
-	| '{' initializerList '}'
-	| '{' initializerList ',' '}';
+	assignmentExpression			# initializer_direct
+	| '{' initializerList '}'		# initializer_direct_
+	| '{' initializerList ',' '}'	# initializer_direct_;
 
 initializerList:
 	designation? initializer
@@ -305,10 +308,10 @@ forExpression:
 	| forExpression ',' assignmentExpression;
 
 jumpStatement:
-	'goto' Identifier ';'
-	| 'continue' ';'
-	| 'break' ';'
-	| 'return' expression? ';';
+	'goto' Identifier ';'		# GotoStatement
+	| 'continue' ';'			# ContinueStatement
+	| 'break' ';'				# BreakStatement
+	| 'return' expression? ';'	# ReturnStatement;
 
 compilationUnit: translationUnit? EOF;
 
