@@ -1,4 +1,6 @@
-// Generated from c:\Users\I_Rin\Documents\Code\BIT-MiniCC\src\bit\minisys\minicc\C.g4 by ANTLR 4.8
+package bit.minisys.minicc.parser;
+
+// Generated from .\C.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -184,6 +186,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_primaryExpression; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterPrimaryExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitPrimaryExpression(this);
+		}
 	}
 
 	public final PrimaryExpressionContext primaryExpression() throws RecognitionException {
@@ -280,6 +290,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_genericSelection; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterGenericSelection(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitGenericSelection(this);
+		}
 	}
 
 	public final GenericSelectionContext genericSelection() throws RecognitionException {
@@ -325,6 +343,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_genericAssocList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterGenericAssocList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitGenericAssocList(this);
+		}
 	}
 
 	public final GenericAssocListContext genericAssocList() throws RecognitionException {
@@ -397,6 +423,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_genericAssociation; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterGenericAssociation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitGenericAssociation(this);
+		}
 	}
 
 	public final GenericAssociationContext genericAssociation() throws RecognitionException {
@@ -477,6 +511,14 @@ public class CParser extends Parser {
 		}
 		public TerminalNode RightBracket() { return getToken(CParser.RightBracket, 0); }
 		public ArrayAccessContext(PostfixExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterArrayAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitArrayAccess(this);
+		}
 	}
 	public static class PostfixExpression__Context extends PostfixExpressionContext {
 		public TerminalNode LeftParen() { return getToken(CParser.LeftParen, 0); }
@@ -499,6 +541,14 @@ public class CParser extends Parser {
 		public TerminalNode PlusPlus() { return getToken(CParser.PlusPlus, 0); }
 		public TerminalNode MinusMinus() { return getToken(CParser.MinusMinus, 0); }
 		public PostfixExpression__Context(PostfixExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterPostfixExpression__(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitPostfixExpression__(this);
+		}
 	}
 	public static class FunctionCallContext extends PostfixExpressionContext {
 		public PostfixExpressionContext postfixExpression() {
@@ -510,12 +560,28 @@ public class CParser extends Parser {
 			return getRuleContext(ArgumentExpressionListContext.class,0);
 		}
 		public FunctionCallContext(PostfixExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterFunctionCall(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitFunctionCall(this);
+		}
 	}
 	public static class PostfixExpression_elseContext extends PostfixExpressionContext {
 		public PrimaryExpressionContext primaryExpression() {
 			return getRuleContext(PrimaryExpressionContext.class,0);
 		}
 		public PostfixExpression_elseContext(PostfixExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterPostfixExpression_else(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitPostfixExpression_else(this);
+		}
 	}
 
 	public final PostfixExpressionContext postfixExpression() throws RecognitionException {
@@ -712,6 +778,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_argumentExpressionList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterArgumentExpressionList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitArgumentExpressionList(this);
+		}
 	}
 
 	public final ArgumentExpressionListContext argumentExpressionList() throws RecognitionException {
@@ -793,6 +867,14 @@ public class CParser extends Parser {
 		}
 		public TerminalNode RightParen() { return getToken(CParser.RightParen, 0); }
 		public UnaryTypeName_Context(UnaryExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterUnaryTypeName_(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitUnaryTypeName_(this);
+		}
 	}
 	public static class UnaryExpression_Context extends UnaryExpressionContext {
 		public TerminalNode PlusPlus() { return getToken(CParser.PlusPlus, 0); }
@@ -807,12 +889,28 @@ public class CParser extends Parser {
 			return getRuleContext(CastExpressionContext.class,0);
 		}
 		public UnaryExpression_Context(UnaryExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterUnaryExpression_(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitUnaryExpression_(this);
+		}
 	}
 	public static class UnaryExpression_elseContext extends UnaryExpressionContext {
 		public PostfixExpressionContext postfixExpression() {
 			return getRuleContext(PostfixExpressionContext.class,0);
 		}
 		public UnaryExpression_elseContext(UnaryExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterUnaryExpression_else(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitUnaryExpression_else(this);
+		}
 	}
 
 	public final UnaryExpressionContext unaryExpression() throws RecognitionException {
@@ -908,6 +1006,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_unaryOperator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterUnaryOperator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitUnaryOperator(this);
+		}
 	}
 
 	public final UnaryOperatorContext unaryOperator() throws RecognitionException {
@@ -957,6 +1063,14 @@ public class CParser extends Parser {
 		}
 		public TerminalNode DigitSequence() { return getToken(CParser.DigitSequence, 0); }
 		public CastExpression_elseContext(CastExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterCastExpression_else(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitCastExpression_else(this);
+		}
 	}
 	public static class CastExpression_Context extends CastExpressionContext {
 		public TerminalNode LeftParen() { return getToken(CParser.LeftParen, 0); }
@@ -968,6 +1082,14 @@ public class CParser extends Parser {
 			return getRuleContext(CastExpressionContext.class,0);
 		}
 		public CastExpression_Context(CastExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterCastExpression_(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitCastExpression_(this);
+		}
 	}
 
 	public final CastExpressionContext castExpression() throws RecognitionException {
@@ -1042,12 +1164,28 @@ public class CParser extends Parser {
 			return getRuleContext(OpContext.class,0);
 		}
 		public BinaryExpressionContext(LogicalOrExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterBinaryExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitBinaryExpression(this);
+		}
 	}
 	public static class BinaryExpression_elseContext extends LogicalOrExpressionContext {
 		public CastExpressionContext castExpression() {
 			return getRuleContext(CastExpressionContext.class,0);
 		}
 		public BinaryExpression_elseContext(LogicalOrExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterBinaryExpression_else(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitBinaryExpression_else(this);
+		}
 	}
 
 	public final LogicalOrExpressionContext logicalOrExpression() throws RecognitionException {
@@ -1105,6 +1243,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_op; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterOp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitOp(this);
+		}
 	}
 
 	public final OpContext op() throws RecognitionException {
@@ -1144,6 +1290,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitExpr(this);
+		}
 	}
 
 	public final ExprContext expr() throws RecognitionException {
@@ -1192,6 +1346,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_conditionalExpression; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterConditionalExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitConditionalExpression(this);
+		}
 	}
 
 	public final ConditionalExpressionContext conditionalExpression() throws RecognitionException {
@@ -1245,12 +1407,28 @@ public class CParser extends Parser {
 	public static class AssignmentExpression_digitContext extends AssignmentExpressionContext {
 		public TerminalNode DigitSequence() { return getToken(CParser.DigitSequence, 0); }
 		public AssignmentExpression_digitContext(AssignmentExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterAssignmentExpression_digit(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitAssignmentExpression_digit(this);
+		}
 	}
 	public static class AssignmentExpression1Context extends AssignmentExpressionContext {
 		public ConditionalExpressionContext conditionalExpression() {
 			return getRuleContext(ConditionalExpressionContext.class,0);
 		}
 		public AssignmentExpression1Context(AssignmentExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterAssignmentExpression1(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitAssignmentExpression1(this);
+		}
 	}
 	public static class AssignmentExpression2Context extends AssignmentExpressionContext {
 		public UnaryExpressionContext unaryExpression() {
@@ -1263,6 +1441,14 @@ public class CParser extends Parser {
 			return getRuleContext(AssignmentExpressionContext.class,0);
 		}
 		public AssignmentExpression2Context(AssignmentExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterAssignmentExpression2(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitAssignmentExpression2(this);
+		}
 	}
 
 	public final AssignmentExpressionContext assignmentExpression() throws RecognitionException {
@@ -1329,6 +1515,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_assignmentOperator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterAssignmentOperator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitAssignmentOperator(this);
+		}
 	}
 
 	public final AssignmentOperatorContext assignmentOperator() throws RecognitionException {
@@ -1373,6 +1567,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expression; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitExpression(this);
+		}
 	}
 
 	public final ExpressionContext expression() throws RecognitionException {
@@ -1440,6 +1642,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_constantExpression; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterConstantExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitConstantExpression(this);
+		}
 	}
 
 	public final ConstantExpressionContext constantExpression() throws RecognitionException {
@@ -1475,6 +1685,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_declaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDeclaration(this);
+		}
 	}
 
 	public final DeclarationContext declaration() throws RecognitionException {
@@ -1528,6 +1746,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_declarationSpecifiers; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDeclarationSpecifiers(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDeclarationSpecifiers(this);
+		}
 	}
 
 	public final DeclarationSpecifiersContext declarationSpecifiers() throws RecognitionException {
@@ -1581,6 +1807,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_declarationSpecifiers2; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDeclarationSpecifiers2(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDeclarationSpecifiers2(this);
+		}
 	}
 
 	public final DeclarationSpecifiers2Context declarationSpecifiers2() throws RecognitionException {
@@ -1634,6 +1868,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_declarationSpecifier; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDeclarationSpecifier(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDeclarationSpecifier(this);
+		}
 	}
 
 	public final DeclarationSpecifierContext declarationSpecifier() throws RecognitionException {
@@ -1696,6 +1938,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_initDeclaratorList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterInitDeclaratorList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitInitDeclaratorList(this);
+		}
 	}
 
 	public final InitDeclaratorListContext initDeclaratorList() throws RecognitionException {
@@ -1767,6 +2017,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_initDeclarator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterInitDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitInitDeclarator(this);
+		}
 	}
 
 	public final InitDeclaratorContext initDeclarator() throws RecognitionException {
@@ -1836,6 +2094,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typeSpecifier; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterTypeSpecifier(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitTypeSpecifier(this);
+		}
 	}
 
 	public final TypeSpecifierContext typeSpecifier() throws RecognitionException {
@@ -1951,6 +2217,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_structOrUnionSpecifier; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStructOrUnionSpecifier(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStructOrUnionSpecifier(this);
+		}
 	}
 
 	public final StructOrUnionSpecifierContext structOrUnionSpecifier() throws RecognitionException {
@@ -2013,6 +2287,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_structOrUnion; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStructOrUnion(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStructOrUnion(this);
+		}
 	}
 
 	public final StructOrUnionContext structOrUnion() throws RecognitionException {
@@ -2056,6 +2338,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_structDeclarationList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStructDeclarationList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStructDeclarationList(this);
+		}
 	}
 
 	public final StructDeclarationListContext structDeclarationList() throws RecognitionException {
@@ -2125,6 +2415,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_structDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStructDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStructDeclaration(this);
+		}
 	}
 
 	public final StructDeclarationContext structDeclaration() throws RecognitionException {
@@ -2175,6 +2473,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_specifierQualifierList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterSpecifierQualifierList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitSpecifierQualifierList(this);
+		}
 	}
 
 	public final SpecifierQualifierListContext specifierQualifierList() throws RecognitionException {
@@ -2257,6 +2563,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_structDeclaratorList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStructDeclaratorList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStructDeclaratorList(this);
+		}
 	}
 
 	public final StructDeclaratorListContext structDeclaratorList() throws RecognitionException {
@@ -2328,6 +2642,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_structDeclarator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStructDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStructDeclarator(this);
+		}
 	}
 
 	public final StructDeclaratorContext structDeclarator() throws RecognitionException {
@@ -2390,6 +2712,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_enumSpecifier; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterEnumSpecifier(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitEnumSpecifier(this);
+		}
 	}
 
 	public final EnumSpecifierContext enumSpecifier() throws RecognitionException {
@@ -2482,6 +2812,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_enumeratorList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterEnumeratorList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitEnumeratorList(this);
+		}
 	}
 
 	public final EnumeratorListContext enumeratorList() throws RecognitionException {
@@ -2553,6 +2891,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_enumerator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterEnumerator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitEnumerator(this);
+		}
 	}
 
 	public final EnumeratorContext enumerator() throws RecognitionException {
@@ -2599,6 +2945,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_enumerationConstant; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterEnumerationConstant(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitEnumerationConstant(this);
+		}
 	}
 
 	public final EnumerationConstantContext enumerationConstant() throws RecognitionException {
@@ -2628,6 +2982,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typeQualifier; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterTypeQualifier(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitTypeQualifier(this);
+		}
 	}
 
 	public final TypeQualifierContext typeQualifier() throws RecognitionException {
@@ -2662,6 +3024,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_declarator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDeclarator(this);
+		}
 	}
 
 	public final DeclaratorContext declarator() throws RecognitionException {
@@ -2715,6 +3085,14 @@ public class CParser extends Parser {
 		}
 		public TerminalNode RightParen() { return getToken(CParser.RightParen, 0); }
 		public VariableDeclaratorContext(DirectDeclaratorContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterVariableDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitVariableDeclarator(this);
+		}
 	}
 	public static class ArrayDeclaratorContext extends DirectDeclaratorContext {
 		public DirectDeclaratorContext directDeclarator() {
@@ -2731,6 +3109,14 @@ public class CParser extends Parser {
 		public TerminalNode Static() { return getToken(CParser.Static, 0); }
 		public TerminalNode Star() { return getToken(CParser.Star, 0); }
 		public ArrayDeclaratorContext(DirectDeclaratorContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterArrayDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitArrayDeclarator(this);
+		}
 	}
 	public static class FunctionDeclaratorContext extends DirectDeclaratorContext {
 		public DirectDeclaratorContext directDeclarator() {
@@ -2745,6 +3131,14 @@ public class CParser extends Parser {
 			return getRuleContext(IdentifierListContext.class,0);
 		}
 		public FunctionDeclaratorContext(DirectDeclaratorContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterFunctionDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitFunctionDeclarator(this);
+		}
 	}
 
 	public final DirectDeclaratorContext directDeclarator() throws RecognitionException {
@@ -2972,6 +3366,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_pointer; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterPointer(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitPointer(this);
+		}
 	}
 
 	public final PointerContext pointer() throws RecognitionException {
@@ -3042,6 +3444,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typeQualifierList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterTypeQualifierList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitTypeQualifierList(this);
+		}
 	}
 
 	public final TypeQualifierListContext typeQualifierList() throws RecognitionException {
@@ -3109,6 +3519,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_parameterTypeList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterParameterTypeList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitParameterTypeList(this);
+		}
 	}
 
 	public final ParameterTypeListContext parameterTypeList() throws RecognitionException {
@@ -3161,6 +3579,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_parameterList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterParameterList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitParameterList(this);
+		}
 	}
 
 	public final ParameterListContext parameterList() throws RecognitionException {
@@ -3237,6 +3663,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_parameterDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterParameterDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitParameterDeclaration(this);
+		}
 	}
 
 	public final ParameterDeclarationContext parameterDeclaration() throws RecognitionException {
@@ -3295,6 +3729,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_identifierList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterIdentifierList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitIdentifierList(this);
+		}
 	}
 
 	public final IdentifierListContext identifierList() throws RecognitionException {
@@ -3365,6 +3807,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typeName; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterTypeName(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitTypeName(this);
+		}
 	}
 
 	public final TypeNameContext typeName() throws RecognitionException {
@@ -3410,6 +3860,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_abstractDeclarator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterAbstractDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitAbstractDeclarator(this);
+		}
 	}
 
 	public final AbstractDeclaratorContext abstractDeclarator() throws RecognitionException {
@@ -3480,6 +3938,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_directAbstractDeclarator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDirectAbstractDeclarator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDirectAbstractDeclarator(this);
+		}
 	}
 
 	public final DirectAbstractDeclaratorContext directAbstractDeclarator() throws RecognitionException {
@@ -3744,6 +4210,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typedefName; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterTypedefName(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitTypedefName(this);
+		}
 	}
 
 	public final TypedefNameContext typedefName() throws RecognitionException {
@@ -3783,6 +4257,14 @@ public class CParser extends Parser {
 			return getRuleContext(AssignmentExpressionContext.class,0);
 		}
 		public Initializer_directContext(InitializerContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterInitializer_direct(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitInitializer_direct(this);
+		}
 	}
 	public static class Initializer_direct_Context extends InitializerContext {
 		public TerminalNode LeftBrace() { return getToken(CParser.LeftBrace, 0); }
@@ -3792,6 +4274,14 @@ public class CParser extends Parser {
 		public TerminalNode RightBrace() { return getToken(CParser.RightBrace, 0); }
 		public TerminalNode Comma() { return getToken(CParser.Comma, 0); }
 		public Initializer_direct_Context(InitializerContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterInitializer_direct_(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitInitializer_direct_(this);
+		}
 	}
 
 	public final InitializerContext initializer() throws RecognitionException {
@@ -3863,6 +4353,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_initializerList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterInitializerList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitInitializerList(this);
+		}
 	}
 
 	public final InitializerListContext initializerList() throws RecognitionException {
@@ -3952,6 +4450,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_designation; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDesignation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDesignation(this);
+		}
 	}
 
 	public final DesignationContext designation() throws RecognitionException {
@@ -3988,6 +4494,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_designatorList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDesignatorList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDesignatorList(this);
+		}
 	}
 
 	public final DesignatorListContext designatorList() throws RecognitionException {
@@ -4057,6 +4571,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_designator; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDesignator(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDesignator(this);
+		}
 	}
 
 	public final DesignatorContext designator() throws RecognitionException {
@@ -4124,6 +4646,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_statement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitStatement(this);
+		}
 	}
 
 	public final StatementContext statement() throws RecognitionException {
@@ -4203,6 +4733,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_labeledStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterLabeledStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitLabeledStatement(this);
+		}
 	}
 
 	public final LabeledStatementContext labeledStatement() throws RecognitionException {
@@ -4272,6 +4810,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_compoundStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterCompoundStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitCompoundStatement(this);
+		}
 	}
 
 	public final CompoundStatementContext compoundStatement() throws RecognitionException {
@@ -4319,6 +4865,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_blockItemList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterBlockItemList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitBlockItemList(this);
+		}
 	}
 
 	public final BlockItemListContext blockItemList() throws RecognitionException {
@@ -4387,6 +4941,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_blockItem; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterBlockItem(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitBlockItem(this);
+		}
 	}
 
 	public final BlockItemContext blockItem() throws RecognitionException {
@@ -4432,6 +4994,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expressionStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterExpressionStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitExpressionStatement(this);
+		}
 	}
 
 	public final ExpressionStatementContext expressionStatement() throws RecognitionException {
@@ -4485,6 +5055,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_selectionStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterSelectionStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitSelectionStatement(this);
+		}
 	}
 
 	public final SelectionStatementContext selectionStatement() throws RecognitionException {
@@ -4571,6 +5149,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_iterationStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterIterationStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitIterationStatement(this);
+		}
 	}
 
 	public final IterationStatementContext iterationStatement() throws RecognitionException {
@@ -4665,6 +5251,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_forCondition; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterForCondition(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitForCondition(this);
+		}
 	}
 
 	public final ForConditionContext forCondition() throws RecognitionException {
@@ -4769,6 +5363,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_forDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterForDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitForDeclaration(this);
+		}
 	}
 
 	public final ForDeclarationContext forDeclaration() throws RecognitionException {
@@ -4819,6 +5421,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_forExpression; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterForExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitForExpression(this);
+		}
 	}
 
 	public final ForExpressionContext forExpression() throws RecognitionException {
@@ -4893,12 +5503,28 @@ public class CParser extends Parser {
 		public TerminalNode Break() { return getToken(CParser.Break, 0); }
 		public TerminalNode Semi() { return getToken(CParser.Semi, 0); }
 		public BreakStatementContext(JumpStatementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterBreakStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitBreakStatement(this);
+		}
 	}
 	public static class GotoStatementContext extends JumpStatementContext {
 		public TerminalNode Goto() { return getToken(CParser.Goto, 0); }
 		public TerminalNode Identifier() { return getToken(CParser.Identifier, 0); }
 		public TerminalNode Semi() { return getToken(CParser.Semi, 0); }
 		public GotoStatementContext(JumpStatementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterGotoStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitGotoStatement(this);
+		}
 	}
 	public static class ReturnStatementContext extends JumpStatementContext {
 		public TerminalNode Return() { return getToken(CParser.Return, 0); }
@@ -4907,11 +5533,27 @@ public class CParser extends Parser {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public ReturnStatementContext(JumpStatementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterReturnStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitReturnStatement(this);
+		}
 	}
 	public static class ContinueStatementContext extends JumpStatementContext {
 		public TerminalNode Continue() { return getToken(CParser.Continue, 0); }
 		public TerminalNode Semi() { return getToken(CParser.Semi, 0); }
 		public ContinueStatementContext(JumpStatementContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterContinueStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitContinueStatement(this);
+		}
 	}
 
 	public final JumpStatementContext jumpStatement() throws RecognitionException {
@@ -4998,6 +5640,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_compilationUnit; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterCompilationUnit(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitCompilationUnit(this);
+		}
 	}
 
 	public final CompilationUnitContext compilationUnit() throws RecognitionException {
@@ -5043,6 +5693,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_translationUnit; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterTranslationUnit(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitTranslationUnit(this);
+		}
 	}
 
 	public final TranslationUnitContext translationUnit() throws RecognitionException {
@@ -5112,6 +5770,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_externalDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterExternalDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitExternalDeclaration(this);
+		}
 	}
 
 	public final ExternalDeclarationContext externalDeclaration() throws RecognitionException {
@@ -5172,6 +5838,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_functionDefinition; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterFunctionDefinition(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitFunctionDefinition(this);
+		}
 	}
 
 	public final FunctionDefinitionContext functionDefinition() throws RecognitionException {
@@ -5229,6 +5903,14 @@ public class CParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_declarationList; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterDeclarationList(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitDeclarationList(this);
+		}
 	}
 
 	public final DeclarationListContext declarationList() throws RecognitionException {

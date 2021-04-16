@@ -48,56 +48,41 @@ castExpression:
 	| unaryExpression				# CastExpression_else
 	| DigitSequence					# CastExpression_else; // for 
 
-multiplicativeExpression:
-	castExpression
-	| multiplicativeExpression '*' castExpression
-	| multiplicativeExpression '/' castExpression
-	| multiplicativeExpression '%' castExpression;
+// multiplicativeExpression: castExpression | multiplicativeExpression '*' castExpression |
+// multiplicativeExpression '/' castExpression | multiplicativeExpression '%' castExpression;
 
-additiveExpression:
-	castExpression						# BinaryExpression_else
-	| castExpression '+' castExpression	# BinaryExpression
-	| castExpression '-' castExpression	# BinaryExpression
-	| castExpression '*' castExpression	# BinaryExpression
-	| castExpression '/' castExpression	# BinaryExpression
-	| castExpression '%' castExpression	# BinaryExpression;
+// additiveExpression: castExpression # BinaryExpression_else | castExpression '+' castExpression #
+// BinaryExpression | castExpression '-' castExpression # BinaryExpression | castExpression '*'
+// castExpression # BinaryExpression | castExpression '/' castExpression # BinaryExpression |
+// castExpression '%' castExpression # BinaryExpression;
 
-shiftExpression:
-	additiveExpression
-	| shiftExpression '<<' additiveExpression
-	| shiftExpression '>>' additiveExpression;
+// shiftExpression: additiveExpression | shiftExpression '<<' additiveExpression | shiftExpression
+// '>>' additiveExpression;
 
-relationalExpression:
-	shiftExpression
-	| relationalExpression '<' shiftExpression
-	| relationalExpression '>' shiftExpression
-	| relationalExpression '<=' shiftExpression
-	| relationalExpression '>=' shiftExpression;
+// relationalExpression: shiftExpression | relationalExpression '<' shiftExpression |
+// relationalExpression '>' shiftExpression | relationalExpression '<=' shiftExpression |
+// relationalExpression '>=' shiftExpression;
 
-equalityExpression:
-	relationalExpression
-	| equalityExpression '==' relationalExpression
-	| equalityExpression '!=' relationalExpression;
+// equalityExpression: relationalExpression | equalityExpression '==' relationalExpression |
+// equalityExpression '!=' relationalExpression;
 
-andExpression:
-	equalityExpression
-	| andExpression '&' equalityExpression;
+// andExpression: equalityExpression | andExpression '&' equalityExpression;
 
-exclusiveOrExpression:
-	andExpression
-	| exclusiveOrExpression '^' andExpression;
+// exclusiveOrExpression: andExpression | exclusiveOrExpression '^' andExpression;
 
-inclusiveOrExpression:
-	exclusiveOrExpression
-	| inclusiveOrExpression '|' exclusiveOrExpression;
+// inclusiveOrExpression: exclusiveOrExpression | inclusiveOrExpression '|' exclusiveOrExpression;
 
-logicalAndExpression:
-	inclusiveOrExpression
-	| logicalAndExpression '&&' inclusiveOrExpression;
+// logicalAndExpression: inclusiveOrExpression | logicalAndExpression '&&' inclusiveOrExpression;
+
+// logicalOrExpression: logicalAndExpression | logicalOrExpression '||' logicalAndExpression;
 
 logicalOrExpression:
-	logicalAndExpression
-	| logicalOrExpression '||' logicalAndExpression;
+	expr op expr		# BinaryExpression
+	| castExpression	# BinaryExpression_else;
+
+op: '&' | '*' | '+' | '-' | '~' | '!' | '=' | '%' | '>' | '<';
+
+expr: Constant | Identifier;
 
 conditionalExpression:
 	logicalOrExpression (

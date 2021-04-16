@@ -7,13 +7,13 @@ public class BITMiniCC {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {		
-		// if(args.length < 1){
-		// 	usage();
-		// 	return;
-		// }
+		if(args.length < 1){
+			usage();
+			return;
+		}
 		
-		// String file = args[0];
-		String file="parser_ultimate_test.c";
+		String file = args[0];
+		// String file="parser_ultimate_test.c";
 		// String file="test\\parse_test\\0_example_test.c";
 		if(!file.endsWith(".c")){
 			System.out.println("Incorrect input file:" + file);

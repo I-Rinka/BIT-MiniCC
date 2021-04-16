@@ -1,3 +1,5 @@
+package bit.minisys.minicc.parser;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
@@ -455,8 +457,10 @@ public class MyListener extends CBaseListener {
         this.ast_json = sb.toString();
         if (insert_params > 0) {
             this.ast_json += "],";
+        } else {
+            this.ast_json += ",\"params\":null,";
         }
-        this.ast_json += "\"identifiers\":null";
+        this.ast_json += "\"identifiers\":[]";
         this.ast_json += ",\"subtype\":\"paramtype\"";
 
         this.ast_json += '}';
@@ -522,6 +526,7 @@ public class MyListener extends CBaseListener {
     @Override
     public void exitInitializer_direct(CParser.Initializer_directContext ctx) {
         this.ast_json += "@exit_Initializer";
+
     }
 
     @Override
@@ -541,6 +546,28 @@ public class MyListener extends CBaseListener {
             sb.insert(st + 1, "],\"delcarator\":");
             this.ast_json = sb.toString();
         }
+        this.ast_json += "}";
+    }
+
+    @Override
+    public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
+        this.ast_json += "{\"type\":\"FunctionDefine\",\"specifiers\":[";
+    }
+
+    @Override
+    public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
+        StringBuilder sb = new StringBuilder(ast_json);
+        int st = sb.indexOf("FunctionDeclarator");
+        int insert_declarator = sb.lastIndexOf("},{", st);
+        sb.delete(insert_declarator + 1, insert_declarator + 2);
+        sb.insert(insert_declarator + 1, "],\"delclarator\":");
+
+        // body
+        int insert_body = sb.indexOf("Statement");
+        insert_body = sb.lastIndexOf("},{", insert_body);
+        sb.insert(insert_body + 2, "\"declarations\": [],\"body\":");
+
+        this.ast_json = sb.toString();
         this.ast_json += "}";
     }
 }

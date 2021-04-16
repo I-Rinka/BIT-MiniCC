@@ -1,4 +1,4 @@
-// Generated from .\src\bit\minisys\minicc\C.g4 by ANTLR 4.8
+// Generated from .\C.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -47,15 +47,53 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitGenericAssociation(CParser.GenericAssociationContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#postfixExpression}.
+	 * Enter a parse tree produced by the {@code ArrayAccess}
+	 * labeled alternative in {@link CParser#postfixExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterPostfixExpression(CParser.PostfixExpressionContext ctx);
+	void enterArrayAccess(CParser.ArrayAccessContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#postfixExpression}.
+	 * Exit a parse tree produced by the {@code ArrayAccess}
+	 * labeled alternative in {@link CParser#postfixExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitPostfixExpression(CParser.PostfixExpressionContext ctx);
+	void exitArrayAccess(CParser.ArrayAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code postfixExpression__}
+	 * labeled alternative in {@link CParser#postfixExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterPostfixExpression__(CParser.PostfixExpression__Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code postfixExpression__}
+	 * labeled alternative in {@link CParser#postfixExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitPostfixExpression__(CParser.PostfixExpression__Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code FunctionCall}
+	 * labeled alternative in {@link CParser#postfixExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunctionCall(CParser.FunctionCallContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FunctionCall}
+	 * labeled alternative in {@link CParser#postfixExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunctionCall(CParser.FunctionCallContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code postfixExpression_else}
+	 * labeled alternative in {@link CParser#postfixExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterPostfixExpression_else(CParser.PostfixExpression_elseContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code postfixExpression_else}
+	 * labeled alternative in {@link CParser#postfixExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitPostfixExpression_else(CParser.PostfixExpression_elseContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#argumentExpressionList}.
 	 * @param ctx the parse tree
@@ -67,15 +105,41 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitArgumentExpressionList(CParser.ArgumentExpressionListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#unaryExpression}.
+	 * Enter a parse tree produced by the {@code UnaryExpression_else}
+	 * labeled alternative in {@link CParser#unaryExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterUnaryExpression(CParser.UnaryExpressionContext ctx);
+	void enterUnaryExpression_else(CParser.UnaryExpression_elseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#unaryExpression}.
+	 * Exit a parse tree produced by the {@code UnaryExpression_else}
+	 * labeled alternative in {@link CParser#unaryExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitUnaryExpression(CParser.UnaryExpressionContext ctx);
+	void exitUnaryExpression_else(CParser.UnaryExpression_elseContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code UnaryExpression_}
+	 * labeled alternative in {@link CParser#unaryExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryExpression_(CParser.UnaryExpression_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code UnaryExpression_}
+	 * labeled alternative in {@link CParser#unaryExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryExpression_(CParser.UnaryExpression_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code UnaryTypeName_}
+	 * labeled alternative in {@link CParser#unaryExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryTypeName_(CParser.UnaryTypeName_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code UnaryTypeName_}
+	 * labeled alternative in {@link CParser#unaryExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryTypeName_(CParser.UnaryTypeName_Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#unaryOperator}.
 	 * @param ctx the parse tree
@@ -87,115 +151,73 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitUnaryOperator(CParser.UnaryOperatorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#castExpression}.
+	 * Enter a parse tree produced by the {@code CastExpression_}
+	 * labeled alternative in {@link CParser#castExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterCastExpression(CParser.CastExpressionContext ctx);
+	void enterCastExpression_(CParser.CastExpression_Context ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#castExpression}.
+	 * Exit a parse tree produced by the {@code CastExpression_}
+	 * labeled alternative in {@link CParser#castExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitCastExpression(CParser.CastExpressionContext ctx);
+	void exitCastExpression_(CParser.CastExpression_Context ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#multiplicativeExpression}.
+	 * Enter a parse tree produced by the {@code CastExpression_else}
+	 * labeled alternative in {@link CParser#castExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterMultiplicativeExpression(CParser.MultiplicativeExpressionContext ctx);
+	void enterCastExpression_else(CParser.CastExpression_elseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#multiplicativeExpression}.
+	 * Exit a parse tree produced by the {@code CastExpression_else}
+	 * labeled alternative in {@link CParser#castExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitMultiplicativeExpression(CParser.MultiplicativeExpressionContext ctx);
+	void exitCastExpression_else(CParser.CastExpression_elseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#additiveExpression}.
+	 * Enter a parse tree produced by the {@code BinaryExpression}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterAdditiveExpression(CParser.AdditiveExpressionContext ctx);
+	void enterBinaryExpression(CParser.BinaryExpressionContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#additiveExpression}.
+	 * Exit a parse tree produced by the {@code BinaryExpression}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitAdditiveExpression(CParser.AdditiveExpressionContext ctx);
+	void exitBinaryExpression(CParser.BinaryExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#shiftExpression}.
+	 * Enter a parse tree produced by the {@code BinaryExpression_else}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterShiftExpression(CParser.ShiftExpressionContext ctx);
+	void enterBinaryExpression_else(CParser.BinaryExpression_elseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#shiftExpression}.
+	 * Exit a parse tree produced by the {@code BinaryExpression_else}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitShiftExpression(CParser.ShiftExpressionContext ctx);
+	void exitBinaryExpression_else(CParser.BinaryExpression_elseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#relationalExpression}.
+	 * Enter a parse tree produced by {@link CParser#op}.
 	 * @param ctx the parse tree
 	 */
-	void enterRelationalExpression(CParser.RelationalExpressionContext ctx);
+	void enterOp(CParser.OpContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#relationalExpression}.
+	 * Exit a parse tree produced by {@link CParser#op}.
 	 * @param ctx the parse tree
 	 */
-	void exitRelationalExpression(CParser.RelationalExpressionContext ctx);
+	void exitOp(CParser.OpContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#equalityExpression}.
+	 * Enter a parse tree produced by {@link CParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterEqualityExpression(CParser.EqualityExpressionContext ctx);
+	void enterExpr(CParser.ExprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#equalityExpression}.
+	 * Exit a parse tree produced by {@link CParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitEqualityExpression(CParser.EqualityExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#andExpression}.
-	 * @param ctx the parse tree
-	 */
-	void enterAndExpression(CParser.AndExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#andExpression}.
-	 * @param ctx the parse tree
-	 */
-	void exitAndExpression(CParser.AndExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#exclusiveOrExpression}.
-	 * @param ctx the parse tree
-	 */
-	void enterExclusiveOrExpression(CParser.ExclusiveOrExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#exclusiveOrExpression}.
-	 * @param ctx the parse tree
-	 */
-	void exitExclusiveOrExpression(CParser.ExclusiveOrExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#inclusiveOrExpression}.
-	 * @param ctx the parse tree
-	 */
-	void enterInclusiveOrExpression(CParser.InclusiveOrExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#inclusiveOrExpression}.
-	 * @param ctx the parse tree
-	 */
-	void exitInclusiveOrExpression(CParser.InclusiveOrExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#logicalAndExpression}.
-	 * @param ctx the parse tree
-	 */
-	void enterLogicalAndExpression(CParser.LogicalAndExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#logicalAndExpression}.
-	 * @param ctx the parse tree
-	 */
-	void exitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#logicalOrExpression}.
-	 * @param ctx the parse tree
-	 */
-	void enterLogicalOrExpression(CParser.LogicalOrExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#logicalOrExpression}.
-	 * @param ctx the parse tree
-	 */
-	void exitLogicalOrExpression(CParser.LogicalOrExpressionContext ctx);
+	void exitExpr(CParser.ExprContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#conditionalExpression}.
 	 * @param ctx the parse tree
@@ -207,15 +229,41 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitConditionalExpression(CParser.ConditionalExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#assignmentExpression}.
+	 * Enter a parse tree produced by the {@code assignmentExpression1}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterAssignmentExpression(CParser.AssignmentExpressionContext ctx);
+	void enterAssignmentExpression1(CParser.AssignmentExpression1Context ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#assignmentExpression}.
+	 * Exit a parse tree produced by the {@code assignmentExpression1}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitAssignmentExpression(CParser.AssignmentExpressionContext ctx);
+	void exitAssignmentExpression1(CParser.AssignmentExpression1Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code assignmentExpression2}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignmentExpression2(CParser.AssignmentExpression2Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code assignmentExpression2}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignmentExpression2(CParser.AssignmentExpression2Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code assignmentExpression_digit}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignmentExpression_digit(CParser.AssignmentExpression_digitContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code assignmentExpression_digit}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignmentExpression_digit(CParser.AssignmentExpression_digitContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#assignmentOperator}.
 	 * @param ctx the parse tree
@@ -306,16 +354,6 @@ public interface CListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInitDeclarator(CParser.InitDeclaratorContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#storageClassSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterStorageClassSpecifier(CParser.StorageClassSpecifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#storageClassSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitStorageClassSpecifier(CParser.StorageClassSpecifierContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#typeSpecifier}.
 	 * @param ctx the parse tree
@@ -437,16 +475,6 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitEnumerationConstant(CParser.EnumerationConstantContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#atomicTypeSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterAtomicTypeSpecifier(CParser.AtomicTypeSpecifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#atomicTypeSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitAtomicTypeSpecifier(CParser.AtomicTypeSpecifierContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link CParser#typeQualifier}.
 	 * @param ctx the parse tree
 	 */
@@ -456,26 +484,6 @@ public interface CListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTypeQualifier(CParser.TypeQualifierContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#functionSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterFunctionSpecifier(CParser.FunctionSpecifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#functionSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitFunctionSpecifier(CParser.FunctionSpecifierContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#alignmentSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlignmentSpecifier(CParser.AlignmentSpecifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#alignmentSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlignmentSpecifier(CParser.AlignmentSpecifierContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#declarator}.
 	 * @param ctx the parse tree
@@ -487,65 +495,41 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitDeclarator(CParser.DeclaratorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#directDeclarator}.
+	 * Enter a parse tree produced by the {@code variableDeclarator}
+	 * labeled alternative in {@link CParser#directDeclarator}.
 	 * @param ctx the parse tree
 	 */
-	void enterDirectDeclarator(CParser.DirectDeclaratorContext ctx);
+	void enterVariableDeclarator(CParser.VariableDeclaratorContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#directDeclarator}.
+	 * Exit a parse tree produced by the {@code variableDeclarator}
+	 * labeled alternative in {@link CParser#directDeclarator}.
 	 * @param ctx the parse tree
 	 */
-	void exitDirectDeclarator(CParser.DirectDeclaratorContext ctx);
+	void exitVariableDeclarator(CParser.VariableDeclaratorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#gccDeclaratorExtension}.
+	 * Enter a parse tree produced by the {@code arrayDeclarator}
+	 * labeled alternative in {@link CParser#directDeclarator}.
 	 * @param ctx the parse tree
 	 */
-	void enterGccDeclaratorExtension(CParser.GccDeclaratorExtensionContext ctx);
+	void enterArrayDeclarator(CParser.ArrayDeclaratorContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#gccDeclaratorExtension}.
+	 * Exit a parse tree produced by the {@code arrayDeclarator}
+	 * labeled alternative in {@link CParser#directDeclarator}.
 	 * @param ctx the parse tree
 	 */
-	void exitGccDeclaratorExtension(CParser.GccDeclaratorExtensionContext ctx);
+	void exitArrayDeclarator(CParser.ArrayDeclaratorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#gccAttributeSpecifier}.
+	 * Enter a parse tree produced by the {@code functionDeclarator}
+	 * labeled alternative in {@link CParser#directDeclarator}.
 	 * @param ctx the parse tree
 	 */
-	void enterGccAttributeSpecifier(CParser.GccAttributeSpecifierContext ctx);
+	void enterFunctionDeclarator(CParser.FunctionDeclaratorContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#gccAttributeSpecifier}.
+	 * Exit a parse tree produced by the {@code functionDeclarator}
+	 * labeled alternative in {@link CParser#directDeclarator}.
 	 * @param ctx the parse tree
 	 */
-	void exitGccAttributeSpecifier(CParser.GccAttributeSpecifierContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#gccAttributeList}.
-	 * @param ctx the parse tree
-	 */
-	void enterGccAttributeList(CParser.GccAttributeListContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#gccAttributeList}.
-	 * @param ctx the parse tree
-	 */
-	void exitGccAttributeList(CParser.GccAttributeListContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#gccAttribute}.
-	 * @param ctx the parse tree
-	 */
-	void enterGccAttribute(CParser.GccAttributeContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#gccAttribute}.
-	 * @param ctx the parse tree
-	 */
-	void exitGccAttribute(CParser.GccAttributeContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#nestedParenthesesBlock}.
-	 * @param ctx the parse tree
-	 */
-	void enterNestedParenthesesBlock(CParser.NestedParenthesesBlockContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#nestedParenthesesBlock}.
-	 * @param ctx the parse tree
-	 */
-	void exitNestedParenthesesBlock(CParser.NestedParenthesesBlockContext ctx);
+	void exitFunctionDeclarator(CParser.FunctionDeclaratorContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#pointer}.
 	 * @param ctx the parse tree
@@ -647,15 +631,29 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitTypedefName(CParser.TypedefNameContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#initializer}.
+	 * Enter a parse tree produced by the {@code initializer_direct}
+	 * labeled alternative in {@link CParser#initializer}.
 	 * @param ctx the parse tree
 	 */
-	void enterInitializer(CParser.InitializerContext ctx);
+	void enterInitializer_direct(CParser.Initializer_directContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#initializer}.
+	 * Exit a parse tree produced by the {@code initializer_direct}
+	 * labeled alternative in {@link CParser#initializer}.
 	 * @param ctx the parse tree
 	 */
-	void exitInitializer(CParser.InitializerContext ctx);
+	void exitInitializer_direct(CParser.Initializer_directContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code initializer_direct_}
+	 * labeled alternative in {@link CParser#initializer}.
+	 * @param ctx the parse tree
+	 */
+	void enterInitializer_direct_(CParser.Initializer_direct_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code initializer_direct_}
+	 * labeled alternative in {@link CParser#initializer}.
+	 * @param ctx the parse tree
+	 */
+	void exitInitializer_direct_(CParser.Initializer_direct_Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#initializerList}.
 	 * @param ctx the parse tree
@@ -696,16 +694,6 @@ public interface CListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDesignator(CParser.DesignatorContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CParser#staticAssertDeclaration}.
-	 * @param ctx the parse tree
-	 */
-	void enterStaticAssertDeclaration(CParser.StaticAssertDeclarationContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#staticAssertDeclaration}.
-	 * @param ctx the parse tree
-	 */
-	void exitStaticAssertDeclaration(CParser.StaticAssertDeclarationContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#statement}.
 	 * @param ctx the parse tree
@@ -817,15 +805,53 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitForExpression(CParser.ForExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#jumpStatement}.
+	 * Enter a parse tree produced by the {@code GotoStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterJumpStatement(CParser.JumpStatementContext ctx);
+	void enterGotoStatement(CParser.GotoStatementContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#jumpStatement}.
+	 * Exit a parse tree produced by the {@code GotoStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitJumpStatement(CParser.JumpStatementContext ctx);
+	void exitGotoStatement(CParser.GotoStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ContinueStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterContinueStatement(CParser.ContinueStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ContinueStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitContinueStatement(CParser.ContinueStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code BreakStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterBreakStatement(CParser.BreakStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code BreakStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitBreakStatement(CParser.BreakStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ReturnStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturnStatement(CParser.ReturnStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ReturnStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturnStatement(CParser.ReturnStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#compilationUnit}.
 	 * @param ctx the parse tree

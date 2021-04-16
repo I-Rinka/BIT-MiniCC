@@ -1,4 +1,4 @@
-// Generated from c:\Users\I_Rin\Documents\Code\BIT-MiniCC\src\bit\minisys\minicc\C.g4 by ANTLR 4.8
+// Generated from c:\Users\I_Rin\Documents\Code\BIT-MiniCC\src\bit\minisys\minicc\parser\C.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
