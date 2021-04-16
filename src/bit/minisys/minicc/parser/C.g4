@@ -77,8 +77,9 @@ castExpression:
 // logicalOrExpression: logicalAndExpression | logicalOrExpression '||' logicalAndExpression;
 
 logicalOrExpression:
-	expr op expr		# BinaryExpression
-	| castExpression	# BinaryExpression_else;
+	expr op logicalOrExpression	# BinaryExpression
+	| castExpression							# BinaryExpression_else
+	| expr										# BinaryExpression_else;
 
 op: '&' | '*' | '+' | '-' | '~' | '!' | '=' | '%' | '>' | '<';
 

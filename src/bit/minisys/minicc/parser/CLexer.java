@@ -1,6 +1,5 @@
-package bit.minisys.minicc.parser;
-
 // Generated from .\C.g4 by ANTLR 4.8
+package bit.minisys.minicc.parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

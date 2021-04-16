@@ -41,7 +41,7 @@ public class MyParser implements IMiniCCParser {
         // TokenStream tokens = new CommonTokenStream(lexer);
         // DemoParser parser = new DemoParser(tokens);
         parser.setErrorHandler(new BailErrorStrategy()); // 设置错误处理
-        ParseTree root = parser.compilationUnit(); // 取得一棵以 expr 为根的 AST
+        ParseTree root = parser.compilationUnit(); 
 
         MyListener listener = new MyListener();
         ParseTreeWalker walker = new ParseTreeWalker();
