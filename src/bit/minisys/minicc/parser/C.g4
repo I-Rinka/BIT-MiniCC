@@ -4,19 +4,8 @@ primaryExpression:
 	Identifier
 	| Constant
 	| StringLiteral+
-	| '(' expression ')'
-	| genericSelection;
+	| '(' expression ')';
 
-genericSelection:
-	'_Generic' '(' assignmentExpression ',' genericAssocList ')';
-
-genericAssocList:
-	genericAssociation
-	| genericAssocList ',' genericAssociation;
-
-genericAssociation:
-	typeName ':' assignmentExpression
-	| 'default' ':' assignmentExpression;
 
 postfixExpression:
 	primaryExpression									# postfixExpression_else
@@ -77,13 +66,10 @@ castExpression:
 // logicalOrExpression: logicalAndExpression | logicalOrExpression '||' logicalAndExpression;
 
 logicalOrExpression:
-	expr op logicalOrExpression	# BinaryExpression
-	| castExpression							# BinaryExpression_else
-	| expr										# BinaryExpression_else;
+	castExpression op logicalOrExpression	# BinaryExpression
+	| castExpression						# BinaryExpression_else;
 
 op: '&' | '*' | '+' | '-' | '~' | '!' | '=' | '%' | '>' | '<';
-
-expr: Constant | Identifier;
 
 conditionalExpression:
 	logicalOrExpression (
@@ -273,8 +259,9 @@ blockItem: statement | declaration;
 expressionStatement: expression? ';';
 
 selectionStatement:
-	'if' '(' expression ')' statement ('else' statement)?
-	| 'switch' '(' expression ')' statement;
+	'if' '(' expression ')' statement						# selectionStatement_only
+	| 'if' '(' expression ')' statement 'else' statement	# selectionStatement_else
+	| 'switch' '(' expression ')' statement					# selectionStatement_switch;
 
 iterationStatement:
 	While '(' expression ')' statement
@@ -282,8 +269,8 @@ iterationStatement:
 	| For '(' forCondition ')' statement;
 
 forCondition:
-	forDeclaration ';' forExpression? ';' forExpression?
-	| expression? ';' forExpression? ';' forExpression?;
+	forDeclaration ';' forExpression? ';' forExpression?	# forCondition_declaration
+	| expression? ';' forExpression? ';' forExpression?		# forCondition_expression;
 
 forDeclaration:
 	declarationSpecifiers initDeclaratorList

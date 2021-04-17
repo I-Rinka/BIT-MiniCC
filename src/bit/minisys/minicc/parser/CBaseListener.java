@@ -28,42 +28,6 @@ public class CBaseListener implements CListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterGenericSelection(CParser.GenericSelectionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitGenericSelection(CParser.GenericSelectionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterGenericAssocList(CParser.GenericAssocListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitGenericAssocList(CParser.GenericAssocListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterGenericAssociation(CParser.GenericAssociationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitGenericAssociation(CParser.GenericAssociationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterArrayAccess(CParser.ArrayAccessContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -227,18 +191,6 @@ public class CBaseListener implements CListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitOp(CParser.OpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterExpr(CParser.ExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExpr(CParser.ExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -868,13 +820,37 @@ public class CBaseListener implements CListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSelectionStatement(CParser.SelectionStatementContext ctx) { }
+	@Override public void enterSelectionStatement_only(CParser.SelectionStatement_onlyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSelectionStatement(CParser.SelectionStatementContext ctx) { }
+	@Override public void exitSelectionStatement_only(CParser.SelectionStatement_onlyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -892,13 +868,25 @@ public class CBaseListener implements CListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterForCondition(CParser.ForConditionContext ctx) { }
+	@Override public void enterForCondition_declaration(CParser.ForCondition_declarationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitForCondition(CParser.ForConditionContext ctx) { }
+	@Override public void exitForCondition_declaration(CParser.ForCondition_declarationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterForCondition_expression(CParser.ForCondition_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitForCondition_expression(CParser.ForCondition_expressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -1,6 +1,15 @@
 package bit.minisys.minicc.parser;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import java.net.Inet4Address;
+
+import org.antlr.runtime.tree.TreeWizard.Visitor;
+import org.antlr.v4.parse.ANTLRParser.terminal_return;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class MyListener extends CBaseListener {
@@ -29,8 +38,10 @@ public class MyListener extends CBaseListener {
             temp_json += "\"value\":" + '\"' + node.getSymbol().getText() + '\"';
             break;
         case CLexer.StringLiteral:
-            temp_json += "\"StringLiteral\",";
-            temp_json += "\"value\":" + '\"' + node.getSymbol().getText() + '\"';
+            temp_json += "\"StringConstant\",";
+            temp_json += "\"value\":" + '\"' + '\\' + node.getSymbol().getText().toString();
+            temp_json = temp_json.substring(0, temp_json.length() - 1);// 扫描字符串，每个转义字符前面都加上\
+            temp_json += "\\\"\"";
             break;
         case CLexer.Identifier:
             temp_json += "\"Identifier\",";
@@ -98,7 +109,6 @@ public class MyListener extends CBaseListener {
 
     @Override
     public void exitUnaryTypeName_(CParser.UnaryTypeName_Context ctx) {
-        this.ast_json.replace("}{", "},{");
         this.ast_json += "],";
         this.ast_json += "\"declarator\":null,";
         this.ast_json += "}";
@@ -107,7 +117,7 @@ public class MyListener extends CBaseListener {
 
     @Override
     public void enterBinaryExpression(CParser.BinaryExpressionContext ctx) {
-        this.ast_json += '{';
+        this.ast_json += "{";
         this.ast_json += "\"type\":\"BinaryExpression@\",";
         this.ast_json += "\"op\":{";
         this.ast_json += "\"type\":\"Token\",";
@@ -115,6 +125,23 @@ public class MyListener extends CBaseListener {
         this.ast_json += "\"tokenId\":" + (this.now_token_id + 2);
         this.ast_json += "},";
 
+        // + ctx.logicalOrExpression().getStart().getText();
+
+    }
+
+    @Override
+    public void enterCastExpression_else(CParser.CastExpression_elseContext ctx) {
+
+        if (ctx.getParent().getClass() == CParser.BinaryExpressionContext.class) {
+        } else if (ctx.getParent().getClass() == CParser.BinaryExpression_elseContext.class) {
+            if (ctx.getParent().getParent().getClass() == CParser.BinaryExpressionContext.class) {
+                this.ast_json += ",\"expr2\":";
+            }
+        }
+    }
+
+    @Override
+    public void exitBinaryExpression_else(CParser.BinaryExpression_elseContext ctx) {
     }
 
     @Override
@@ -126,27 +153,12 @@ public class MyListener extends CBaseListener {
         int insert_exp1 = sb.indexOf("{\"type\":", st);
         insert_exp1 = sb.indexOf("{\"type\":", insert_exp1 + 1);
         sb.insert(insert_exp1, "\"expr1\":");
-        int insert_exp2 = sb.indexOf("{\"type\":", insert_exp1 + 1);
-        insert_exp2 = sb.indexOf("{\"type\":", insert_exp2 + 1);
-        sb.insert(insert_exp2, ",\"expr2\":");
 
         this.ast_json = sb.toString();
+        // this.ast_json = ast_json.replace("@expression", ",\"expr2\":");
         this.ast_json += '}';
 
     }
-    // @Override
-    // public void enterOp(CParser.OpContext ctx) {
-    // this.ast_json += "start_OP";
-    // this.ast_json += "\"op\":{";
-    // this.ast_json += "\"type\":\"Token\",";
-    // this.ast_json += "\"value\":\"" + ctx.start.getText() + "\",";
-    // this.ast_json += "\"tokenId\":" + ctx.start.getTokenIndex();
-    // }
-
-    // @Override
-    // public void exitOp(CParser.OpContext ctx) {
-    // this.ast_json += "}," + "end_OP";
-    // }
 
     @Override
     public void enterFunctionCall(CParser.FunctionCallContext ctx) {
@@ -159,8 +171,8 @@ public class MyListener extends CBaseListener {
     public void exitFunctionCall(CParser.FunctionCallContext ctx) {
         StringBuilder sb = new StringBuilder(ast_json);
         int st = sb.lastIndexOf("\"funcname\"");
-        int ex2 = sb.indexOf("}{", st);
-        sb.insert(ex2 + 1, ",\"argList\":[");
+        int ex2 = sb.indexOf("}", st);
+        sb.insert(ex2 + 1, ",\"argList\":[");// 这个argList总是不正常
 
         this.ast_json = sb.toString();
         this.ast_json += ']';
@@ -181,7 +193,6 @@ public class MyListener extends CBaseListener {
         int ex2 = sb.indexOf("}{", st);
 
         sb.insert(ex2 + 1, ",\"elements\":[");
-        sb.deleteCharAt(st);
         this.ast_json = sb.toString();
         this.ast_json += ']';
         this.ast_json += '}';
@@ -220,7 +231,6 @@ public class MyListener extends CBaseListener {
 
         sb.insert(ex2 + 1, "],\"delcarator\":null},\"expr\":");
         this.ast_json = sb.toString();
-        ast_json.replace("}{", "},{");
         this.ast_json += "}";
     }
 
@@ -306,7 +316,6 @@ public class MyListener extends CBaseListener {
     @Override
     public void exitCompoundStatement(CParser.CompoundStatementContext ctx) {
         this.ast_json += "]}";
-        this.ast_json = this.ast_json.replace("}{", "},{");
     }
 
     @Override
@@ -322,69 +331,81 @@ public class MyListener extends CBaseListener {
     }
 
     @Override
-    public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
+    public void enterSelectionStatement_only(CParser.SelectionStatement_onlyContext ctx) {
+
         this.ast_json += '{';
         this.ast_json += "\"type\":\"SelectionStatement\",";
         this.ast_json += "\"cond\":[";
     }
 
     @Override
-    public void exitSelectionStatement(CParser.SelectionStatementContext ctx) {
+    public void exitSelectionStatement_only(CParser.SelectionStatement_onlyContext ctx) {
         StringBuilder sb = new StringBuilder(ast_json);
         int st = sb.lastIndexOf("\"cond\":[") + ("\"cond\":[").length();
         int then_pos = sb.indexOf("Statement", st);
-        int insert_then = sb.lastIndexOf("}{", then_pos);
+        int insert_then = sb.lastIndexOf("{\"type\":", then_pos);
 
-        sb.insert(insert_then + 1, "],\"then\":");
+        sb.insert(insert_then, "],\"then\":");
+
+        then_pos = sb.indexOf("Statement", insert_then + 1);
+        then_pos = sb.indexOf("Statement", then_pos + 1);
+
+        sb.append(",\"otherwise\":null");
+        this.ast_json = sb.toString();
+        this.ast_json += '}';
+
+    }
+
+    @Override
+    public void enterSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) {
+        this.ast_json += '{';
+        this.ast_json += "\"type\":\"SelectionStatement\",";
+        this.ast_json += "\"cond\":[";
+    }
+
+    @Override
+    public void exitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) {
+        StringBuilder sb = new StringBuilder(ast_json);
+        int st = sb.lastIndexOf("\"cond\":[") + ("\"cond\":[").length();
+        int then_pos = sb.indexOf("Statement", st);
+        int insert_then = sb.lastIndexOf("{\"type\":", then_pos);
+
+        sb.insert(insert_then, "],\"then\":");
 
         then_pos = sb.indexOf("Statement", insert_then + 1);
         then_pos = sb.indexOf("Statement", then_pos + 1);
         int insert_otherwise = sb.lastIndexOf("{\"t", then_pos);// 最后一个Type
+        sb.insert(insert_otherwise, ",\"otherwise\":");
 
-        // 注意！
-        if (insert_otherwise > 0) {
-
-            sb.insert(insert_otherwise, ",\"otherwise\":");
-        } else {
-            sb.append(",\"otherwise\":null");
-        }
         this.ast_json = sb.toString();
         this.ast_json += '}';
     }
 
-    @Override
-    public void enterIterationStatement(CParser.IterationStatementContext ctx) {
+    public void iteration_expression_enter() {
         this.ast_json += '{';
-        this.ast_json += "\"type\":\"IterationDeclaredStatement\",";
-        this.ast_json += "\"init\":{";
-        this.ast_json += "\"type\":\"Declaration\",\"specifiers\":[";
+        this.ast_json += "\"type\":\"IterationStatement\",";
+
+        this.ast_json += "\"init\":[";
 
     }
 
-    @Override
-    public void enterForExpression(CParser.ForExpressionContext ctx) {
-        this.ast_json += "cond";
-    }
-
-    @Override
-    public void exitForExpression(CParser.ForExpressionContext ctx) {
-        this.ast_json += "cond_over";
-    }
-
-    @Override
-    public void exitIterationStatement(CParser.IterationStatementContext ctx) {
+    public void iteration_expression_exit() {
         StringBuilder sb = new StringBuilder(ast_json);
-        int st = sb.indexOf("\"init\":{");
+        int st = sb.indexOf("\"init\":[");
         int insert_list = sb.indexOf("{\"type\":\"InitList\",", st);
-        sb.insert(insert_list, "],\"initLists\":[");
-        sb.deleteCharAt(insert_list - 1);
+
+        if (insert_list > 0) {
+
+            sb.insert(insert_list, "],\"initLists\":[");
+            sb.deleteCharAt(insert_list - 1);
+        }
 
         int insert_cond = sb.indexOf("cond{", st);
 
         // 注意
         if (insert_cond >= 0) {
             sb.delete(insert_cond, insert_cond + ("cond").length());
-            sb.insert(insert_cond, "]},\"cond\":[");
+            sb.insert(insert_cond, "],\"cond\":[");
         }
 
         int insert_step = sb.indexOf("cond_overcond", insert_cond);
@@ -402,7 +423,80 @@ public class MyListener extends CBaseListener {
 
         this.ast_json = sb.toString();
         this.ast_json += "}";
+    }
 
+    public void iteration_declaration_enter() {
+        this.ast_json += '{';
+        this.ast_json += "\"type\":\"IterationDeclaredStatement\",";
+        this.ast_json += "\"init\":{";
+        this.ast_json += "\"type\":\"Declaration\",\"specifiers\":[";
+
+    }
+
+    public void iteration_declaration_exit() {
+        StringBuilder sb = new StringBuilder(ast_json);
+        int st = sb.indexOf("\"init\":{");
+        int insert_list = sb.indexOf("{\"type\":\"InitList\",", st);
+
+        if (insert_list > 0) {
+
+            sb.insert(insert_list, "],\"initLists\":[");
+            sb.deleteCharAt(insert_list - 1);
+        }
+
+        int insert_cond = sb.indexOf("cond{", st);
+
+        // 注意
+        if (insert_cond >= 0) {
+            sb.delete(insert_cond, insert_cond + ("cond").length());
+            sb.insert(insert_cond, "],\"cond\":[");
+        }
+
+        int insert_step = sb.indexOf("cond_overcond", insert_cond);
+        // 注意
+        if (insert_step >= 0) {
+            sb.delete(insert_step, insert_step + ("cond_overcond").length());
+            sb.insert(insert_step, "],\"step\":[");
+        }
+
+        int insert_stat = sb.lastIndexOf("cond_over");
+        if (insert_stat >= 0) {
+            sb.delete(insert_stat, insert_stat + ("cond_over").length());
+            sb.insert(insert_stat, "],\"stat\":");
+        }
+
+        this.ast_json = sb.toString();
+        this.ast_json += "}";
+    }
+
+    @Override
+    public void enterIterationStatement(CParser.IterationStatementContext ctx) {
+        if (ctx.forCondition().getChild(0).getClass() == CParser.ExpressionContext.class) {
+            iteration_expression_enter();
+        } else {// delcaration
+            iteration_declaration_enter();
+        }
+
+    }
+
+    @Override
+    public void exitIterationStatement(CParser.IterationStatementContext ctx) {
+        if (ctx.forCondition().getChild(0).getClass() == CParser.ExpressionContext.class) {
+            iteration_expression_exit();
+        } else {// delcaration
+            iteration_declaration_exit();
+        }
+
+    }
+
+    @Override
+    public void enterForExpression(CParser.ForExpressionContext ctx) {
+        this.ast_json += "cond";
+    }
+
+    @Override
+    public void exitForExpression(CParser.ForExpressionContext ctx) {
+        this.ast_json += "cond_over";
     }
 
     @Override
@@ -431,10 +525,10 @@ public class MyListener extends CBaseListener {
 
         int st = sb.lastIndexOf("Constant");
         int insert_expr = sb.lastIndexOf("{", st);
-        sb.insert(insert_expr, ",\"expr\": [");
+        sb.insert(insert_expr, ",\"expr\":");
 
-        insert_expr = sb.indexOf("}", insert_expr);
-        sb.insert(insert_expr + 1, "]");
+        // insert_expr = sb.indexOf("}", insert_expr); 数组
+        // sb.insert(insert_expr + 1, "]");
 
         this.ast_json = sb.toString();
         this.ast_json += '}';
@@ -574,15 +668,16 @@ public class MyListener extends CBaseListener {
     public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
         StringBuilder sb = new StringBuilder(ast_json);
         int st = sb.lastIndexOf("FunctionDeclarator");
-        int insert_declarator = sb.lastIndexOf("},{", st);
-        sb.delete(insert_declarator + 1, insert_declarator + 2);
+        int insert_declarator = sb.indexOf("FunctionDeclarator", st);
+        insert_declarator = sb.lastIndexOf("}{", insert_declarator);
         sb.insert(insert_declarator + 1, "],\"declarator\":");
 
         // body
-        int insert_body = sb.indexOf("Statement",st);
-        insert_body = sb.lastIndexOf("},{", insert_body);
-        // sb.insert(insert_body + 2, "\"declarations\": [],\"body\":");
-        sb.insert(insert_body + 2, "\"body\":");
+        int insert_body = sb.indexOf("Statement", insert_declarator);
+        insert_body = sb.lastIndexOf("}{", insert_body);
+        // sb.insert(insert_body + 1, "\"declarations\": [],\"body\":");
+        sb.insert(insert_body + 1, ",\"body\":");
+        // sb.insert(insert_body + 2, "\"body\":");
 
         this.ast_json = sb.toString();
         this.ast_json += "}";
