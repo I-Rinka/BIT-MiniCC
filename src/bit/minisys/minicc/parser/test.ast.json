@@ -1,0 +1,44 @@
+{
+    "type": "Program",
+    "items": [
+        {
+            "type": "Declaration",
+            "specifiers": [
+                {
+                    "type": "Token",
+                    "value": "void",
+                    "tokenId": 0
+                }
+            ],
+            "initLists": [
+                {
+                    "type": "InitList",
+                    "declarator": {
+                        "type": "FunctionDeclarator",
+                        "declarator": {
+                            "type": "VariableDeclarator",
+                            "identifier": {
+                                "type": "Identifier",
+                                "value": "fun",
+                                "tokenId": 1
+                            }
+                        },
+                        "params": [
+                            {
+                                "type": "ParamsDeclarator",
+                                "specfiers": [],
+                                "declarator": null
+                            },
+                            {
+                                "type": "ParamsDeclarator",
+                                "specfiers": [],
+                                "declarator": null
+                            }
+                        ]
+                    },
+                    "exprs": null
+                }
+            ]
+        }
+    ]
+}

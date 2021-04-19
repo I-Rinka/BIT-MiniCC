@@ -6,11 +6,19 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch JDOMAbout",
+            "request": "launch",
+            "mainClass": "JDOMAbout",
+            "projectName": "bitmincc-clean"
+        },
+        {
+            "type": "java",
             "name": "Launch BITMiniCC",
             "request": "launch",
             "mainClass": "bit.minisys.minicc.BITMiniCC",
             "projectName": "bitmincc-clean",
-            "args": "test\\parse_test\\3_parser_test2.c"
+            // "args": "test\\parse_test\\3_parser_test2.c"
+            "args": "src/bit/minisys/minicc/parser/test.c"
         }
     ]
 }
