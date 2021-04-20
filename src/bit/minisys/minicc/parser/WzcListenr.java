@@ -38,6 +38,8 @@ import bit.minisys.minicc.parser.CParser.FunctionDefinitionContext;
 import bit.minisys.minicc.parser.CParser.GotoStatementContext;
 import bit.minisys.minicc.parser.CParser.InitDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.InitDeclaratorListContext;
+import bit.minisys.minicc.parser.CParser.IterationDeclaredStatement_Context;
+import bit.minisys.minicc.parser.CParser.IterationStatement_Context;
 import bit.minisys.minicc.parser.CParser.LabeledStatementContext;
 import bit.minisys.minicc.parser.CParser.MultiplicativeExpression_Context;
 import bit.minisys.minicc.parser.CParser.ParameterDeclarationContext;
@@ -73,6 +75,8 @@ import bit.minisys.minicc.parser.ast.ASTGotoStatement;
 import bit.minisys.minicc.parser.ast.ASTIdentifier;
 import bit.minisys.minicc.parser.ast.ASTInitList;
 import bit.minisys.minicc.parser.ast.ASTIntegerConstant;
+import bit.minisys.minicc.parser.ast.ASTIterationDeclaredStatement;
+import bit.minisys.minicc.parser.ast.ASTIterationStatement;
 import bit.minisys.minicc.parser.ast.ASTLabeledStatement;
 import bit.minisys.minicc.parser.ast.ASTNode;
 import bit.minisys.minicc.parser.ast.ASTParamsDeclarator;
@@ -350,6 +354,26 @@ public class WzcListenr extends CBaseListener {
     }
 
     @Override
+    public void enterIterationStatement_(IterationStatement_Context ctx) {
+        nodeStack.push(new ASTIterationStatement());
+    }
+
+    @Override
+    public void exitIterationStatement_(IterationStatement_Context ctx) {
+
+    }
+
+    @Override
+    public void enterIterationDeclaredStatement_(IterationDeclaredStatement_Context ctx) {
+        nodeStack.push(new ASTIterationDeclaredStatement());
+    }
+
+    @Override
+    public void exitIterationDeclaredStatement_(IterationDeclaredStatement_Context ctx) {
+
+    }
+
+    @Override
     public void enterSelectionStatement(SelectionStatementContext ctx) {
         ASTSelectionStatement astSelectionStatement = new ASTSelectionStatement();
         astSelectionStatement.cond = new LinkedList<>();
@@ -358,17 +382,17 @@ public class WzcListenr extends CBaseListener {
 
     @Override
     public void exitSelectionStatement(SelectionStatementContext ctx) {
-        thisNode = nodeStack.pop();
-        parentNode = nodeStack.peek();
-        if (parentNode.getClass() == ASTSelectionStatement.class) {
-            if (((ASTSelectionStatement) parentNode).then == null) {
-                ((ASTSelectionStatement) parentNode).then = (ASTStatement) thisNode;
-            } else {
-                ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
-            }
-        } else if (parentNode.getClass() == ASTCompoundStatement.class) {
-            ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
-        }
+        // thisNode = nodeStack.pop();
+        // parentNode = nodeStack.peek();
+        // if (parentNode.getClass() == ASTSelectionStatement.class) {
+        // if (((ASTSelectionStatement) parentNode).then == null) {
+        // ((ASTSelectionStatement) parentNode).then = (ASTStatement) thisNode;
+        // } else {
+        // ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
+        // }
+        // } else if (parentNode.getClass() == ASTCompoundStatement.class) {
+        // ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
+        // }
 
     }
 
@@ -417,7 +441,7 @@ public class WzcListenr extends CBaseListener {
     @Override // 其他Statement就不用手动退出了
     public void exitStatement(StatementContext ctx) {
         thisNode = nodeStack.peek();
-        if (thisNode.getClass() != ASTCompoundStatement.class && thisNode.getClass() != ASTSelectionStatement.class) {
+        if (thisNode.getClass() != ASTCompoundStatement.class) {
             thisNode = nodeStack.pop();
             parentNode = nodeStack.peek();
 
@@ -429,6 +453,10 @@ public class WzcListenr extends CBaseListener {
                 } else {
                     ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
                 }
+            } else if (parentNode.getClass() == ASTIterationDeclaredStatement.class) {
+                ((ASTIterationDeclaredStatement) parentNode).stat = (ASTStatement) thisNode;
+            } else if (parentNode.getClass() == ASTIterationStatement.class) {
+                ((ASTIterationStatement) parentNode).stat = (ASTStatement) thisNode;
             }
 
         }
@@ -448,6 +476,10 @@ public class WzcListenr extends CBaseListener {
             } else {
                 ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
             }
+        } else if (parentNode.getClass() == ASTIterationDeclaredStatement.class) {
+            ((ASTIterationDeclaredStatement) parentNode).stat = (ASTStatement) thisNode;
+        } else if (parentNode.getClass() == ASTIterationStatement.class) {
+            ((ASTIterationStatement) parentNode).stat = (ASTStatement) thisNode;
         }
     }
 
@@ -487,12 +519,6 @@ public class WzcListenr extends CBaseListener {
         expressionStack.clear();
 
     }
-
-    // // 不知道expression怎么搞
-    // @Override
-    // public void enterExpression(ExpressionContext ctx) {
-    // expressionStack = new Stack<ASTExpression>();
-    // }
 
     @Override
     public void enterPostfixExpression_(PostfixExpression_Context ctx) {

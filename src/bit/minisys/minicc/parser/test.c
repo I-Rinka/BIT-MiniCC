@@ -1,12 +1,9 @@
 int main()
 {
-   if (a == b)
+   for (int i = 0; i < 3; i++)
    {
-      int a = c;
    }
-   else if (c == d)
+   for (i = 0; i < 3; i++)
    {
-      int d = b;
    }
-
 }
