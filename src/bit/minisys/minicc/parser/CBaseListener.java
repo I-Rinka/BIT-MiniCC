@@ -976,37 +976,13 @@ public class CBaseListener implements CListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) { }
+	@Override public void enterSelectionStatement(CParser.SelectionStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx) { }
+	@Override public void exitSelectionStatement(CParser.SelectionStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

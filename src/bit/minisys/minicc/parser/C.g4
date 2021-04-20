@@ -294,9 +294,8 @@ blockItem: statement | declaration;
 expressionStatement: expression? ';';
 
 selectionStatement:
-	'if' '(' expression ')' statement 'else' statement	# selectionStatement_else
-	| 'if' '(' expression ')' statement					# selectionStatement_no_else
-	| 'switch' '(' expression ')' statement				# selectionStatement_switch;
+	'if' '(' expression ')' statement ('else' statement)?
+	| 'switch' '(' expression ')' statement;
 
 iterationStatement:
 	While '(' expression ')' statement												# iterationWhileStatement_

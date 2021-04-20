@@ -577,21 +577,7 @@ public class CBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements CVis
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx) { return visitChildren(ctx); }
+	@Override public T visitSelectionStatement(CParser.SelectionStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

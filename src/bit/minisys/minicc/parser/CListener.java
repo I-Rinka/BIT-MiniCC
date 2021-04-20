@@ -856,41 +856,15 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitExpressionStatement(CParser.ExpressionStatementContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code selectionStatement_else}
-	 * labeled alternative in {@link CParser#selectionStatement}.
+	 * Enter a parse tree produced by {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterSelectionStatement_else(CParser.SelectionStatement_elseContext ctx);
+	void enterSelectionStatement(CParser.SelectionStatementContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code selectionStatement_else}
-	 * labeled alternative in {@link CParser#selectionStatement}.
+	 * Exit a parse tree produced by {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code selectionStatement_no_else}
-	 * labeled alternative in {@link CParser#selectionStatement}.
-	 * @param ctx the parse tree
-	 */
-	void enterSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code selectionStatement_no_else}
-	 * labeled alternative in {@link CParser#selectionStatement}.
-	 * @param ctx the parse tree
-	 */
-	void exitSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code selectionStatement_switch}
-	 * labeled alternative in {@link CParser#selectionStatement}.
-	 * @param ctx the parse tree
-	 */
-	void enterSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code selectionStatement_switch}
-	 * labeled alternative in {@link CParser#selectionStatement}.
-	 * @param ctx the parse tree
-	 */
-	void exitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx);
+	void exitSelectionStatement(CParser.SelectionStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code iterationWhileStatement_}
 	 * labeled alternative in {@link CParser#iterationStatement}.

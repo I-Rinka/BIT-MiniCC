@@ -515,26 +515,11 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpressionStatement(CParser.ExpressionStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code selectionStatement_else}
-	 * labeled alternative in {@link CParser#selectionStatement}.
+	 * Visit a parse tree produced by {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code selectionStatement_no_else}
-	 * labeled alternative in {@link CParser#selectionStatement}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code selectionStatement_switch}
-	 * labeled alternative in {@link CParser#selectionStatement}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx);
+	T visitSelectionStatement(CParser.SelectionStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code iterationWhileStatement_}
 	 * labeled alternative in {@link CParser#iterationStatement}.

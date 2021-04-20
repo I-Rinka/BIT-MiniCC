@@ -21,10 +21,12 @@ import bit.minisys.minicc.parser.CParser.ArrayAceess_Context;
 import bit.minisys.minicc.parser.CParser.ArrayDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.AssignmentExpressionContext;
 import bit.minisys.minicc.parser.CParser.AssignmentExpression_Context;
+import bit.minisys.minicc.parser.CParser.BreakStatementContext;
 import bit.minisys.minicc.parser.CParser.CastExpression_Context;
 import bit.minisys.minicc.parser.CParser.CompilationUnitContext;
 import bit.minisys.minicc.parser.CParser.CompoundStatementContext;
 import bit.minisys.minicc.parser.CParser.ConditionalExpressionContext;
+import bit.minisys.minicc.parser.CParser.ContinueStatementContext;
 import bit.minisys.minicc.parser.CParser.DeclarationContext;
 import bit.minisys.minicc.parser.CParser.DeclarationSpecifierContext;
 import bit.minisys.minicc.parser.CParser.EqualityExpression_Context;
@@ -33,14 +35,19 @@ import bit.minisys.minicc.parser.CParser.ExpressionStatementContext;
 import bit.minisys.minicc.parser.CParser.FunctionCall_Context;
 import bit.minisys.minicc.parser.CParser.FunctionDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.FunctionDefinitionContext;
+import bit.minisys.minicc.parser.CParser.GotoStatementContext;
 import bit.minisys.minicc.parser.CParser.InitDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.InitDeclaratorListContext;
+import bit.minisys.minicc.parser.CParser.LabeledStatementContext;
 import bit.minisys.minicc.parser.CParser.MultiplicativeExpression_Context;
 import bit.minisys.minicc.parser.CParser.ParameterDeclarationContext;
 import bit.minisys.minicc.parser.CParser.PostfixExpressionContext;
 import bit.minisys.minicc.parser.CParser.PostfixExpression_Context;
 import bit.minisys.minicc.parser.CParser.PostfixExpression_passContext;
 import bit.minisys.minicc.parser.CParser.PrimaryExpressionContext;
+import bit.minisys.minicc.parser.CParser.ReturnStatementContext;
+import bit.minisys.minicc.parser.CParser.SelectionStatementContext;
+import bit.minisys.minicc.parser.CParser.SelectionStatement_no_elseContext;
 import bit.minisys.minicc.parser.CParser.StatementContext;
 import bit.minisys.minicc.parser.CParser.UnaryExpressionContext;
 import bit.minisys.minicc.parser.CParser.UnaryExpression_Context;
@@ -48,10 +55,12 @@ import bit.minisys.minicc.parser.CParser.VariableDeclaratorContext;
 import bit.minisys.minicc.parser.ast.ASTArrayAccess;
 import bit.minisys.minicc.parser.ast.ASTArrayDeclarator;
 import bit.minisys.minicc.parser.ast.ASTBinaryExpression;
+import bit.minisys.minicc.parser.ast.ASTBreakStatement;
 import bit.minisys.minicc.parser.ast.ASTCastExpression;
 import bit.minisys.minicc.parser.ast.ASTCharConstant;
 import bit.minisys.minicc.parser.ast.ASTCompilationUnit;
 import bit.minisys.minicc.parser.ast.ASTCompoundStatement;
+import bit.minisys.minicc.parser.ast.ASTContinueStatement;
 import bit.minisys.minicc.parser.ast.ASTDeclaration;
 import bit.minisys.minicc.parser.ast.ASTDeclarator;
 import bit.minisys.minicc.parser.ast.ASTExpression;
@@ -60,12 +69,17 @@ import bit.minisys.minicc.parser.ast.ASTFloatConstant;
 import bit.minisys.minicc.parser.ast.ASTFunctionCall;
 import bit.minisys.minicc.parser.ast.ASTFunctionDeclarator;
 import bit.minisys.minicc.parser.ast.ASTFunctionDefine;
+import bit.minisys.minicc.parser.ast.ASTGotoStatement;
 import bit.minisys.minicc.parser.ast.ASTIdentifier;
 import bit.minisys.minicc.parser.ast.ASTInitList;
 import bit.minisys.minicc.parser.ast.ASTIntegerConstant;
+import bit.minisys.minicc.parser.ast.ASTLabeledStatement;
 import bit.minisys.minicc.parser.ast.ASTNode;
 import bit.minisys.minicc.parser.ast.ASTParamsDeclarator;
 import bit.minisys.minicc.parser.ast.ASTPostfixExpression;
+import bit.minisys.minicc.parser.ast.ASTReturnStatement;
+import bit.minisys.minicc.parser.ast.ASTSelectionStatement;
+import bit.minisys.minicc.parser.ast.ASTStatement;
 import bit.minisys.minicc.parser.ast.ASTToken;
 import bit.minisys.minicc.parser.ast.ASTUnaryExpression;
 import bit.minisys.minicc.parser.ast.ASTUnaryTypename;
@@ -109,12 +123,20 @@ public class WzcListenr extends CBaseListener {
             if (parentNode.getClass() == ASTVariableDeclarator.class) {
                 ((ASTVariableDeclarator) parentNode).identifier = new ASTIdentifier(node.getSymbol().getText(),
                         node.getSymbol().getTokenIndex());
+            } else if (parentNode.getClass() == ASTInitList.class) {
+
+                ASTInitList astInitList = ((ASTInitList) parentNode);
+                if (astInitList.exprs == null) {
+                    astInitList.exprs = new LinkedList<ASTExpression>();
+                }
+                astInitList.exprs.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
+
             }
 
             if (expressionStack != null && !expressionStack.empty()
                     && expressionStack.peek().getClass() == ASTPostfixExpression.class) {
                 ASTPostfixExpression postfixExpression = (ASTPostfixExpression) expressionStack.peek();
-                postfixExpression.expr = new ASTCharConstant(node.getSymbol().getText(),
+                postfixExpression.expr = new ASTIdentifier(node.getSymbol().getText(),
                         node.getSymbol().getTokenIndex());
             }
             break;
@@ -169,6 +191,11 @@ public class WzcListenr extends CBaseListener {
         case CLexer.Minus:
         case CLexer.Div:
         case CLexer.Star:
+        case CLexer.Equal:
+        case CLexer.Less:
+        case CLexer.LessEqual:
+        case CLexer.Greater:
+        case CLexer.GreaterEqual:
             if (expressionStack != null && expressionStack.size() >= 2
                     && expressionStack.elementAt(expressionStack.size() - 2).getClass() == ASTBinaryExpression.class) {
                 ((ASTBinaryExpression) expressionStack.elementAt(expressionStack.size() - 2)).op = new ASTToken(
@@ -285,16 +312,6 @@ public class WzcListenr extends CBaseListener {
     }
 
     @Override
-    public void exitCompoundStatement(CompoundStatementContext ctx) {
-        thisNode = nodeStack.pop();
-        parentNode = nodeStack.peek();
-        // parentNode.(thisNode);
-        if (parentNode.getClass() == ASTFunctionDefine.class) {
-            ((ASTFunctionDefine) parentNode).body = (ASTCompoundStatement) thisNode;
-        }
-    }
-
-    @Override
     public void enterDeclaration(DeclarationContext ctx) {
         nodeStack.push(new ASTDeclaration());
 
@@ -333,8 +350,56 @@ public class WzcListenr extends CBaseListener {
     }
 
     @Override
+    public void enterSelectionStatement(SelectionStatementContext ctx) {
+        ASTSelectionStatement astSelectionStatement = new ASTSelectionStatement();
+        astSelectionStatement.cond = new LinkedList<>();
+        nodeStack.push(astSelectionStatement);
+    }
+
+    @Override
+    public void exitSelectionStatement(SelectionStatementContext ctx) {
+        thisNode = nodeStack.pop();
+        parentNode = nodeStack.peek();
+        if (parentNode.getClass() == ASTSelectionStatement.class) {
+            if (((ASTSelectionStatement) parentNode).then == null) {
+                ((ASTSelectionStatement) parentNode).then = (ASTStatement) thisNode;
+            } else {
+                ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
+            }
+        } else if (parentNode.getClass() == ASTCompoundStatement.class) {
+            ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
+        }
+
+    }
+
+    @Override
     public void enterParameterDeclaration(ParameterDeclarationContext ctx) {
         nodeStack.push(new ASTParamsDeclarator());
+    }
+
+    @Override
+    public void enterBreakStatement(BreakStatementContext ctx) {
+        nodeStack.push(new ASTBreakStatement());
+    }
+
+    @Override
+    public void enterGotoStatement(GotoStatementContext ctx) {
+        nodeStack.push(new ASTGotoStatement());
+    }
+
+    @Override
+    public void enterContinueStatement(ContinueStatementContext ctx) {
+        nodeStack.push(new ASTContinueStatement());
+    }
+
+    @Override
+    public void enterReturnStatement(ReturnStatementContext ctx) {
+        nodeStack.push(new ASTReturnStatement());
+    }
+
+    @Override
+    public void enterLabeledStatement(LabeledStatementContext ctx) {
+        nodeStack.push(new ASTLabeledStatement());
     }
 
     @Override
@@ -351,11 +416,55 @@ public class WzcListenr extends CBaseListener {
 
     @Override // 其他Statement就不用手动退出了
     public void exitStatement(StatementContext ctx) {
+        thisNode = nodeStack.peek();
+        if (thisNode.getClass() != ASTCompoundStatement.class && thisNode.getClass() != ASTSelectionStatement.class) {
+            thisNode = nodeStack.pop();
+            parentNode = nodeStack.peek();
+
+            if (parentNode.getClass() == ASTCompoundStatement.class) {
+                ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
+            } else if (parentNode.getClass() == ASTSelectionStatement.class) {
+                if (((ASTSelectionStatement) parentNode).then == null) {
+                    ((ASTSelectionStatement) parentNode).then = (ASTStatement) thisNode;
+                } else {
+                    ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
+                }
+            }
+
+        }
+    }
+
+    // compoundStatement比较特殊,不走那里
+    @Override
+    public void exitCompoundStatement(CompoundStatementContext ctx) {
         thisNode = nodeStack.pop();
         parentNode = nodeStack.peek();
+        // parentNode.(thisNode);
+        if (parentNode.getClass() == ASTFunctionDefine.class) {
+            ((ASTFunctionDefine) parentNode).body = (ASTCompoundStatement) thisNode;
+        } else if (parentNode.getClass() == ASTSelectionStatement.class) {
+            if (((ASTSelectionStatement) parentNode).then == null) {
+                ((ASTSelectionStatement) parentNode).then = (ASTStatement) thisNode;
+            } else {
+                ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
+            }
+        }
+    }
 
-        if (parentNode.getClass() == ASTCompoundStatement.class) {
-            ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
+    // 这里不确定
+    @Override
+    public void exitExpression(ExpressionContext ctx) {
+        if (nodeStack.peek().getClass() == ASTSelectionStatement.class) {
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
+
+                    ((ASTSelectionStatement) nodeStack.peek()).cond.add(expressionStack.pop());
+                }
+            }
+            expressionStack.clear();
         }
     }
 
@@ -375,6 +484,7 @@ public class WzcListenr extends CBaseListener {
         while (!expressionStack.empty()) {
             astExpressionStatement.exprs.add(expressionStack.pop());
         }
+        expressionStack.clear();
 
     }
 
