@@ -330,6 +330,8 @@ public class WzcListenr extends CBaseListener {
             ((ASTCompilationUnit) parentNode).items.add((ASTDeclaration) thisNode);
         } else if (parentNode.getClass() == ASTCompoundStatement.class) {
             ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
+        } else if (parentNode.getClass() == ASTIterationDeclaredStatement.class) {
+            ((ASTIterationDeclaredStatement) parentNode).init = (ASTDeclaration) thisNode;
         }
     }
 
@@ -497,6 +499,65 @@ public class WzcListenr extends CBaseListener {
                 }
             }
             expressionStack.clear();
+        } else if (nodeStack.peek().getClass() == ASTIterationDeclaredStatement.class) {
+            if (((ASTIterationDeclaredStatement) nodeStack.peek()).cond == null) {
+                ((ASTIterationDeclaredStatement) nodeStack.peek()).cond = new LinkedList<>();
+                while (!expressionStack.empty()) {
+                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                        expressionStack.pop();
+                    } else {
+
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).cond.add(expressionStack.pop());
+                    }
+                }
+            } else if (((ASTIterationDeclaredStatement) nodeStack.peek()).step == null) {
+                ((ASTIterationDeclaredStatement) nodeStack.peek()).step = new LinkedList<>();
+                while (!expressionStack.empty()) {
+                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                        expressionStack.pop();
+                    } else {
+
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).step.add(expressionStack.pop());
+                    }
+                }
+            }
+        } else if (nodeStack.peek().getClass() == ASTIterationStatement.class) {
+            if (((ASTIterationStatement) nodeStack.peek()).init == null) {
+                ((ASTIterationStatement) nodeStack.peek()).init = new LinkedList<>();
+                while (!expressionStack.empty()) {
+                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                        expressionStack.pop();
+                    } else {
+
+                        ((ASTIterationStatement) nodeStack.peek()).init.add(expressionStack.pop());
+                    }
+                }
+            } else if (((ASTIterationStatement) nodeStack.peek()).cond == null) {
+                ((ASTIterationStatement) nodeStack.peek()).cond = new LinkedList<>();
+                while (!expressionStack.empty()) {
+                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                        expressionStack.pop();
+                    } else {
+
+                        ((ASTIterationStatement) nodeStack.peek()).cond.add(expressionStack.pop());
+                    }
+                }
+            } else if (((ASTIterationStatement) nodeStack.peek()).step == null) {
+                ((ASTIterationStatement) nodeStack.peek()).step = new LinkedList<>();
+                while (!expressionStack.empty()) {
+                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                        expressionStack.pop();
+                    } else {
+
+                        ((ASTIterationStatement) nodeStack.peek()).step.add(expressionStack.pop());
+                    }
+                }
+            }
         }
     }
 
