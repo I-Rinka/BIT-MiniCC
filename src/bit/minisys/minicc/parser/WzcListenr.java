@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.python.antlr.PythonParser.break_stmt_return;
 
 import bit.minisys.minicc.parser.CParser.AdditiveExpression_Context;
+import bit.minisys.minicc.parser.CParser.ArrayAceess_Context;
 import bit.minisys.minicc.parser.CParser.ArrayDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.AssignmentExpressionContext;
 import bit.minisys.minicc.parser.CParser.AssignmentExpression_Context;
@@ -26,8 +27,10 @@ import bit.minisys.minicc.parser.CParser.CompoundStatementContext;
 import bit.minisys.minicc.parser.CParser.ConditionalExpressionContext;
 import bit.minisys.minicc.parser.CParser.DeclarationContext;
 import bit.minisys.minicc.parser.CParser.DeclarationSpecifierContext;
+import bit.minisys.minicc.parser.CParser.EqualityExpression_Context;
 import bit.minisys.minicc.parser.CParser.ExpressionContext;
 import bit.minisys.minicc.parser.CParser.ExpressionStatementContext;
+import bit.minisys.minicc.parser.CParser.FunctionCall_Context;
 import bit.minisys.minicc.parser.CParser.FunctionDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.FunctionDefinitionContext;
 import bit.minisys.minicc.parser.CParser.InitDeclaratorContext;
@@ -358,7 +361,7 @@ public class WzcListenr extends CBaseListener {
     @Override
     public void enterExpressionStatement(ExpressionStatementContext ctx) {
         nodeStack.push(new ASTExpressionStatement());
-
+        expressionStack = new Stack<ASTExpression>();
     }
 
     @Override
@@ -375,11 +378,11 @@ public class WzcListenr extends CBaseListener {
 
     }
 
-    // 不知道expression怎么搞
-    @Override
-    public void enterExpression(ExpressionContext ctx) {
-        expressionStack = new Stack<ASTExpression>();
-    }
+    // // 不知道expression怎么搞
+    // @Override
+    // public void enterExpression(ExpressionContext ctx) {
+    // expressionStack = new Stack<ASTExpression>();
+    // }
 
     @Override
     public void enterPostfixExpression_(PostfixExpression_Context ctx) {
@@ -408,21 +411,29 @@ public class WzcListenr extends CBaseListener {
                 // Cast
                 ((ASTCastExpression) parent).expr = postfixExpression.expr;
             } else if (parent.getClass() == ASTArrayAccess.class) {
-                // 数组
-                if (((ASTArrayAccess) parent).elements == null) {
-                    ((ASTArrayAccess) parent).elements = new LinkedList<ASTExpression>();
-                }
-                ((ASTArrayAccess) parent).elements.add(postfixExpression.expr);
+
+                expressionStack.push(postfixExpression);
 
             } else if (parent.getClass() == ASTBinaryExpression.class) {
                 expressionStack.push(postfixExpression);
                 // 二元的先啥都不干
             } else if (parent.getClass() == ASTFunctionCall.class) {
                 // FunCall也是二元的，先啥都不干
-                expressionStack.push(postfixExpression);
+                ASTFunctionCall functionCall = (ASTFunctionCall) expressionStack.peek();
+                if (functionCall.funcname == null) {
+                    functionCall.funcname = postfixExpression.expr;
+                } else {
+                    if (functionCall.argList == null) {
+                        functionCall.argList = new LinkedList<>();
+                    }
+                    functionCall.argList.add(postfixExpression.expr);
+                }
+                // expressionStack.push(postfixExpression);
             }
             // 上一个不可能是conditional expression
             // 上一个不可能是type name
+        } else {
+
         }
     }
 
@@ -449,6 +460,7 @@ public class WzcListenr extends CBaseListener {
         ((ASTCastExpression) expressionStack.peek()).expr = previous;
     }
 
+    // 取消支持a+++b，a++=b之类的奇怪语法
     public void exitBinaryExpression() {
         // 可以通过op判断postifix operation 是否是有效的
         ASTExpression expr2 = expressionStack.pop();
@@ -467,6 +479,16 @@ public class WzcListenr extends CBaseListener {
             // ((ASTBinaryExpression) expressionStack.peek()).expr1 = expr1;
             // ((ASTBinaryExpression) expressionStack.peek()).expr2 = expr2;
         }
+    }
+
+    @Override
+    public void enterEqualityExpression_(EqualityExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitEqualityExpression_(EqualityExpression_Context ctx) {
+        exitBinaryExpression();
     }
 
     @Override
@@ -498,8 +520,42 @@ public class WzcListenr extends CBaseListener {
     public void exitAssignmentExpression_(AssignmentExpression_Context ctx) {
         exitBinaryExpression();
     }
+
+    @Override
+    public void enterFunctionCall_(FunctionCall_Context ctx) {
+        expressionStack.push(new ASTFunctionCall());
+    }
+
+    @Override
+    public void exitFunctionCall_(FunctionCall_Context ctx) {
+
+    }
     // @Override
     // public void enterConditionalExpression(ConditionalExpressionContext ctx) {
 
     // }
+    @Override
+    public void enterArrayAceess_(ArrayAceess_Context ctx) {
+        expressionStack.push(new ASTArrayAccess());
+    }
+
+    // 选择取消支持多elements (比如 a[1,2,3,4])
+    @Override
+    public void exitArrayAceess_(ArrayAceess_Context ctx) {
+        ASTExpression element = expressionStack.pop();
+        ASTExpression name = expressionStack.pop();
+        // array 的 element为什么是个数组啊
+        ((ASTArrayAccess) expressionStack.peek()).arrayName = name;
+        if (((ASTArrayAccess) expressionStack.peek()).elements == null) {
+            ((ASTArrayAccess) expressionStack.peek()).elements = new LinkedList<>();
+        }
+        if (element.getClass() == ASTPostfixExpression.class && ((ASTPostfixExpression) element).op == null) {
+            ((ASTArrayAccess) expressionStack.peek()).elements.add(((ASTPostfixExpression) element).expr);
+        } else {
+            ((ASTArrayAccess) expressionStack.peek()).elements.add(element);
+        }
+        // expressionStack.peek();
+    }
+
+    // 恕不支持flag ? x-- : x++;之类的奇怪语法
 }

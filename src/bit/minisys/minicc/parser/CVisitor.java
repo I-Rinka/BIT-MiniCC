@@ -132,17 +132,33 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitShiftExpression(CParser.ShiftExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#relationalExpression}.
+	 * Visit a parse tree produced by the {@code relationalExpression_pass}
+	 * labeled alternative in {@link CParser#relationalExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitRelationalExpression(CParser.RelationalExpressionContext ctx);
+	T visitRelationalExpression_pass(CParser.RelationalExpression_passContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#equalityExpression}.
+	 * Visit a parse tree produced by the {@code relationalExpression_}
+	 * labeled alternative in {@link CParser#relationalExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitEqualityExpression(CParser.EqualityExpressionContext ctx);
+	T visitRelationalExpression_(CParser.RelationalExpression_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code equalityExpression_pass}
+	 * labeled alternative in {@link CParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEqualityExpression_pass(CParser.EqualityExpression_passContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code equalityExpression_}
+	 * labeled alternative in {@link CParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEqualityExpression_(CParser.EqualityExpression_Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#andExpression}.
 	 * @param ctx the parse tree
@@ -499,23 +515,54 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpressionStatement(CParser.ExpressionStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#selectionStatement}.
+	 * Visit a parse tree produced by the {@code selectionStatement_else}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSelectionStatement(CParser.SelectionStatementContext ctx);
+	T visitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#iterationStatement}.
+	 * Visit a parse tree produced by the {@code selectionStatement_no_else}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIterationStatement(CParser.IterationStatementContext ctx);
+	T visitSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#forCondition}.
+	 * Visit a parse tree produced by the {@code selectionStatement_switch}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitForCondition(CParser.ForConditionContext ctx);
+	T visitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code iterationWhileStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIterationWhileStatement_(CParser.IterationWhileStatement_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code iterationDoStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIterationDoStatement_(CParser.IterationDoStatement_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code iterationDeclaredStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIterationDeclaredStatement_(CParser.IterationDeclaredStatement_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code iterationStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIterationStatement_(CParser.IterationStatement_Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#forDeclaration}.
 	 * @param ctx the parse tree
@@ -529,11 +576,33 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitForExpression(CParser.ForExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#jumpStatement}.
+	 * Visit a parse tree produced by the {@code GotoStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitJumpStatement(CParser.JumpStatementContext ctx);
+	T visitGotoStatement(CParser.GotoStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ContinueStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitContinueStatement(CParser.ContinueStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code BreakStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBreakStatement(CParser.BreakStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ReturnStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReturnStatement(CParser.ReturnStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#compilationUnit}.
 	 * @param ctx the parse tree

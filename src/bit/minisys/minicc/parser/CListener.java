@@ -214,25 +214,53 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitShiftExpression(CParser.ShiftExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#relationalExpression}.
+	 * Enter a parse tree produced by the {@code relationalExpression_pass}
+	 * labeled alternative in {@link CParser#relationalExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterRelationalExpression(CParser.RelationalExpressionContext ctx);
+	void enterRelationalExpression_pass(CParser.RelationalExpression_passContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#relationalExpression}.
+	 * Exit a parse tree produced by the {@code relationalExpression_pass}
+	 * labeled alternative in {@link CParser#relationalExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitRelationalExpression(CParser.RelationalExpressionContext ctx);
+	void exitRelationalExpression_pass(CParser.RelationalExpression_passContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#equalityExpression}.
+	 * Enter a parse tree produced by the {@code relationalExpression_}
+	 * labeled alternative in {@link CParser#relationalExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterEqualityExpression(CParser.EqualityExpressionContext ctx);
+	void enterRelationalExpression_(CParser.RelationalExpression_Context ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#equalityExpression}.
+	 * Exit a parse tree produced by the {@code relationalExpression_}
+	 * labeled alternative in {@link CParser#relationalExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitEqualityExpression(CParser.EqualityExpressionContext ctx);
+	void exitRelationalExpression_(CParser.RelationalExpression_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code equalityExpression_pass}
+	 * labeled alternative in {@link CParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterEqualityExpression_pass(CParser.EqualityExpression_passContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code equalityExpression_pass}
+	 * labeled alternative in {@link CParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitEqualityExpression_pass(CParser.EqualityExpression_passContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code equalityExpression_}
+	 * labeled alternative in {@link CParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterEqualityExpression_(CParser.EqualityExpression_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code equalityExpression_}
+	 * labeled alternative in {@link CParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitEqualityExpression_(CParser.EqualityExpression_Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#andExpression}.
 	 * @param ctx the parse tree
@@ -828,35 +856,89 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitExpressionStatement(CParser.ExpressionStatementContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#selectionStatement}.
+	 * Enter a parse tree produced by the {@code selectionStatement_else}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterSelectionStatement(CParser.SelectionStatementContext ctx);
+	void enterSelectionStatement_else(CParser.SelectionStatement_elseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#selectionStatement}.
+	 * Exit a parse tree produced by the {@code selectionStatement_else}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitSelectionStatement(CParser.SelectionStatementContext ctx);
+	void exitSelectionStatement_else(CParser.SelectionStatement_elseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#iterationStatement}.
+	 * Enter a parse tree produced by the {@code selectionStatement_no_else}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterIterationStatement(CParser.IterationStatementContext ctx);
+	void enterSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#iterationStatement}.
+	 * Exit a parse tree produced by the {@code selectionStatement_no_else}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitIterationStatement(CParser.IterationStatementContext ctx);
+	void exitSelectionStatement_no_else(CParser.SelectionStatement_no_elseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#forCondition}.
+	 * Enter a parse tree produced by the {@code selectionStatement_switch}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterForCondition(CParser.ForConditionContext ctx);
+	void enterSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#forCondition}.
+	 * Exit a parse tree produced by the {@code selectionStatement_switch}
+	 * labeled alternative in {@link CParser#selectionStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitForCondition(CParser.ForConditionContext ctx);
+	void exitSelectionStatement_switch(CParser.SelectionStatement_switchContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code iterationWhileStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterIterationWhileStatement_(CParser.IterationWhileStatement_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code iterationWhileStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitIterationWhileStatement_(CParser.IterationWhileStatement_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code iterationDoStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterIterationDoStatement_(CParser.IterationDoStatement_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code iterationDoStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitIterationDoStatement_(CParser.IterationDoStatement_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code iterationDeclaredStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterIterationDeclaredStatement_(CParser.IterationDeclaredStatement_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code iterationDeclaredStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitIterationDeclaredStatement_(CParser.IterationDeclaredStatement_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code iterationStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterIterationStatement_(CParser.IterationStatement_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code iterationStatement_}
+	 * labeled alternative in {@link CParser#iterationStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitIterationStatement_(CParser.IterationStatement_Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#forDeclaration}.
 	 * @param ctx the parse tree
@@ -878,15 +960,53 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitForExpression(CParser.ForExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#jumpStatement}.
+	 * Enter a parse tree produced by the {@code GotoStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
 	 * @param ctx the parse tree
 	 */
-	void enterJumpStatement(CParser.JumpStatementContext ctx);
+	void enterGotoStatement(CParser.GotoStatementContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#jumpStatement}.
+	 * Exit a parse tree produced by the {@code GotoStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
 	 * @param ctx the parse tree
 	 */
-	void exitJumpStatement(CParser.JumpStatementContext ctx);
+	void exitGotoStatement(CParser.GotoStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ContinueStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterContinueStatement(CParser.ContinueStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ContinueStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitContinueStatement(CParser.ContinueStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code BreakStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterBreakStatement(CParser.BreakStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code BreakStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitBreakStatement(CParser.BreakStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ReturnStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturnStatement(CParser.ReturnStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ReturnStatement}
+	 * labeled alternative in {@link CParser#jumpStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturnStatement(CParser.ReturnStatementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CParser#compilationUnit}.
 	 * @param ctx the parse tree

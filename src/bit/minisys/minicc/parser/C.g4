@@ -9,46 +9,44 @@ primaryExpression:
 	| '(' expression ')';
 
 postfixExpression:
-	primaryExpression # postfixExpression_pass
-	| postfixExpression '[' expression ']' # arrayAceess_
-	| postfixExpression '(' argumentExpressionList? ')' #functionCall_
-	| postfixExpression '.' Identifier # postfixExpression_
-	| postfixExpression '->' Identifier # postfixExpression_
-	| postfixExpression '++' # postfixExpression_
-	| postfixExpression '--' # postfixExpression_ ;
-//	| '(' typeName ')' '{' initializerList '}'
-//	| '(' typeName ')' '{' initializerList ',' '}';
+	primaryExpression									# postfixExpression_pass
+	| postfixExpression '[' expression ']'				# arrayAceess_
+	| postfixExpression '(' argumentExpressionList? ')'	# functionCall_
+	| postfixExpression '.' Identifier					# postfixExpression_
+	| postfixExpression '->' Identifier					# postfixExpression_
+	| postfixExpression '++'							# postfixExpression_
+	| postfixExpression '--'							# postfixExpression_;
+// | '(' typeName ')' '{' initializerList '}' | '(' typeName ')' '{' initializerList ',' '}';
 
 argumentExpressionList:
 	assignmentExpression
 	| argumentExpressionList ',' assignmentExpression;
 
 unaryExpression:
-	postfixExpression #unaryExpression_pass
-	| '++' unaryExpression #unaryExpression_
-	| '--' unaryExpression #unaryExpression_
-	| unaryOperator castExpression #unaryExpression_
-	| 'sizeof' unaryExpression #unaryTypename_
-	| 'sizeof' '(' typeName ')' #unaryTypename_
-	;
+	postfixExpression				# unaryExpression_pass
+	| '++' unaryExpression			# unaryExpression_
+	| '--' unaryExpression			# unaryExpression_
+	| unaryOperator castExpression	# unaryExpression_
+	| 'sizeof' unaryExpression		# unaryTypename_
+	| 'sizeof' '(' typeName ')'		# unaryTypename_;
 
 unaryOperator: '&' | '*' | '+' | '-' | '~' | '!';
 
 castExpression:
-	'(' typeName ')' castExpression #castExpression_
-	| unaryExpression #castExpression_pass;
+	'(' typeName ')' castExpression	# castExpression_
+	| unaryExpression				# castExpression_pass;
 //	| DigitSequence ; // for
 
 multiplicativeExpression:
-	castExpression #multiplicativeExpression_pass
-	| multiplicativeExpression '*' castExpression #multiplicativeExpression_
-	| multiplicativeExpression '/' castExpression #multiplicativeExpression_
-	| multiplicativeExpression '%' castExpression #multiplicativeExpression_;
+	castExpression									# multiplicativeExpression_pass
+	| multiplicativeExpression '*' castExpression	# multiplicativeExpression_
+	| multiplicativeExpression '/' castExpression	# multiplicativeExpression_
+	| multiplicativeExpression '%' castExpression	# multiplicativeExpression_;
 
 additiveExpression:
-	multiplicativeExpression #additiveExpression_pass
-	| additiveExpression '+' multiplicativeExpression #additiveExpression_
-	| additiveExpression '-' multiplicativeExpression #additiveExpression_;
+	multiplicativeExpression							# additiveExpression_pass
+	| additiveExpression '+' multiplicativeExpression	# additiveExpression_
+	| additiveExpression '-' multiplicativeExpression	# additiveExpression_;
 
 shiftExpression:
 	additiveExpression
@@ -56,16 +54,16 @@ shiftExpression:
 	| shiftExpression '>>' additiveExpression;
 
 relationalExpression:
-	shiftExpression
-	| relationalExpression '<' shiftExpression
-	| relationalExpression '>' shiftExpression
-	| relationalExpression '<=' shiftExpression
-	| relationalExpression '>=' shiftExpression;
+	shiftExpression								# relationalExpression_pass
+	| relationalExpression '<' shiftExpression	# relationalExpression_
+	| relationalExpression '>' shiftExpression	# relationalExpression_
+	| relationalExpression '<=' shiftExpression	# relationalExpression_
+	| relationalExpression '>=' shiftExpression	# relationalExpression_;
 
 equalityExpression:
-	relationalExpression
-	| equalityExpression '==' relationalExpression
-	| equalityExpression '!=' relationalExpression;
+	relationalExpression							# equalityExpression_pass
+	| equalityExpression '==' relationalExpression	# equalityExpression_
+	| equalityExpression '!=' relationalExpression	# equalityExpression_;
 
 andExpression:
 	equalityExpression
@@ -88,14 +86,14 @@ logicalOrExpression:
 	| logicalOrExpression '||' logicalAndExpression;
 
 conditionalExpression:
-	logicalOrExpression #conditionalExpression_pass
-	 |	 logicalOrExpression(
+	logicalOrExpression # conditionalExpression_pass
+	| logicalOrExpression (
 		'?' expression ':' conditionalExpression
-	)#conditionalExpression_ ;
+	) # conditionalExpression_;
 
 assignmentExpression:
-	conditionalExpression # assignmentExpression_pass
-	| unaryExpression assignmentOperator assignmentExpression #assignmentExpression_;
+	conditionalExpression										# assignmentExpression_pass
+	| unaryExpression assignmentOperator assignmentExpression	# assignmentExpression_;
 //	| DigitSequence; // for
 
 assignmentOperator:
@@ -296,17 +294,20 @@ blockItem: statement | declaration;
 expressionStatement: expression? ';';
 
 selectionStatement:
-	'if' '(' expression ')' statement ('else' statement)?
-	| 'switch' '(' expression ')' statement;
+	'if' '(' expression ')' statement 'else' statement	# selectionStatement_else
+	| 'if' '(' expression ')' statement					# selectionStatement_no_else
+	| 'switch' '(' expression ')' statement				# selectionStatement_switch;
 
 iterationStatement:
-	While '(' expression ')' statement
-	| Do statement While '(' expression ')' ';'
-	| For '(' forCondition ')' statement;
+	While '(' expression ')' statement												# iterationWhileStatement_
+	| Do statement While '(' expression ')' ';'										# iterationDoStatement_
+	| For '(' forDeclaration ';' forExpression? ';' forExpression? ')' statement	#
+		iterationDeclaredStatement_
+	| For '(' expression? ';' forExpression? ';' forExpression? ')' statement # iterationStatement_;
+// | For '(' forCondition ')' statement;
 
-forCondition:
-	forDeclaration ';' forExpression? ';' forExpression?
-	| expression? ';' forExpression? ';' forExpression?;
+// forCondition: forDeclaration ';' forExpression? ';' forExpression? | expression? ';'
+// forExpression? ';' forExpression?;
 
 forDeclaration:
 	declarationSpecifiers initDeclaratorList
@@ -317,11 +318,10 @@ forExpression:
 	| forExpression ',' assignmentExpression;
 
 jumpStatement:
-	'goto' Identifier ';'
-	| 'continue' ';'
-	| 'break' ';'
-	| 'return' expression? ';'
-	| 'goto' unaryExpression ';'; // GCC extension
+	'goto' Identifier ';'		# GotoStatement
+	| 'continue' ';'			# ContinueStatement
+	| 'break' ';'				# BreakStatement
+	| 'return' expression? ';'	# ReturnStatement;
 
 compilationUnit: translationUnit? EOF;
 
