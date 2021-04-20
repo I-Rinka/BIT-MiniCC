@@ -127,8 +127,8 @@ public class WzcListenr extends CBaseListener {
             break;
         case CLexer.Identifier:
             if (parentNode.getClass() == ASTVariableDeclarator.class) {
-                ((ASTVariableDeclarator) parentNode).identifier = new ASTIdentifier(node.getSymbol().getText(),
-                        node.getSymbol().getTokenIndex());
+                ((ASTVariableDeclarator) parentNode).identifier = new ASTIdentifier(
+                        node.getSymbol().getText().toString(), node.getSymbol().getTokenIndex());
             } else if (parentNode.getClass() == ASTInitList.class) {
 
                 ASTInitList astInitList = ((ASTInitList) parentNode);
@@ -250,6 +250,7 @@ public class WzcListenr extends CBaseListener {
         // parentNode.(thisNode);
         if (parentNode.getClass() == ASTCompilationUnit.class) {
             ((ASTCompilationUnit) parentNode).items.add(thisNode);
+            ((ASTCompilationUnit) parentNode).children.add(thisNode);
         }
     }
 
@@ -539,6 +540,19 @@ public class WzcListenr extends CBaseListener {
 
                         ((ASTIterationStatement) nodeStack.peek()).step.add(expressionStack.pop());
                     }
+                }
+            }
+        } else if (nodeStack.peek().getClass() == ASTReturnStatement.class) {
+
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
+                    if (((ASTReturnStatement) nodeStack.peek()).expr == null) {
+                        ((ASTReturnStatement) nodeStack.peek()).expr = new LinkedList<>();
+                    }
+                    ((ASTReturnStatement) nodeStack.peek()).expr.add((ASTExpression) expressionStack.pop());
                 }
             }
         }

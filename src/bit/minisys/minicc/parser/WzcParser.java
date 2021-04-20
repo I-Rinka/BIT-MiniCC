@@ -1,5 +1,6 @@
 package bit.minisys.minicc.parser;
 
+import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -13,6 +14,7 @@ import java.io.PrintStream;
 import java.net.http.WebSocket.Listener;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -73,6 +75,9 @@ public class WzcParser implements IMiniCCParser {
         WzcListenr listener = new WzcListenr();
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(listener, root);
+        String[] dummyStrs = new String[16];
+        TreeViewer viewr = new TreeViewer(Arrays.asList(dummyStrs), listener.returNode);
+        viewr.open();
 
         ObjectMapper mapper = new ObjectMapper();
 
