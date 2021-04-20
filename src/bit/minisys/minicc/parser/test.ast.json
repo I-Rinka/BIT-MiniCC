@@ -55,7 +55,9 @@
                                     "value": 0,
                                     "tokenId": 25
                                 }
-                            },
+                            }
+                        ],
+                        "cond": [
                             {
                                 "type": "PostfixExpression",
                                 "expr": {
@@ -70,8 +72,26 @@
                                 }
                             }
                         ],
-                        "cond": null,
-                        "step": null,
+                        "step": [
+                            {
+                                "type": "BinaryExpression",
+                                "op": {
+                                    "type": "Token",
+                                    "value": "<",
+                                    "tokenId": 13
+                                },
+                                "expr1": {
+                                    "type": "Identifier",
+                                    "value": "i",
+                                    "tokenId": 12
+                                },
+                                "expr2": {
+                                    "type": "IntegerConstant",
+                                    "value": 3,
+                                    "tokenId": 14
+                                }
+                            }
+                        ],
                         "stat": {
                             "type": "CompoundStatement",
                             "blockItems": []

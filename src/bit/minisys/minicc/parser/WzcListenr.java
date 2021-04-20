@@ -30,6 +30,7 @@ import bit.minisys.minicc.parser.CParser.ContinueStatementContext;
 import bit.minisys.minicc.parser.CParser.DeclarationContext;
 import bit.minisys.minicc.parser.CParser.DeclarationSpecifierContext;
 import bit.minisys.minicc.parser.CParser.EqualityExpression_Context;
+import bit.minisys.minicc.parser.CParser.EqualityExpression_passContext;
 import bit.minisys.minicc.parser.CParser.ExpressionContext;
 import bit.minisys.minicc.parser.CParser.ExpressionStatementContext;
 import bit.minisys.minicc.parser.CParser.FunctionCall_Context;
@@ -47,6 +48,7 @@ import bit.minisys.minicc.parser.CParser.PostfixExpressionContext;
 import bit.minisys.minicc.parser.CParser.PostfixExpression_Context;
 import bit.minisys.minicc.parser.CParser.PostfixExpression_passContext;
 import bit.minisys.minicc.parser.CParser.PrimaryExpressionContext;
+import bit.minisys.minicc.parser.CParser.RelationalExpression_Context;
 import bit.minisys.minicc.parser.CParser.ReturnStatementContext;
 import bit.minisys.minicc.parser.CParser.SelectionStatementContext;
 import bit.minisys.minicc.parser.CParser.SelectionStatement_no_elseContext;
@@ -500,59 +502,40 @@ public class WzcListenr extends CBaseListener {
             }
             expressionStack.clear();
         } else if (nodeStack.peek().getClass() == ASTIterationDeclaredStatement.class) {
-            if (((ASTIterationDeclaredStatement) nodeStack.peek()).cond == null) {
-                ((ASTIterationDeclaredStatement) nodeStack.peek()).cond = new LinkedList<>();
-                while (!expressionStack.empty()) {
-                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
-                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
-                        expressionStack.pop();
-                    } else {
+
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
+                    if (((ASTIterationDeclaredStatement) nodeStack.peek()).cond == null) {
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).cond = new LinkedList<>();
 
                         ((ASTIterationDeclaredStatement) nodeStack.peek()).cond.add(expressionStack.pop());
-                    }
-                }
-            } else if (((ASTIterationDeclaredStatement) nodeStack.peek()).step == null) {
-                ((ASTIterationDeclaredStatement) nodeStack.peek()).step = new LinkedList<>();
-                while (!expressionStack.empty()) {
-                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
-                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
-                        expressionStack.pop();
-                    } else {
-
+                    } else if (((ASTIterationDeclaredStatement) nodeStack.peek()).step == null) {
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).step = new LinkedList<>();
                         ((ASTIterationDeclaredStatement) nodeStack.peek()).step.add(expressionStack.pop());
+
                     }
                 }
             }
         } else if (nodeStack.peek().getClass() == ASTIterationStatement.class) {
-            if (((ASTIterationStatement) nodeStack.peek()).init == null) {
-                ((ASTIterationStatement) nodeStack.peek()).init = new LinkedList<>();
-                while (!expressionStack.empty()) {
-                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
-                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
-                        expressionStack.pop();
-                    } else {
 
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
+                    if (((ASTIterationStatement) nodeStack.peek()).init == null) {
+                        ((ASTIterationStatement) nodeStack.peek()).init = new LinkedList<>();
                         ((ASTIterationStatement) nodeStack.peek()).init.add(expressionStack.pop());
-                    }
-                }
-            } else if (((ASTIterationStatement) nodeStack.peek()).cond == null) {
-                ((ASTIterationStatement) nodeStack.peek()).cond = new LinkedList<>();
-                while (!expressionStack.empty()) {
-                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
-                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
-                        expressionStack.pop();
-                    } else {
+                    } else if (((ASTIterationStatement) nodeStack.peek()).cond == null) {
+                        ((ASTIterationStatement) nodeStack.peek()).cond = new LinkedList<>();
 
                         ((ASTIterationStatement) nodeStack.peek()).cond.add(expressionStack.pop());
-                    }
-                }
-            } else if (((ASTIterationStatement) nodeStack.peek()).step == null) {
-                ((ASTIterationStatement) nodeStack.peek()).step = new LinkedList<>();
-                while (!expressionStack.empty()) {
-                    if (expressionStack.peek().getClass() == ASTPostfixExpression.class
-                            && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
-                        expressionStack.pop();
-                    } else {
+
+                    } else if (((ASTIterationStatement) nodeStack.peek()).step == null) {
+                        ((ASTIterationStatement) nodeStack.peek()).step = new LinkedList<>();
 
                         ((ASTIterationStatement) nodeStack.peek()).step.add(expressionStack.pop());
                     }
@@ -579,6 +562,16 @@ public class WzcListenr extends CBaseListener {
         }
         expressionStack.clear();
 
+    }
+
+    @Override
+    public void enterRelationalExpression_(RelationalExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitRelationalExpression_(RelationalExpression_Context ctx) {
+        exitBinaryExpression();
     }
 
     @Override
