@@ -1,9 +1,3 @@
-int main()
-{
-   for (int i = 0; i < 3; i++)
-   {
-   }
-   for (i = 0; i < 3; i++)
-   {
-   }
+int sum(int a, int b) { 
+	return a + b; 
 }

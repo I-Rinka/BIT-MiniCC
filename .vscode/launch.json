@@ -17,7 +17,8 @@
             "request": "launch",
             "mainClass": "bit.minisys.minicc.BITMiniCC",
             "projectName": "bitmincc-clean",
-            // "args": "test\\parse_test\\3_parser_test2.c"
+            // "args": "test\\parse_test\\2_parser_test1.c"
+            // "args": "test\\nc_tests\\0_BubbleSort.c"
             "args": "src/bit/minisys/minicc/parser/test.c"
         }
     ]
