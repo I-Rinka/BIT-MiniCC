@@ -2,43 +2,149 @@
     "type": "Program",
     "items": [
         {
-            "type": "Declaration",
+            "type": "FunctionDefine",
             "specifiers": [
                 {
                     "type": "Token",
-                    "value": "void",
+                    "value": "int",
                     "tokenId": 0
                 }
             ],
-            "initLists": [
-                {
-                    "type": "InitList",
-                    "declarator": {
-                        "type": "FunctionDeclarator",
-                        "declarator": {
-                            "type": "VariableDeclarator",
-                            "identifier": {
-                                "type": "Identifier",
-                                "value": "fun",
-                                "tokenId": 1
-                            }
-                        },
-                        "params": [
+            "declarator": {
+                "type": "FunctionDeclarator",
+                "declarator": {
+                    "type": "VariableDeclarator",
+                    "identifier": {
+                        "type": "Identifier",
+                        "value": "main",
+                        "tokenId": 1
+                    }
+                },
+                "params": []
+            },
+            "body": {
+                "type": "CompoundStatement",
+                "blockItems": [
+                    {
+                        "type": "ExpressionStatement",
+                        "exprs": [
                             {
-                                "type": "ParamsDeclarator",
-                                "specfiers": [],
-                                "declarator": null
-                            },
-                            {
-                                "type": "ParamsDeclarator",
-                                "specfiers": [],
-                                "declarator": null
+                                "type": "BinaryExpression",
+                                "op": {
+                                    "type": "Token",
+                                    "value": "=",
+                                    "tokenId": 6
+                                },
+                                "expr1": {
+                                    "type": "CharConstant",
+                                    "value": "a",
+                                    "tokenId": 5
+                                },
+                                "expr2": {
+                                    "type": "BinaryExpression",
+                                    "op": {
+                                        "type": "Token",
+                                        "value": "+",
+                                        "tokenId": 8
+                                    },
+                                    "expr1": {
+                                        "type": "IntegerConstant",
+                                        "value": 1,
+                                        "tokenId": 7
+                                    },
+                                    "expr2": {
+                                        "type": "IntegerConstant",
+                                        "value": 2,
+                                        "tokenId": 9
+                                    }
+                                }
                             }
                         ]
                     },
-                    "exprs": null
-                }
-            ]
+                    {
+                        "type": "ExpressionStatement",
+                        "exprs": [
+                            {
+                                "type": "PostfixExpression",
+                                "expr": {
+                                    "type": "CharConstant",
+                                    "value": "a",
+                                    "tokenId": 13
+                                },
+                                "op": null
+                            },
+                            {
+                                "type": "PostfixExpression",
+                                "expr": {
+                                    "type": "CharConstant",
+                                    "value": "func",
+                                    "tokenId": 11
+                                },
+                                "op": null
+                            }
+                        ]
+                    },
+                    {
+                        "type": "ExpressionStatement",
+                        "exprs": [
+                            {
+                                "type": "PostfixExpression",
+                                "expr": {
+                                    "type": "IntegerConstant",
+                                    "value": 1,
+                                    "tokenId": 21
+                                },
+                                "op": null
+                            }
+                        ]
+                    },
+                    {
+                        "type": "ExpressionStatement",
+                        "exprs": [
+                            {
+                                "type": "PostfixExpression",
+                                "expr": {
+                                    "type": "CharConstant",
+                                    "value": "x",
+                                    "tokenId": 29
+                                },
+                                "op": {
+                                    "type": "Token",
+                                    "value": "++",
+                                    "tokenId": 30
+                                }
+                            },
+                            {
+                                "type": "PostfixExpression",
+                                "expr": null,
+                                "op": null
+                            },
+                            {
+                                "type": "PostfixExpression",
+                                "expr": {
+                                    "type": "CharConstant",
+                                    "value": "x",
+                                    "tokenId": 26
+                                },
+                                "op": {
+                                    "type": "Token",
+                                    "value": "--",
+                                    "tokenId": 27
+                                }
+                            },
+                            {
+                                "type": "PostfixExpression",
+                                "expr": null,
+                                "op": null
+                            }
+                        ]
+                    },
+                    {
+                        "type": "ExpressionStatement",
+                        "exprs": []
+                    }
+                ]
+            }
         }
     ]
 }

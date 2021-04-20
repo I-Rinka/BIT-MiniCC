@@ -23,29 +23,33 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrimaryExpression(CParser.PrimaryExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#genericSelection}.
+	 * Visit a parse tree produced by the {@code postfixExpression_pass}
+	 * labeled alternative in {@link CParser#postfixExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitGenericSelection(CParser.GenericSelectionContext ctx);
+	T visitPostfixExpression_pass(CParser.PostfixExpression_passContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#genericAssocList}.
+	 * Visit a parse tree produced by the {@code functionCall_}
+	 * labeled alternative in {@link CParser#postfixExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitGenericAssocList(CParser.GenericAssocListContext ctx);
+	T visitFunctionCall_(CParser.FunctionCall_Context ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#genericAssociation}.
+	 * Visit a parse tree produced by the {@code postfixExpression_}
+	 * labeled alternative in {@link CParser#postfixExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitGenericAssociation(CParser.GenericAssociationContext ctx);
+	T visitPostfixExpression_(CParser.PostfixExpression_Context ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#postfixExpression}.
+	 * Visit a parse tree produced by the {@code arrayAceess_}
+	 * labeled alternative in {@link CParser#postfixExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitPostfixExpression(CParser.PostfixExpressionContext ctx);
+	T visitArrayAceess_(CParser.ArrayAceess_Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#argumentExpressionList}.
 	 * @param ctx the parse tree
@@ -53,11 +57,26 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArgumentExpressionList(CParser.ArgumentExpressionListContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#unaryExpression}.
+	 * Visit a parse tree produced by the {@code unaryExpression_pass}
+	 * labeled alternative in {@link CParser#unaryExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitUnaryExpression(CParser.UnaryExpressionContext ctx);
+	T visitUnaryExpression_pass(CParser.UnaryExpression_passContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code unaryExpression_}
+	 * labeled alternative in {@link CParser#unaryExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryExpression_(CParser.UnaryExpression_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code unaryTypename_}
+	 * labeled alternative in {@link CParser#unaryExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryTypename_(CParser.UnaryTypename_Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#unaryOperator}.
 	 * @param ctx the parse tree
@@ -65,23 +84,47 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUnaryOperator(CParser.UnaryOperatorContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#castExpression}.
+	 * Visit a parse tree produced by the {@code castExpression_}
+	 * labeled alternative in {@link CParser#castExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCastExpression(CParser.CastExpressionContext ctx);
+	T visitCastExpression_(CParser.CastExpression_Context ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#multiplicativeExpression}.
+	 * Visit a parse tree produced by the {@code castExpression_pass}
+	 * labeled alternative in {@link CParser#castExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMultiplicativeExpression(CParser.MultiplicativeExpressionContext ctx);
+	T visitCastExpression_pass(CParser.CastExpression_passContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#additiveExpression}.
+	 * Visit a parse tree produced by the {@code multiplicativeExpression_}
+	 * labeled alternative in {@link CParser#multiplicativeExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAdditiveExpression(CParser.AdditiveExpressionContext ctx);
+	T visitMultiplicativeExpression_(CParser.MultiplicativeExpression_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code multiplicativeExpression_pass}
+	 * labeled alternative in {@link CParser#multiplicativeExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultiplicativeExpression_pass(CParser.MultiplicativeExpression_passContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code additiveExpression_pass}
+	 * labeled alternative in {@link CParser#additiveExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAdditiveExpression_pass(CParser.AdditiveExpression_passContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code additiveExpression_}
+	 * labeled alternative in {@link CParser#additiveExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAdditiveExpression_(CParser.AdditiveExpression_Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#shiftExpression}.
 	 * @param ctx the parse tree
@@ -131,17 +174,33 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLogicalOrExpression(CParser.LogicalOrExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#conditionalExpression}.
+	 * Visit a parse tree produced by the {@code conditionalExpression_pass}
+	 * labeled alternative in {@link CParser#conditionalExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitConditionalExpression(CParser.ConditionalExpressionContext ctx);
+	T visitConditionalExpression_pass(CParser.ConditionalExpression_passContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#assignmentExpression}.
+	 * Visit a parse tree produced by the {@code conditionalExpression_}
+	 * labeled alternative in {@link CParser#conditionalExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAssignmentExpression(CParser.AssignmentExpressionContext ctx);
+	T visitConditionalExpression_(CParser.ConditionalExpression_Context ctx);
+	/**
+	 * Visit a parse tree produced by the {@code assignmentExpression_pass}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAssignmentExpression_pass(CParser.AssignmentExpression_passContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code assignmentExpression_}
+	 * labeled alternative in {@link CParser#assignmentExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAssignmentExpression_(CParser.AssignmentExpression_Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#assignmentOperator}.
 	 * @param ctx the parse tree
@@ -275,29 +334,11 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitEnumerationConstant(CParser.EnumerationConstantContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link CParser#atomicTypeSpecifier}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAtomicTypeSpecifier(CParser.AtomicTypeSpecifierContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link CParser#typeQualifier}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitTypeQualifier(CParser.TypeQualifierContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#functionSpecifier}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFunctionSpecifier(CParser.FunctionSpecifierContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#alignmentSpecifier}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAlignmentSpecifier(CParser.AlignmentSpecifierContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#declarator}.
 	 * @param ctx the parse tree
@@ -325,30 +366,6 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFunctionDeclarator(CParser.FunctionDeclaratorContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#gccDeclaratorExtension}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitGccDeclaratorExtension(CParser.GccDeclaratorExtensionContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#gccAttributeSpecifier}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitGccAttributeSpecifier(CParser.GccAttributeSpecifierContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#gccAttributeList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitGccAttributeList(CParser.GccAttributeListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#gccAttribute}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitGccAttribute(CParser.GccAttributeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#nestedParenthesesBlock}.
 	 * @param ctx the parse tree
@@ -445,12 +462,6 @@ public interface CVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDesignator(CParser.DesignatorContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CParser#staticAssertDeclaration}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitStaticAssertDeclaration(CParser.StaticAssertDeclarationContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CParser#statement}.
 	 * @param ctx the parse tree
