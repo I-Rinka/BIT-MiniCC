@@ -192,6 +192,7 @@ public class WzcListenr extends CBaseListener {
     public WzcListenr() {
         returNode = new ASTCompilationUnit();
         nodeStack = new Stack<ASTNode>();
+        expressionStack = new Stack<ASTExpression>();
     };
 
     @Override
@@ -361,7 +362,6 @@ public class WzcListenr extends CBaseListener {
     @Override
     public void enterExpressionStatement(ExpressionStatementContext ctx) {
         nodeStack.push(new ASTExpressionStatement());
-        expressionStack = new Stack<ASTExpression>();
     }
 
     @Override
