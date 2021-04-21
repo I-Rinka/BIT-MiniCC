@@ -636,16 +636,6 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitFunctionDeclarator(CParser.FunctionDeclaratorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#nestedParenthesesBlock}.
-	 * @param ctx the parse tree
-	 */
-	void enterNestedParenthesesBlock(CParser.NestedParenthesesBlockContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CParser#nestedParenthesesBlock}.
-	 * @param ctx the parse tree
-	 */
-	void exitNestedParenthesesBlock(CParser.NestedParenthesesBlockContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link CParser#pointer}.
 	 * @param ctx the parse tree
 	 */
