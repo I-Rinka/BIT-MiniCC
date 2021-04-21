@@ -59,7 +59,11 @@
                                     "value": "n",
                                     "tokenId": 9
                                 },
-                                "expr2": null
+                                "expr2": {
+                                    "type": "IntegerConstant",
+                                    "value": 2,
+                                    "tokenId": 11
+                                }
                             }
                         ],
                         "then": {
@@ -204,7 +208,21 @@
                                 }
                             }
                         ],
-                        "step": null,
+                        "step": [
+                            {
+                                "type": "PostfixExpression",
+                                "expr": {
+                                    "type": "Identifier",
+                                    "value": "i",
+                                    "tokenId": 41
+                                },
+                                "op": {
+                                    "type": "Token",
+                                    "value": "++",
+                                    "tokenId": 42
+                                }
+                            }
+                        ],
                         "stat": {
                             "type": "CompoundStatement",
                             "blockItems": [

@@ -155,12 +155,9 @@ public class WzcListenr extends CBaseListener {
 
         case CLexer.Constant:
             ASTExpression thisConstant;
-            int type = 0;// Int
             if (node.getText().charAt(0) == '\'') {
-                type = 2;// Char
                 thisConstant = new ASTCharConstant(node.getSymbol().getText(), node.getSymbol().getTokenIndex());
             } else if (node.getText().contains(".")) {
-                type = 1;// Float
                 thisConstant = new ASTFloatConstant(Double.valueOf(node.getSymbol().getText()),
                         node.getSymbol().getTokenIndex());
             } else {
@@ -174,21 +171,11 @@ public class WzcListenr extends CBaseListener {
                 if (astInitList.exprs == null) {
                     astInitList.exprs = new LinkedList<ASTExpression>();
                 }
-                if (type == 0) {
-                    astInitList.exprs.add(new ASTIntegerConstant(Integer.valueOf(node.getSymbol().getText()),
-                            node.getSymbol().getTokenIndex()));
-                }
+                astInitList.exprs.add(thisConstant);
+
             } else if (parentNode.getClass() == ASTArrayDeclarator.class) {
-                if (type == 0) {
-                    ((ASTArrayDeclarator) parentNode).expr = new ASTIntegerConstant(
-                            Integer.valueOf(node.getSymbol().getText()), node.getSymbol().getTokenIndex());
-                } else if (type == 1) {
-                    ((ASTArrayDeclarator) parentNode).expr = new ASTFloatConstant(
-                            Double.valueOf(node.getSymbol().getText()), node.getSymbol().getTokenIndex());
-                } else if (type == 2) {
-                    ((ASTArrayDeclarator) parentNode).expr = new ASTCharConstant(node.getSymbol().getText(),
-                            node.getSymbol().getTokenIndex());
-                }
+                ((ASTArrayDeclarator) parentNode).expr = thisConstant;
+
             } else if (parentNode.getClass() == ASTReturnStatement.class) {
 
                 ASTReturnStatement astReturn = ((ASTReturnStatement) parentNode);
@@ -196,7 +183,8 @@ public class WzcListenr extends CBaseListener {
                     astReturn.expr = new LinkedList<ASTExpression>();
                 }
                 astReturn.expr.add(thisConstant);
-
+            } else if (parentNode instanceof ASTExpression) {
+                findExpressionToMount(thisConstant, (ASTExpression) parentNode);
             }
 
             break;
@@ -657,6 +645,22 @@ public class WzcListenr extends CBaseListener {
     @Override
     public void exitFunctionCall_(FunctionCall_Context ctx) {
         exitBinaryExpression();
+    }
+
+    @Override
+    public void enterPostfixExpression_(PostfixExpression_Context ctx) {
+        nodeStack.push(new ASTPostfixExpression());
+    }
+
+    @Override
+    public void exitPostfixExpression_(PostfixExpression_Context ctx) {
+        thisNode = nodeStack.pop();
+        parentNode = nodeStack.peek();
+        if (parentNode instanceof ASTExpression) {
+            findExpressionToMount((ASTExpression) thisNode, (ASTExpression) parentNode);
+        } else {
+            mountNonExpression((ASTExpression) thisNode, parentNode);
+        }
     }
 
 }
