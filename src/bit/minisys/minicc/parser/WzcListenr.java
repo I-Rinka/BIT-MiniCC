@@ -197,6 +197,7 @@ public class WzcListenr extends CBaseListener {
         case CLexer.LessEqual:
         case CLexer.Greater:
         case CLexer.GreaterEqual:
+        case CLexer.StarAssign:
             if (parentNode instanceof ASTBinaryExpression) {
                 ((ASTBinaryExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
                         node.getSymbol().getTokenIndex());

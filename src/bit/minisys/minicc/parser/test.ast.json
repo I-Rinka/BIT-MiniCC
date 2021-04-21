@@ -81,7 +81,11 @@
                         "exprs": [
                             {
                                 "type": "BinaryExpression",
-                                "op": null,
+                                "op": {
+                                    "type": "Token",
+                                    "value": "*=",
+                                    "tokenId": 15
+                                },
                                 "expr1": {
                                     "type": "Identifier",
                                     "value": "a",
