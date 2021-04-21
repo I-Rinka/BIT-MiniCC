@@ -87,6 +87,7 @@ import bit.minisys.minicc.parser.ast.ASTPostfixExpression;
 import bit.minisys.minicc.parser.ast.ASTReturnStatement;
 import bit.minisys.minicc.parser.ast.ASTSelectionStatement;
 import bit.minisys.minicc.parser.ast.ASTStatement;
+import bit.minisys.minicc.parser.ast.ASTStringConstant;
 import bit.minisys.minicc.parser.ast.ASTToken;
 import bit.minisys.minicc.parser.ast.ASTUnaryExpression;
 import bit.minisys.minicc.parser.ast.ASTUnaryTypename;
@@ -133,9 +134,7 @@ public class WzcListenr extends CBaseListener {
             } else if (parentNode.getClass() == ASTInitList.class) {
 
                 ASTInitList astInitList = ((ASTInitList) parentNode);
-                if (astInitList.exprs == null) {
-                    astInitList.exprs = new LinkedList<ASTExpression>();
-                }
+
                 astInitList.exprs.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
 
             } else if (parentNode.getClass() == ASTReturnStatement.class) {
@@ -154,12 +153,15 @@ public class WzcListenr extends CBaseListener {
             break;
 
         case CLexer.Constant:
+        case CLexer.StringLiteral:
             ASTExpression thisConstant;
             if (node.getText().charAt(0) == '\'') {
                 thisConstant = new ASTCharConstant(node.getSymbol().getText(), node.getSymbol().getTokenIndex());
             } else if (node.getText().contains(".")) {
                 thisConstant = new ASTFloatConstant(Double.valueOf(node.getSymbol().getText()),
                         node.getSymbol().getTokenIndex());
+            } else if (node.getText().charAt(0) == '\"') {
+                thisConstant = new ASTStringConstant(node.getSymbol().getText(), node.getSymbol().getTokenIndex());
             } else {
                 thisConstant = new ASTIntegerConstant(Integer.valueOf(node.getSymbol().getText()),
                         node.getSymbol().getTokenIndex());
@@ -168,9 +170,6 @@ public class WzcListenr extends CBaseListener {
             if (parentNode.getClass() == ASTInitList.class) {
 
                 ASTInitList astInitList = ((ASTInitList) parentNode);
-                if (astInitList.exprs == null) {
-                    astInitList.exprs = new LinkedList<ASTExpression>();
-                }
                 astInitList.exprs.add(thisConstant);
 
             } else if (parentNode.getClass() == ASTArrayDeclarator.class) {
@@ -349,8 +348,9 @@ public class WzcListenr extends CBaseListener {
 
     @Override
     public void enterInitDeclarator(InitDeclaratorContext ctx) {
-
-        nodeStack.push(new ASTInitList());
+        ASTInitList astInitList = new ASTInitList();
+        astInitList.exprs = new LinkedList<>();
+        nodeStack.push(astInitList);
     }
 
     @Override
@@ -517,6 +517,14 @@ public class WzcListenr extends CBaseListener {
         // else if (parentNode.getClass() == ASTUnaryTypename.class) {
 
         // }
+        else if (parentNode.getClass() == ASTArrayAccess.class) {
+            ASTArrayAccess arrayAccess = (ASTArrayAccess) parentNode;
+            if (arrayAccess.arrayName == null) {
+                arrayAccess.arrayName = (ASTExpression) thisNode1;
+            } else {
+                arrayAccess.elements.add(thisNode1);
+            }
+        }
 
     }
 
@@ -639,7 +647,9 @@ public class WzcListenr extends CBaseListener {
 
     @Override
     public void enterFunctionCall_(FunctionCall_Context ctx) {
-        nodeStack.push(new ASTFunctionCall());
+        ASTFunctionCall astFunctionCall = new ASTFunctionCall();
+        astFunctionCall.argList = new LinkedList<>();
+        nodeStack.push(astFunctionCall);
     }
 
     @Override
@@ -654,13 +664,19 @@ public class WzcListenr extends CBaseListener {
 
     @Override
     public void exitPostfixExpression_(PostfixExpression_Context ctx) {
-        thisNode = nodeStack.pop();
-        parentNode = nodeStack.peek();
-        if (parentNode instanceof ASTExpression) {
-            findExpressionToMount((ASTExpression) thisNode, (ASTExpression) parentNode);
-        } else {
-            mountNonExpression((ASTExpression) thisNode, parentNode);
-        }
+        exitBinaryExpression();
+    }
+
+    @Override
+    public void enterArrayAceess_(ArrayAceess_Context ctx) {
+        ASTArrayAccess arrayAccess = new ASTArrayAccess();
+        arrayAccess.elements = new LinkedList<>();
+        nodeStack.push(arrayAccess);
+    }
+
+    @Override
+    public void exitArrayAceess_(ArrayAceess_Context ctx) {
+        exitBinaryExpression();
     }
 
 }
