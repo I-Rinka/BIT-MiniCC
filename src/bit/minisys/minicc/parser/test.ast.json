@@ -45,7 +45,26 @@
                                         "tokenId": 6
                                     }
                                 },
-                                "exprs": null
+                                "exprs": [
+                                    {
+                                        "type": "BinaryExpression",
+                                        "op": {
+                                            "type": "Token",
+                                            "value": "+",
+                                            "tokenId": 9
+                                        },
+                                        "expr1": {
+                                            "type": "Identifier",
+                                            "value": "b",
+                                            "tokenId": 8
+                                        },
+                                        "expr2": {
+                                            "type": "Identifier",
+                                            "value": "c",
+                                            "tokenId": 10
+                                        }
+                                    }
+                                ]
                             }
                         ]
                     }

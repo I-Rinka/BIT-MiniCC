@@ -137,14 +137,21 @@ public class WzcListenr extends CBaseListener {
                 }
                 astInitList.exprs.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
 
-            } else if (parentNode.getClass() == ASTReturnStatement.class) {
+            }
+            // else if (parentNode.getClass() == ASTReturnStatement.class) {
 
-                ASTReturnStatement astReturn = ((ASTReturnStatement) parentNode);
-                if (astReturn.expr == null) {
-                    astReturn.expr = new LinkedList<ASTExpression>();
-                }
-                astReturn.expr.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
+            // ASTReturnStatement astReturn = ((ASTReturnStatement) parentNode);
+            // if (astReturn.expr == null) {
+            // astReturn.expr = new LinkedList<ASTExpression>();
+            // }
+            // astReturn.expr.add(new ASTIdentifier(node.getSymbol().getText(),
+            // node.getSymbol().getTokenIndex()));
 
+            // }
+            else if (parentNode.getClass() == ASTBinaryExpression.class) {
+                findExpressionToMount(
+                        (ASTExpression) new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()),
+                        (ASTExpression) parentNode);
             }
             break;
 
@@ -189,12 +196,21 @@ public class WzcListenr extends CBaseListener {
         case CLexer.LessEqual:
         case CLexer.Greater:
         case CLexer.GreaterEqual:
-
+            if (parentNode instanceof ASTBinaryExpression) {
+                ((ASTBinaryExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
+                        node.getSymbol().getTokenIndex());
+            }
             break;
 
         case CLexer.PlusPlus:
         case CLexer.MinusMinus:
-
+            if (parentNode instanceof ASTPostfixExpression) {
+                ((ASTPostfixExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
+                        node.getSymbol().getTokenIndex());
+            } else if (parentNode instanceof ASTUnaryExpression) {
+                ((ASTUnaryExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
+                        node.getSymbol().getTokenIndex());
+            }
             break;
         default:
             break;
@@ -451,38 +467,38 @@ public class WzcListenr extends CBaseListener {
         }
     }
 
-    public void findExpressionToMount(ASTExpression thiNode, ASTExpression parentNode) {
+    public void findExpressionToMount(ASTExpression thisNode1, ASTExpression parentNode) {
         // 上一级的
         // binary 的符号要在token那里挂载
         if (parentNode.getClass() == ASTBinaryExpression.class) {
             ASTBinaryExpression binaryExpression = (ASTBinaryExpression) parentNode;
             if (binaryExpression.expr1 == null) {
-                binaryExpression.expr1 = (ASTExpression) thisNode;
+                binaryExpression.expr1 = thisNode1;
             } else {
 
-                binaryExpression.expr2 = (ASTExpression) thisNode;
+                binaryExpression.expr2 = thisNode1;
             }
         } else if (parentNode.getClass() == ASTConditionExpression.class) {
 
         } else if (parentNode.getClass() == ASTCastExpression.class) {
             ASTCastExpression castExpression = (ASTCastExpression) parentNode;
-            castExpression.expr = (ASTExpression) thisNode;
+            castExpression.expr = thisNode1;
         } else if (parentNode.getClass() == ASTUnaryExpression.class) {
             ASTUnaryExpression unaryExpression = (ASTUnaryExpression) parentNode;
-            unaryExpression.expr = (ASTUnaryExpression) thisNode;
+            unaryExpression.expr = (ASTUnaryExpression) thisNode1;
         } else if (parentNode.getClass() == ASTFunctionCall.class) {
             ASTFunctionCall functionCall = (ASTFunctionCall) parentNode;
             if (functionCall.funcname == null) {
-                functionCall.funcname = (ASTExpression) thisNode;
+                functionCall.funcname = thisNode1;
             } else {
                 if (functionCall.argList == null) {
                     functionCall.argList = new LinkedList<>();
                 }
-                functionCall.argList.add((ASTExpression) thiNode);
+                functionCall.argList.add((ASTExpression) thisNode1);
             }
         } else if (parentNode.getClass() == ASTPostfixExpression.class) {
             ASTPostfixExpression postfixExpression = (ASTPostfixExpression) parentNode;
-            postfixExpression.expr = (ASTExpression) thiNode;
+            postfixExpression.expr = (ASTExpression) thisNode1;
         }
         // else if (parentNode.getClass() == ASTUnaryTypename.class) {
 
@@ -497,6 +513,11 @@ public class WzcListenr extends CBaseListener {
                 ((ASTExpressionStatement) parentNode).exprs = new LinkedList<>();
             }
             ((ASTExpressionStatement) parentNode).exprs.add(thisNode);
+        } else if (parentNode.getClass() == ASTInitList.class) {
+            if (((ASTInitList) parentNode).exprs == null) {
+                ((ASTInitList) parentNode).exprs = new LinkedList<>();
+            }
+            ((ASTInitList) parentNode).exprs.add(thisNode);
         }
     }
 
@@ -529,9 +550,9 @@ public class WzcListenr extends CBaseListener {
         thisNode = nodeStack.pop();
         parentNode = nodeStack.peek();
         if (parentNode instanceof ASTExpression) {
-            findExpressionToMount((ASTExpression) thisNode, (ASTExpression) parentNode);
+            findExpressionToMount((ASTExpression)thisNode, (ASTExpression) parentNode);
         } else {
-            mountNonExpression((ASTExpression) thisNode, parentNode);
+            mountNonExpression((ASTExpression)thisNode, parentNode);
         }
     }
 
