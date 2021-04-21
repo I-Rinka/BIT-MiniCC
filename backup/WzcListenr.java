@@ -63,7 +63,6 @@ import bit.minisys.minicc.parser.ast.ASTCastExpression;
 import bit.minisys.minicc.parser.ast.ASTCharConstant;
 import bit.minisys.minicc.parser.ast.ASTCompilationUnit;
 import bit.minisys.minicc.parser.ast.ASTCompoundStatement;
-import bit.minisys.minicc.parser.ast.ASTConditionExpression;
 import bit.minisys.minicc.parser.ast.ASTContinueStatement;
 import bit.minisys.minicc.parser.ast.ASTDeclaration;
 import bit.minisys.minicc.parser.ast.ASTDeclarator;
@@ -146,6 +145,12 @@ public class WzcListenr extends CBaseListener {
                 astReturn.expr.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
 
             }
+            if (expressionStack != null && !expressionStack.empty()
+                    && expressionStack.peek().getClass() == ASTPostfixExpression.class) {
+                ASTPostfixExpression postfixExpression = (ASTPostfixExpression) expressionStack.peek();
+                postfixExpression.expr = new ASTIdentifier(node.getSymbol().getText(),
+                        node.getSymbol().getTokenIndex());
+            }
             break;
 
         case CLexer.Constant:
@@ -178,6 +183,20 @@ public class WzcListenr extends CBaseListener {
                 }
             }
 
+            if (expressionStack != null && !expressionStack.empty()
+                    && expressionStack.peek().getClass() == ASTPostfixExpression.class) {
+                ASTPostfixExpression postfixExpression = (ASTPostfixExpression) expressionStack.peek();
+                if (type == 0) {
+                    postfixExpression.expr = new ASTIntegerConstant(Integer.valueOf(node.getSymbol().getText()),
+                            node.getSymbol().getTokenIndex());
+                } else if (type == 1) {
+                    postfixExpression.expr = new ASTFloatConstant(Double.valueOf(node.getSymbol().getText()),
+                            node.getSymbol().getTokenIndex());
+                } else if (type == 2) {
+                    postfixExpression.expr = new ASTCharConstant(node.getSymbol().getText(),
+                            node.getSymbol().getTokenIndex());
+                }
+            }
             break;
         case CLexer.Assign:
         case CLexer.Plus:
@@ -189,12 +208,20 @@ public class WzcListenr extends CBaseListener {
         case CLexer.LessEqual:
         case CLexer.Greater:
         case CLexer.GreaterEqual:
-
+            if (expressionStack != null && expressionStack.size() >= 2
+                    && expressionStack.elementAt(expressionStack.size() - 2).getClass() == ASTBinaryExpression.class) {
+                ((ASTBinaryExpression) expressionStack.elementAt(expressionStack.size() - 2)).op = new ASTToken(
+                        node.getSymbol().getText(), node.getSymbol().getTokenIndex());
+            }
             break;
 
         case CLexer.PlusPlus:
         case CLexer.MinusMinus:
-
+            if (expressionStack != null && !expressionStack.empty()
+                    && expressionStack.peek().getClass() == ASTPostfixExpression.class) {
+                ASTPostfixExpression postfixExpression = (ASTPostfixExpression) expressionStack.peek();
+                postfixExpression.op = new ASTToken(node.getSymbol().getText(), node.getSymbol().getTokenIndex());
+            }
             break;
         default:
             break;
@@ -365,6 +392,22 @@ public class WzcListenr extends CBaseListener {
     }
 
     @Override
+    public void exitSelectionStatement(SelectionStatementContext ctx) {
+        // thisNode = nodeStack.pop();
+        // parentNode = nodeStack.peek();
+        // if (parentNode.getClass() == ASTSelectionStatement.class) {
+        // if (((ASTSelectionStatement) parentNode).then == null) {
+        // ((ASTSelectionStatement) parentNode).then = (ASTStatement) thisNode;
+        // } else {
+        // ((ASTSelectionStatement) parentNode).otherwise = (ASTStatement) thisNode;
+        // }
+        // } else if (parentNode.getClass() == ASTCompoundStatement.class) {
+        // ((ASTCompoundStatement) parentNode).blockItems.add(thisNode);
+        // }
+
+    }
+
+    @Override
     public void enterParameterDeclaration(ParameterDeclarationContext ctx) {
         nodeStack.push(new ASTParamsDeclarator());
     }
@@ -451,113 +494,78 @@ public class WzcListenr extends CBaseListener {
         }
     }
 
-    public void findExpressionToMount(ASTExpression thiNode, ASTExpression parentNode) {
-        // 上一级的
-        // binary 的符号要在token那里挂载
-        if (parentNode.getClass() == ASTBinaryExpression.class) {
-            ASTBinaryExpression binaryExpression = (ASTBinaryExpression) parentNode;
-            if (binaryExpression.expr1 == null) {
-                binaryExpression.expr1 = (ASTExpression) thisNode;
-            } else {
+    // 这里不确定
+    @Override
+    public void exitExpression(ExpressionContext ctx) {
+        if (nodeStack.peek().getClass() == ASTSelectionStatement.class) {
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
 
-                binaryExpression.expr2 = (ASTExpression) thisNode;
-            }
-        } else if (parentNode.getClass() == ASTConditionExpression.class) {
-
-        } else if (parentNode.getClass() == ASTCastExpression.class) {
-            ASTCastExpression castExpression = (ASTCastExpression) parentNode;
-            castExpression.expr = (ASTExpression) thisNode;
-        } else if (parentNode.getClass() == ASTUnaryExpression.class) {
-            ASTUnaryExpression unaryExpression = (ASTUnaryExpression) parentNode;
-            unaryExpression.expr = (ASTUnaryExpression) thisNode;
-        } else if (parentNode.getClass() == ASTFunctionCall.class) {
-            ASTFunctionCall functionCall = (ASTFunctionCall) parentNode;
-            if (functionCall.funcname == null) {
-                functionCall.funcname = (ASTExpression) thisNode;
-            } else {
-                if (functionCall.argList == null) {
-                    functionCall.argList = new LinkedList<>();
+                    ((ASTSelectionStatement) nodeStack.peek()).cond.add(expressionStack.pop());
                 }
-                functionCall.argList.add((ASTExpression) thiNode);
             }
-        } else if (parentNode.getClass() == ASTPostfixExpression.class) {
-            ASTPostfixExpression postfixExpression = (ASTPostfixExpression) parentNode;
-            postfixExpression.expr = (ASTExpression) thiNode;
-        }
-        // else if (parentNode.getClass() == ASTUnaryTypename.class) {
+            expressionStack.clear();
+        } else if (nodeStack.peek().getClass() == ASTIterationDeclaredStatement.class) {
 
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
+                    if (((ASTIterationDeclaredStatement) nodeStack.peek()).cond == null) {
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).cond = new LinkedList<>();
+
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).cond.add(expressionStack.pop());
+                    } else if (((ASTIterationDeclaredStatement) nodeStack.peek()).step == null) {
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).step = new LinkedList<>();
+                        ((ASTIterationDeclaredStatement) nodeStack.peek()).step.add(expressionStack.pop());
+
+                    }
+                }
+            }
+        } else if (nodeStack.peek().getClass() == ASTIterationStatement.class) {
+
+            while (!expressionStack.empty()) {
+                if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+                        && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+                    expressionStack.pop();
+                } else {
+                    if (((ASTIterationStatement) nodeStack.peek()).init == null) {
+                        ((ASTIterationStatement) nodeStack.peek()).init = new LinkedList<>();
+                        ((ASTIterationStatement) nodeStack.peek()).init.add(expressionStack.pop());
+                    } else if (((ASTIterationStatement) nodeStack.peek()).cond == null) {
+                        ((ASTIterationStatement) nodeStack.peek()).cond = new LinkedList<>();
+
+                        ((ASTIterationStatement) nodeStack.peek()).cond.add(expressionStack.pop());
+
+                    } else if (((ASTIterationStatement) nodeStack.peek()).step == null) {
+                        ((ASTIterationStatement) nodeStack.peek()).step = new LinkedList<>();
+
+                        ((ASTIterationStatement) nodeStack.peek()).step.add(expressionStack.pop());
+                    }
+                }
+            }
+        
+            expressionStack.clear();
+        }
+        // else if (nodeStack.peek().getClass() == ASTReturnStatement.class) {
+
+        // while (!expressionStack.empty()) {
+        // if (expressionStack.peek().getClass() == ASTPostfixExpression.class
+        // && ((ASTPostfixExpression) expressionStack.peek()).op == null) {
+        // expressionStack.pop();
+        // } else {
+        // if (((ASTReturnStatement) nodeStack.peek()).expr == null) {
+        // ((ASTReturnStatement) nodeStack.peek()).expr = new LinkedList<>();
         // }
-
-    }
-
-    public void mountNonExpression(ASTExpression thisNode, ASTNode parentNode) {
-        // 把需要一个expression的非expression节点都放这里来
-        if (parentNode.getClass() == ASTExpressionStatement.class) {
-            if (((ASTExpressionStatement) parentNode).exprs == null) {
-                ((ASTExpressionStatement) parentNode).exprs = new LinkedList<>();
-            }
-            ((ASTExpressionStatement) parentNode).exprs.add(thisNode);
-        }
-    }
-
-    @Override
-    public void enterAssignmentExpression_(AssignmentExpression_Context ctx) {
-        nodeStack.push(new ASTBinaryExpression());
-    }
-
-    @Override
-    public void enterEqualityExpression_(EqualityExpression_Context ctx) {
-        nodeStack.push(new ASTBinaryExpression());
-    }
-
-    @Override
-    public void enterRelationalExpression_(RelationalExpression_Context ctx) {
-        nodeStack.push(new ASTBinaryExpression());
-    }
-
-    @Override
-    public void enterAdditiveExpression_(AdditiveExpression_Context ctx) {
-        nodeStack.push(new ASTBinaryExpression());
-    }
-
-    @Override
-    public void enterMultiplicativeExpression_(MultiplicativeExpression_Context ctx) {
-        nodeStack.push(new ASTBinaryExpression());
-    }
-
-    public void exitBinaryExpression() {
-        thisNode = nodeStack.pop();
-        parentNode = nodeStack.peek();
-        if (parentNode instanceof ASTExpression) {
-            findExpressionToMount((ASTExpression) thisNode, (ASTExpression) parentNode);
-        } else {
-            mountNonExpression((ASTExpression) thisNode, parentNode);
-        }
-    }
-
-    @Override
-    public void exitAssignmentExpression_(AssignmentExpression_Context ctx) {
-        exitBinaryExpression();
-    }
-
-    @Override
-    public void exitEqualityExpression_(EqualityExpression_Context ctx) {
-        exitBinaryExpression();
-    }
-
-    @Override
-    public void exitRelationalExpression_(RelationalExpression_Context ctx) {
-        exitBinaryExpression();
-    }
-
-    @Override
-    public void exitAdditiveExpression_(AdditiveExpression_Context ctx) {
-        exitBinaryExpression();
-    }
-
-    @Override
-    public void exitMultiplicativeExpression_(MultiplicativeExpression_Context ctx) {
-        exitBinaryExpression();
+        // ((ASTReturnStatement) nodeStack.peek()).expr.add((ASTExpression)
+        // expressionStack.pop());
+        // }
+        // }
+        // }
     }
 
     @Override
@@ -567,9 +575,201 @@ public class WzcListenr extends CBaseListener {
 
     @Override
     public void exitExpressionStatement(ExpressionStatementContext ctx) {
-        // ASTExpressionStatement astExpressionStatement = (ASTExpressionStatement)
-        // nodeStack.peek();
+        ASTExpressionStatement astExpressionStatement = (ASTExpressionStatement) nodeStack.peek();
+
+        // ExpressionStatement需要特殊处理
+        if (astExpressionStatement.exprs == null) {
+            astExpressionStatement.exprs = new LinkedList<ASTExpression>();
+        }
+        while (!expressionStack.empty()) {
+            astExpressionStatement.exprs.add(expressionStack.pop());
+        }
+        expressionStack.clear();
 
     }
 
+    @Override
+    public void enterRelationalExpression_(RelationalExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitRelationalExpression_(RelationalExpression_Context ctx) {
+        exitBinaryExpression();
+    }
+
+    @Override
+    public void enterPostfixExpression_(PostfixExpression_Context ctx) {
+        expressionStack.push(new ASTPostfixExpression());
+    }
+
+    @Override
+    public void enterPostfixExpression_pass(PostfixExpression_passContext ctx) {
+        expressionStack.push(new ASTPostfixExpression());
+    }
+
+    @Override
+    public void exitPostfixExpression_pass(PostfixExpression_passContext ctx) {
+        if (expressionStack.size() >= 2) {
+            ASTPostfixExpression postfixExpression = (ASTPostfixExpression) expressionStack.pop();
+            ASTExpression parent = expressionStack.peek();
+            // 值挂载到上一节点
+            if (parent.getClass() == ASTUnaryExpression.class) {
+                // Unary
+                ((ASTUnaryExpression) parent).expr = postfixExpression.expr;
+            } else if (parent.getClass() == ASTPostfixExpression.class) {
+                // // 自己的递归
+                // ((ASTPostfixExpression) parent).expr = postfixExpression.expr;
+                expressionStack.push(postfixExpression);
+            } else if (parent.getClass() == ASTCastExpression.class) {
+                // Cast
+                ((ASTCastExpression) parent).expr = postfixExpression.expr;
+            } else if (parent.getClass() == ASTArrayAccess.class) {
+
+                expressionStack.push(postfixExpression);
+
+            } else if (parent.getClass() == ASTBinaryExpression.class) {
+                expressionStack.push(postfixExpression);
+                // 二元的先啥都不干
+            } else if (parent.getClass() == ASTFunctionCall.class) {
+                // FunCall也是二元的，先啥都不干
+                ASTFunctionCall functionCall = (ASTFunctionCall) expressionStack.peek();
+                if (functionCall.funcname == null) {
+                    functionCall.funcname = postfixExpression.expr;
+                } else {
+                    if (functionCall.argList == null) {
+                        functionCall.argList = new LinkedList<>();
+                    }
+                    functionCall.argList.add(postfixExpression.expr);
+                }
+                // expressionStack.push(postfixExpression);
+            }
+            // 上一个不可能是conditional expression
+            // 上一个不可能是type name
+        } else {
+
+        }
+    }
+
+    // 成功的节点一直留在栈顶
+    @Override
+    public void enterUnaryExpression_(UnaryExpression_Context ctx) {
+        expressionStack.push(new ASTUnaryExpression());
+    }
+
+    @Override
+    public void exitUnaryExpression_(UnaryExpression_Context ctx) {
+        ASTExpression previous = expressionStack.pop();
+        ((ASTUnaryExpression) expressionStack.peek()).expr = previous;
+    }
+
+    @Override
+    public void enterCastExpression_(CastExpression_Context ctx) {
+        expressionStack.push(new ASTCastExpression());
+    }
+
+    @Override
+    public void exitCastExpression_(CastExpression_Context ctx) {
+        ASTExpression previous = expressionStack.pop();
+        ((ASTCastExpression) expressionStack.peek()).expr = previous;
+    }
+
+    // 取消支持a+++b，a++=b之类的奇怪语法
+    public void exitBinaryExpression() {
+        // 可以通过op判断postifix operation 是否是有效的
+        ASTExpression expr2 = expressionStack.pop();
+        ASTExpression expr1 = expressionStack.pop();
+        if (!expressionStack.empty()) {
+            if (expr1.getClass() == ASTPostfixExpression.class && ((ASTPostfixExpression) expr1).op == null) {
+                ((ASTBinaryExpression) expressionStack.peek()).expr1 = ((ASTPostfixExpression) expr1).expr;
+            } else {
+                ((ASTBinaryExpression) expressionStack.peek()).expr1 = expr1;
+            }
+            if (expr2.getClass() == ASTPostfixExpression.class && ((ASTPostfixExpression) expr2).op == null) {
+                ((ASTBinaryExpression) expressionStack.peek()).expr2 = ((ASTPostfixExpression) expr2).expr;
+            } else {
+                ((ASTBinaryExpression) expressionStack.peek()).expr2 = expr2;
+            }
+            // ((ASTBinaryExpression) expressionStack.peek()).expr1 = expr1;
+            // ((ASTBinaryExpression) expressionStack.peek()).expr2 = expr2;
+        }
+    }
+
+    @Override
+    public void enterEqualityExpression_(EqualityExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitEqualityExpression_(EqualityExpression_Context ctx) {
+        exitBinaryExpression();
+    }
+
+    @Override
+    public void enterMultiplicativeExpression_(MultiplicativeExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitMultiplicativeExpression_(MultiplicativeExpression_Context ctx) {
+        exitBinaryExpression();
+    }
+
+    @Override
+    public void enterAdditiveExpression_(AdditiveExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitAdditiveExpression_(AdditiveExpression_Context ctx) {
+        exitBinaryExpression();
+    }
+
+    @Override
+    public void enterAssignmentExpression_(AssignmentExpression_Context ctx) {
+        expressionStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void exitAssignmentExpression_(AssignmentExpression_Context ctx) {
+        exitBinaryExpression();
+    }
+
+    @Override
+    public void enterFunctionCall_(FunctionCall_Context ctx) {
+        expressionStack.push(new ASTFunctionCall());
+    }
+
+    @Override
+    public void exitFunctionCall_(FunctionCall_Context ctx) {
+
+    }
+    // @Override
+    // public void enterConditionalExpression(ConditionalExpressionContext ctx) {
+
+    // }
+    @Override
+    public void enterArrayAceess_(ArrayAceess_Context ctx) {
+        expressionStack.push(new ASTArrayAccess());
+    }
+
+    // 选择取消支持多elements (比如 a[1,2,3,4])
+    @Override
+    public void exitArrayAceess_(ArrayAceess_Context ctx) {
+        ASTExpression element = expressionStack.pop();
+        ASTExpression name = expressionStack.pop();
+        // array 的 element为什么是个数组啊
+        ((ASTArrayAccess) expressionStack.peek()).arrayName = name;
+        if (((ASTArrayAccess) expressionStack.peek()).elements == null) {
+            ((ASTArrayAccess) expressionStack.peek()).elements = new LinkedList<>();
+        }
+        if (element.getClass() == ASTPostfixExpression.class && ((ASTPostfixExpression) element).op == null) {
+            ((ASTArrayAccess) expressionStack.peek()).elements.add(((ASTPostfixExpression) element).expr);
+        } else {
+            ((ASTArrayAccess) expressionStack.peek()).elements.add(element);
+        }
+        // expressionStack.peek();
+    }
+
+    // 恕不支持flag ? x-- : x++;之类的奇怪语法
 }

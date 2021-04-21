@@ -75,9 +75,9 @@ public class WzcParser implements IMiniCCParser {
         WzcListenr listener = new WzcListenr();
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(listener, root);
-        String[] dummyStrs = new String[16];
-        TreeViewer viewr = new TreeViewer(Arrays.asList(dummyStrs), listener.returNode);
-        viewr.open();
+        // String[] dummyStrs = new String[16];
+        // TreeViewer viewr = new TreeViewer(Arrays.asList(dummyStrs), listener.returNode);
+        // viewr.open();
 
         ObjectMapper mapper = new ObjectMapper();
 
