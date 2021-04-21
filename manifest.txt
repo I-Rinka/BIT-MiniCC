@@ -1,0 +1,4 @@
+Mainfest-Version: 1.0
+Class-Path: lib/*
+Main-Class: bit.minisys.minicc.BITMiniCC
+Start-Class: bit.minisys.minicc.BITMiniCC
