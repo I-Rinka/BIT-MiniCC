@@ -33,6 +33,7 @@ import bit.minisys.minicc.parser.CParser.EqualityExpression_Context;
 import bit.minisys.minicc.parser.CParser.EqualityExpression_passContext;
 import bit.minisys.minicc.parser.CParser.ExpressionContext;
 import bit.minisys.minicc.parser.CParser.ExpressionStatementContext;
+import bit.minisys.minicc.parser.CParser.ForDeclarationContext;
 import bit.minisys.minicc.parser.CParser.FunctionCall_Context;
 import bit.minisys.minicc.parser.CParser.FunctionDeclaratorContext;
 import bit.minisys.minicc.parser.CParser.FunctionDefinitionContext;
@@ -137,18 +138,15 @@ public class WzcListenr extends CBaseListener {
                 }
                 astInitList.exprs.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
 
-            }
-            // else if (parentNode.getClass() == ASTReturnStatement.class) {
+            } else if (parentNode.getClass() == ASTReturnStatement.class) {
 
-            // ASTReturnStatement astReturn = ((ASTReturnStatement) parentNode);
-            // if (astReturn.expr == null) {
-            // astReturn.expr = new LinkedList<ASTExpression>();
-            // }
-            // astReturn.expr.add(new ASTIdentifier(node.getSymbol().getText(),
-            // node.getSymbol().getTokenIndex()));
+                ASTReturnStatement astReturn = ((ASTReturnStatement) parentNode);
+                if (astReturn.expr == null) {
+                    astReturn.expr = new LinkedList<ASTExpression>();
+                }
+                astReturn.expr.add(new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()));
 
-            // }
-            else if (parentNode.getClass() == ASTBinaryExpression.class) {
+            } else if (parentNode instanceof ASTExpression) {
                 findExpressionToMount(
                         (ASTExpression) new ASTIdentifier(node.getSymbol().getText(), node.getSymbol().getTokenIndex()),
                         (ASTExpression) parentNode);
@@ -156,12 +154,20 @@ public class WzcListenr extends CBaseListener {
             break;
 
         case CLexer.Constant:
+            ASTExpression thisConstant;
             int type = 0;// Int
             if (node.getText().charAt(0) == '\'') {
                 type = 2;// Char
+                thisConstant = new ASTCharConstant(node.getSymbol().getText(), node.getSymbol().getTokenIndex());
             } else if (node.getText().contains(".")) {
                 type = 1;// Float
+                thisConstant = new ASTFloatConstant(Double.valueOf(node.getSymbol().getText()),
+                        node.getSymbol().getTokenIndex());
+            } else {
+                thisConstant = new ASTIntegerConstant(Integer.valueOf(node.getSymbol().getText()),
+                        node.getSymbol().getTokenIndex());
             }
+
             if (parentNode.getClass() == ASTInitList.class) {
 
                 ASTInitList astInitList = ((ASTInitList) parentNode);
@@ -183,6 +189,14 @@ public class WzcListenr extends CBaseListener {
                     ((ASTArrayDeclarator) parentNode).expr = new ASTCharConstant(node.getSymbol().getText(),
                             node.getSymbol().getTokenIndex());
                 }
+            } else if (parentNode.getClass() == ASTReturnStatement.class) {
+
+                ASTReturnStatement astReturn = ((ASTReturnStatement) parentNode);
+                if (astReturn.expr == null) {
+                    astReturn.expr = new LinkedList<ASTExpression>();
+                }
+                astReturn.expr.add(thisConstant);
+
             }
 
             break;
@@ -331,6 +345,18 @@ public class WzcListenr extends CBaseListener {
         } else if (parentNode.getClass() == ASTIterationDeclaredStatement.class) {
             ((ASTIterationDeclaredStatement) parentNode).init = (ASTDeclaration) thisNode;
         }
+
+    }
+
+    // for declaration的直接重用
+    @Override
+    public void enterForDeclaration(ForDeclarationContext ctx) {
+        enterDeclaration(null);
+    }
+
+    @Override
+    public void exitForDeclaration(ForDeclarationContext ctx) {
+        exitDeclaration(null);
     }
 
     @Override
@@ -518,6 +544,38 @@ public class WzcListenr extends CBaseListener {
                 ((ASTInitList) parentNode).exprs = new LinkedList<>();
             }
             ((ASTInitList) parentNode).exprs.add(thisNode);
+        } else if (parentNode.getClass() == ASTReturnStatement.class) {
+            if (((ASTReturnStatement) parentNode).expr == null) {
+                ((ASTReturnStatement) parentNode).expr = new LinkedList<>();
+            }
+            ((ASTReturnStatement) parentNode).expr.add(thisNode);
+        } else if (parentNode.getClass() == ASTSelectionStatement.class) {
+            if (((ASTSelectionStatement) parentNode).cond == null) {
+                ((ASTSelectionStatement) parentNode).cond = new LinkedList<>();
+            }
+            ((ASTSelectionStatement) parentNode).cond.add(thisNode);
+        } else if (parentNode.getClass() == ASTIterationDeclaredStatement.class) {
+            if (((ASTIterationDeclaredStatement) parentNode).cond == null) {
+                ((ASTIterationDeclaredStatement) parentNode).cond = new LinkedList<>();
+                ((ASTIterationDeclaredStatement) parentNode).cond.add(thisNode);
+            } else if (((ASTIterationDeclaredStatement) parentNode).step == null) {
+                ((ASTIterationDeclaredStatement) parentNode).step = new LinkedList<>();
+                ((ASTIterationDeclaredStatement) parentNode).step.add(thisNode);
+            }
+        }
+
+        // 新加的，没测试
+        else if (parentNode.getClass() == ASTIterationStatement.class) {
+            if (((ASTIterationStatement) parentNode).init == null) {
+                ((ASTIterationStatement) parentNode).init = new LinkedList<>();
+                ((ASTIterationStatement) parentNode).init.add(thisNode);
+            } else if (((ASTIterationStatement) parentNode).cond == null) {
+                ((ASTIterationStatement) parentNode).cond = new LinkedList<>();
+                ((ASTIterationStatement) parentNode).cond.add(thisNode);
+            } else if (((ASTIterationStatement) parentNode).step == null) {
+                ((ASTIterationStatement) parentNode).step = new LinkedList<>();
+                ((ASTIterationStatement) parentNode).step.add(thisNode);
+            }
         }
     }
 
@@ -550,9 +608,9 @@ public class WzcListenr extends CBaseListener {
         thisNode = nodeStack.pop();
         parentNode = nodeStack.peek();
         if (parentNode instanceof ASTExpression) {
-            findExpressionToMount((ASTExpression)thisNode, (ASTExpression) parentNode);
+            findExpressionToMount((ASTExpression) thisNode, (ASTExpression) parentNode);
         } else {
-            mountNonExpression((ASTExpression)thisNode, parentNode);
+            mountNonExpression((ASTExpression) thisNode, parentNode);
         }
     }
 
@@ -588,9 +646,17 @@ public class WzcListenr extends CBaseListener {
 
     @Override
     public void exitExpressionStatement(ExpressionStatementContext ctx) {
-        // ASTExpressionStatement astExpressionStatement = (ASTExpressionStatement)
-        // nodeStack.peek();
 
+    }
+
+    @Override
+    public void enterFunctionCall_(FunctionCall_Context ctx) {
+        nodeStack.push(new ASTFunctionCall());
+    }
+
+    @Override
+    public void exitFunctionCall_(FunctionCall_Context ctx) {
+        exitBinaryExpression();
     }
 
 }
