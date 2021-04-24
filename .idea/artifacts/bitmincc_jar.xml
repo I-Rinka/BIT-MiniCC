@@ -6,7 +6,6 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/dom4j-1.6.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/jackson-annotations-2.10.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/jackson-core-2.10.2.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jython.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/antlr-4.8-complete.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/BITMiniCC_20200404_obf.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/Rars.jar" path-in-jar="/" />

@@ -28,11 +28,13 @@ import bit.minisys.minicc.parser.ast.ASTFunctionCall;
 import bit.minisys.minicc.parser.ast.ASTNode;
 import bit.minisys.minicc.parser.ast.ASTVisitor;
 
-public class WzcParser implements IMiniCCParser {
+public class WzcParser implements IMiniCCParser
+{
 
     String code_source;
 
-    public String run(String iFile) throws Exception {
+    public String run(String iFile) throws Exception
+    {
         System.out.println("Parsering...");
         String ast_json_file = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT;
 

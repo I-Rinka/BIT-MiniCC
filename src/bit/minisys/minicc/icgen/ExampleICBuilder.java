@@ -6,104 +6,127 @@ import java.util.List;
 import java.util.Map;
 
 import bit.minisys.minicc.parser.ast.*;
-// Ò»¸ö¼òµ¥ÑùÀý£¬Ö»ÊµÏÖÁË¼Ó·¨
-public class ExampleICBuilder implements ASTVisitor{
 
-	private Map<ASTNode, ASTNode> map;				// Ê¹ÓÃmap´æ´¢×Ó½ÚµãµÄ·µ»ØÖµ£¬key¶ÔÓ¦×Ó½Úµã£¬value¶ÔÓ¦·µ»ØÖµ£¬valueÄ¿Ç°Àà±ð°üÀ¨ASTIdentifier,ASTIntegerConstant,TemportaryValue...
-	private List<Quat> quats;						// Éú³ÉµÄËÄÔªÊ½ÁÐ±í
-	private Integer tmpId;							// ÁÙÊ±±äÁ¿±àºÅ
-	public ExampleICBuilder() {
+// Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»Êµï¿½ï¿½ï¿½Ë¼Ó·ï¿½
+public class ExampleICBuilder implements ASTVisitor
+{
+
+	private Map<ASTNode, ASTNode> map; // Ê¹ï¿½ï¿½mapï¿½æ´¢ï¿½Ó½Úµï¿½Ä·ï¿½ï¿½ï¿½Öµï¿½ï¿½keyï¿½ï¿½Ó¦ï¿½Ó½Úµã£¬valueï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½valueÄ¿Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ASTIdentifier,ASTIntegerConstant,TemportaryValue...
+	private List<Quat> quats; // ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½ÔªÊ½ï¿½Ð±ï¿½
+	private Integer tmpId; // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+	public ExampleICBuilder()
+	{
 		map = new HashMap<ASTNode, ASTNode>();
 		quats = new LinkedList<Quat>();
 		tmpId = 0;
 	}
-	public List<Quat> getQuats() {
+
+	public List<Quat> getQuats()
+	{
 		return quats;
 	}
 
 	@Override
-	public void visit(ASTCompilationUnit program) throws Exception {
-		for (ASTNode node : program.items) {
-			if(node instanceof ASTFunctionDefine)
-				visit((ASTFunctionDefine)node);
+	public void visit(ASTCompilationUnit program) throws Exception
+	{
+		for (ASTNode node : program.items)
+		{
+			if (node instanceof ASTFunctionDefine)
+				visit((ASTFunctionDefine) node);
 		}
 	}
 
 	@Override
-	public void visit(ASTDeclaration declaration) throws Exception {
+	public void visit(ASTDeclaration declaration) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTArrayDeclarator arrayDeclarator) throws Exception {
+	public void visit(ASTArrayDeclarator arrayDeclarator) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTVariableDeclarator variableDeclarator) throws Exception {
+	public void visit(ASTVariableDeclarator variableDeclarator) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTFunctionDeclarator functionDeclarator) throws Exception {
+	public void visit(ASTFunctionDeclarator functionDeclarator) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTParamsDeclarator paramsDeclarator) throws Exception {
+	public void visit(ASTParamsDeclarator paramsDeclarator) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTArrayAccess arrayAccess) throws Exception {
+	public void visit(ASTArrayAccess arrayAccess) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTBinaryExpression binaryExpression) throws Exception {
+	public void visit(ASTBinaryExpression binaryExpression) throws Exception
+	{
 		String op = binaryExpression.op.value;
 		ASTNode res = null;
 		ASTNode opnd1 = null;
 		ASTNode opnd2 = null;
-		
-		if (op.equals("=")) {
-			// ¸³Öµ²Ù×÷
-			// »ñÈ¡±»¸³ÖµµÄ¶ÔÏóres
+
+		if (op.equals("="))
+		{
+			// ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
+			// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Öµï¿½Ä¶ï¿½ï¿½ï¿½res
 			visit(binaryExpression.expr1);
 			res = map.get(binaryExpression.expr1);
-			// ÅÐ¶ÏÔ´²Ù×÷ÊýÀàÐÍ, ÎªÁË±ÜÃâ³öÏÖa = b + c; Éú³ÉÁ½¸öËÄÔªÊ½£ºtmp1 = b + c; a = tmp1;µÄÇé¿ö¡£Ò²¿ÉÒÔÓÃ±ðµÄ·½·¨½â¾ö
-			if (binaryExpression.expr2 instanceof ASTIdentifier) {
+			// ï¿½Ð¶ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, Îªï¿½Ë±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½a = b + c; ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔªÊ½ï¿½ï¿½tmp1 = b + c; a =
+			// tmp1;ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½Ä·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			if (binaryExpression.expr2 instanceof ASTIdentifier)
+			{
 				opnd1 = binaryExpression.expr2;
-			}else if(binaryExpression.expr2 instanceof ASTIntegerConstant) {
+			} else if (binaryExpression.expr2 instanceof ASTIntegerConstant)
+			{
 				opnd1 = binaryExpression.expr2;
-			}else if(binaryExpression.expr2 instanceof ASTBinaryExpression) {
-				ASTBinaryExpression value = (ASTBinaryExpression)binaryExpression.expr2;
+			} else if (binaryExpression.expr2 instanceof ASTBinaryExpression)
+			{
+				ASTBinaryExpression value = (ASTBinaryExpression) binaryExpression.expr2;
 				op = value.op.value;
 				visit(value.expr1);
 				opnd1 = map.get(value.expr1);
 				visit(value.expr2);
 				opnd2 = map.get(value.expr2);
-			}else {
+			} else
+			{
 				// else ...
 			}
-			
-		}else if (op.equals("+")) {
-			// ¼Ó·¨²Ù×÷£¬½á¹û´æ´¢µ½ÖÐ¼ä±äÁ¿
+
+		} else if (op.equals("+"))
+		{
+			// ï¿½Ó·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½
 			res = new TemporaryValue(++tmpId);
 			visit(binaryExpression.expr1);
 			opnd1 = map.get(binaryExpression.expr1);
 			visit(binaryExpression.expr2);
 			opnd2 = map.get(binaryExpression.expr2);
-		}else {
+		} else
+		{
 			// else..
 		}
-		
+
 		// build quat
 		Quat quat = new Quat(op, res, opnd1, opnd2);
 		quats.add(quat);
@@ -111,227 +134,284 @@ public class ExampleICBuilder implements ASTVisitor{
 	}
 
 	@Override
-	public void visit(ASTBreakStatement breakStat) throws Exception {
+	public void visit(ASTBreakStatement breakStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTContinueStatement continueStatement) throws Exception {
+	public void visit(ASTContinueStatement continueStatement) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTCastExpression castExpression) throws Exception {
+	public void visit(ASTCastExpression castExpression) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTCharConstant charConst) throws Exception {
+	public void visit(ASTCharConstant charConst) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTCompoundStatement compoundStat) throws Exception {
-		for (ASTNode node : compoundStat.blockItems) {
-			if(node instanceof ASTDeclaration) {
+	public void visit(ASTCompoundStatement compoundStat) throws Exception
+	{
+		for (ASTNode node : compoundStat.blockItems)
+		{
+			if (node instanceof ASTDeclaration)
+			{
 				// visit((ASTDeclaration)node);
-			}else if (node instanceof ASTStatement) {
-				visit((ASTStatement)node);
+			} else if (node instanceof ASTStatement)
+			{
+				visit((ASTStatement) node);
 			}
 		}
-		
+
 	}
 
 	@Override
-	public void visit(ASTConditionExpression conditionExpression) throws Exception {
+	public void visit(ASTConditionExpression conditionExpression) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTExpression expression) throws Exception {
-		if(expression instanceof ASTArrayAccess) {
-			visit((ASTArrayAccess)expression);
-		}else if(expression instanceof ASTBinaryExpression) {
-			visit((ASTBinaryExpression)expression);
-		}else if(expression instanceof ASTCastExpression) {
-			visit((ASTCastExpression)expression);
-		}else if(expression instanceof ASTCharConstant) {
-			visit((ASTCharConstant)expression);
-		}else if(expression instanceof ASTConditionExpression) {
-			visit((ASTConditionExpression)expression);
-		}else if(expression instanceof ASTFloatConstant) {
-			visit((ASTFloatConstant)expression);
-		}else if(expression instanceof ASTFunctionCall) {
-			visit((ASTFunctionCall)expression);
-		}else if(expression instanceof ASTIdentifier) {
-			visit((ASTIdentifier)expression);
-		}else if(expression instanceof ASTIntegerConstant) {
-			visit((ASTIntegerConstant)expression);
-		}else if(expression instanceof ASTMemberAccess) {
-			visit((ASTMemberAccess)expression);
-		}else if(expression instanceof ASTPostfixExpression) {
-			visit((ASTPostfixExpression)expression);
-		}else if(expression instanceof ASTStringConstant) {
-			visit((ASTStringConstant)expression);
-		}else if(expression instanceof ASTUnaryExpression) {
-			visit((ASTUnaryExpression)expression);
-		}else if(expression instanceof ASTUnaryTypename){
-			visit((ASTUnaryTypename)expression);
+	public void visit(ASTExpression expression) throws Exception
+	{
+		if (expression instanceof ASTArrayAccess)
+		{
+			visit((ASTArrayAccess) expression);
+		} else if (expression instanceof ASTBinaryExpression)
+		{
+			visit((ASTBinaryExpression) expression);
+		} else if (expression instanceof ASTCastExpression)
+		{
+			visit((ASTCastExpression) expression);
+		} else if (expression instanceof ASTCharConstant)
+		{
+			visit((ASTCharConstant) expression);
+		} else if (expression instanceof ASTConditionExpression)
+		{
+			visit((ASTConditionExpression) expression);
+		} else if (expression instanceof ASTFloatConstant)
+		{
+			visit((ASTFloatConstant) expression);
+		} else if (expression instanceof ASTFunctionCall)
+		{
+			visit((ASTFunctionCall) expression);
+		} else if (expression instanceof ASTIdentifier)
+		{
+			visit((ASTIdentifier) expression);
+		} else if (expression instanceof ASTIntegerConstant)
+		{
+			visit((ASTIntegerConstant) expression);
+		} else if (expression instanceof ASTMemberAccess)
+		{
+			visit((ASTMemberAccess) expression);
+		} else if (expression instanceof ASTPostfixExpression)
+		{
+			visit((ASTPostfixExpression) expression);
+		} else if (expression instanceof ASTStringConstant)
+		{
+			visit((ASTStringConstant) expression);
+		} else if (expression instanceof ASTUnaryExpression)
+		{
+			visit((ASTUnaryExpression) expression);
+		} else if (expression instanceof ASTUnaryTypename)
+		{
+			visit((ASTUnaryTypename) expression);
 		}
 	}
 
 	@Override
-	public void visit(ASTExpressionStatement expressionStat) throws Exception {
-		for (ASTExpression node : expressionStat.exprs) {
-			visit((ASTExpression)node);
+	public void visit(ASTExpressionStatement expressionStat) throws Exception
+	{
+		for (ASTExpression node : expressionStat.exprs)
+		{
+			visit((ASTExpression) node);
 		}
 	}
 
 	@Override
-	public void visit(ASTFloatConstant floatConst) throws Exception {
+	public void visit(ASTFloatConstant floatConst) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTFunctionCall funcCall) throws Exception {
+	public void visit(ASTFunctionCall funcCall) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTGotoStatement gotoStat) throws Exception {
+	public void visit(ASTGotoStatement gotoStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTIdentifier identifier) throws Exception {
+	public void visit(ASTIdentifier identifier) throws Exception
+	{
 		map.put(identifier, identifier);
 	}
 
 	@Override
-	public void visit(ASTInitList initList) throws Exception {
+	public void visit(ASTInitList initList) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTIntegerConstant intConst) throws Exception {
+	public void visit(ASTIntegerConstant intConst) throws Exception
+	{
 		map.put(intConst, intConst);
 	}
 
 	@Override
-	public void visit(ASTIterationDeclaredStatement iterationDeclaredStat) throws Exception {
+	public void visit(ASTIterationDeclaredStatement iterationDeclaredStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTIterationStatement iterationStat) throws Exception {
+	public void visit(ASTIterationStatement iterationStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTLabeledStatement labeledStat) throws Exception {
+	public void visit(ASTLabeledStatement labeledStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTMemberAccess memberAccess) throws Exception {
+	public void visit(ASTMemberAccess memberAccess) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTPostfixExpression postfixExpression) throws Exception {
+	public void visit(ASTPostfixExpression postfixExpression) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTReturnStatement returnStat) throws Exception {
+	public void visit(ASTReturnStatement returnStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTSelectionStatement selectionStat) throws Exception {
+	public void visit(ASTSelectionStatement selectionStat) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTStringConstant stringConst) throws Exception {
+	public void visit(ASTStringConstant stringConst) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTTypename typename) throws Exception {
+	public void visit(ASTTypename typename) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTUnaryExpression unaryExpression) throws Exception {
+	public void visit(ASTUnaryExpression unaryExpression) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTUnaryTypename unaryTypename) throws Exception {
+	public void visit(ASTUnaryTypename unaryTypename) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTFunctionDefine functionDefine) throws Exception {
+	public void visit(ASTFunctionDefine functionDefine) throws Exception
+	{
 		visit(functionDefine.body);
 	}
 
 	@Override
-	public void visit(ASTDeclarator declarator) throws Exception {
+	public void visit(ASTDeclarator declarator) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void visit(ASTStatement statement) throws Exception {
-		if(statement instanceof ASTIterationDeclaredStatement) {
-			visit((ASTIterationDeclaredStatement)statement);
-		}else if(statement instanceof ASTIterationStatement) {
-			visit((ASTIterationStatement)statement);
-		}else if(statement instanceof ASTCompoundStatement) {
-			visit((ASTCompoundStatement)statement);
-		}else if(statement instanceof ASTSelectionStatement) {
-			visit((ASTSelectionStatement)statement);
-		}else if(statement instanceof ASTExpressionStatement) {
-			visit((ASTExpressionStatement)statement);
-		}else if(statement instanceof ASTBreakStatement) {
-			visit((ASTBreakStatement)statement);
-		}else if(statement instanceof ASTContinueStatement) {
-			visit((ASTContinueStatement)statement);
-		}else if(statement instanceof ASTReturnStatement) {
-			visit((ASTReturnStatement)statement);
-		}else if(statement instanceof ASTGotoStatement) {
-			visit((ASTGotoStatement)statement);
-		}else if(statement instanceof ASTLabeledStatement) {
-			visit((ASTLabeledStatement)statement);
+	public void visit(ASTStatement statement) throws Exception
+	{
+		if (statement instanceof ASTIterationDeclaredStatement)
+		{
+			visit((ASTIterationDeclaredStatement) statement);
+		} else if (statement instanceof ASTIterationStatement)
+		{
+			visit((ASTIterationStatement) statement);
+		} else if (statement instanceof ASTCompoundStatement)
+		{
+			visit((ASTCompoundStatement) statement);
+		} else if (statement instanceof ASTSelectionStatement)
+		{
+			visit((ASTSelectionStatement) statement);
+		} else if (statement instanceof ASTExpressionStatement)
+		{
+			visit((ASTExpressionStatement) statement);
+		} else if (statement instanceof ASTBreakStatement)
+		{
+			visit((ASTBreakStatement) statement);
+		} else if (statement instanceof ASTContinueStatement)
+		{
+			visit((ASTContinueStatement) statement);
+		} else if (statement instanceof ASTReturnStatement)
+		{
+			visit((ASTReturnStatement) statement);
+		} else if (statement instanceof ASTGotoStatement)
+		{
+			visit((ASTGotoStatement) statement);
+		} else if (statement instanceof ASTLabeledStatement)
+		{
+			visit((ASTLabeledStatement) statement);
 		}
 	}
 
 	@Override
-	public void visit(ASTToken token) throws Exception {
+	public void visit(ASTToken token) throws Exception
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
