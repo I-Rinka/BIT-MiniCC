@@ -2,30 +2,40 @@ package bit.minisys.minicc.icgen;
 
 import bit.minisys.minicc.parser.ast.ASTNode;
 
-// ËÄÔªÊ½ÐÎÊ½µÄÖÐ¼ä´úÂë, ²Ù×÷ÊýºÍ·µ»ØÖµµÄ½á¹¹Ö±½ÓÊ¹ÓÃAST½Úµã£¬Ò²¿ÉÒÔ×Ô¶¨ÒåIR½Úµã
-public class Quat {
-	private String op;	
+// ï¿½ï¿½ÔªÊ½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½Öµï¿½Ä½á¹¹Ö±ï¿½ï¿½Ê¹ï¿½ï¿½ASTï¿½Úµã£¬Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½IRï¿½Úµï¿½
+public class Quat
+{
+	private String op;
 	private ASTNode res;
 	private ASTNode opnd1;
 	private ASTNode opnd2;
-	public Quat(String op, ASTNode res, ASTNode opnd1, ASTNode opnd2) {
+
+	public Quat(String op, ASTNode res, ASTNode opnd1, ASTNode opnd2)
+	{
 		this.op = op;
 		this.res = res;
 		this.opnd1 = opnd1;
 		this.opnd2 = opnd2;
-		
+
 	}
-	
-	public String getOp() {
+
+	public String getOp()
+	{
 		return op;
 	}
-	public ASTNode getOpnd1() {
+
+	public ASTNode getOpnd1()
+	{
 		return opnd1;
 	}
-	public ASTNode getOpnd2() {
+
+	public ASTNode getOpnd2()
+	{
 		return opnd2;
 	}
-	public ASTNode getRes() {
+
+	public ASTNode getRes()
+	{
 		return res;
 	}
 }

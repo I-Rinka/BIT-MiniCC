@@ -9,40 +9,54 @@ import bit.minisys.minicc.parser.ast.ASTIdentifier;
 import bit.minisys.minicc.parser.ast.ASTIntegerConstant;
 import bit.minisys.minicc.parser.ast.ASTNode;
 
-public class ExampleICPrinter {
-	private  List<Quat> quats;
-	public ExampleICPrinter(List<Quat> quats) {
+public class ExampleICPrinter
+{
+	private List<Quat> quats;
+
+	public ExampleICPrinter(List<Quat> quats)
+	{
 		this.quats = quats;
 	}
-	public void print(String filename) {
+
+	public void print(String filename)
+	{
 		StringBuilder sb = new StringBuilder();
-		for (Quat quat : quats) {
+		for (Quat quat : quats)
+		{
 			String op = quat.getOp();
 			String res = astStr(quat.getRes());
 			String opnd1 = astStr(quat.getOpnd1());
 			String opnd2 = astStr(quat.getOpnd2());
-			sb.append("("+op+","+ opnd1+","+opnd2 +"," + res+")\n");
+			sb.append("(" + op + "," + opnd1 + "," + opnd2 + "," + res + ")\n");
 		}
 		// write
-		try {
+		try
+		{
 			FileWriter fileWriter = new FileWriter(new File(filename));
 			fileWriter.write(sb.toString());
 			fileWriter.close();
-		} catch (IOException e) {
+		} catch (IOException e)
+		{
 			e.printStackTrace();
 		}
 	}
-	
-	private String astStr(ASTNode node) {
-		if (node == null) {
+
+	private String astStr(ASTNode node)
+	{
+		if (node == null)
+		{
 			return "";
-		}else if (node instanceof ASTIdentifier) {
-			return ((ASTIdentifier)node).value;
-		}else if (node instanceof ASTIntegerConstant) {
-			return ((ASTIntegerConstant)node).value+"";
-		}else if (node instanceof TemporaryValue) {
-			return ((TemporaryValue)node).name();
-		}else {
+		} else if (node instanceof ASTIdentifier)
+		{
+			return ((ASTIdentifier) node).value;
+		} else if (node instanceof ASTIntegerConstant)
+		{
+			return ((ASTIntegerConstant) node).value + "";
+		} else if (node instanceof TemporaryValue)
+		{
+			return ((TemporaryValue) node).name();
+		} else
+		{
 			return "";
 		}
 	}

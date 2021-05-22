@@ -36,141 +36,157 @@ import bit.minisys.minicc.parser.ast.*;
  * 
  */
 
-class ScannerToken{
+class ScannerToken
+{
 	public String lexme;
 	public String type;
-	public int	  line;
-	public int    column;
+	public int line;
+	public int column;
 }
 
-public class ExampleParser implements IMiniCCParser {
+public class ExampleParser implements IMiniCCParser
+{
 
 	private ArrayList<ScannerToken> tknList;
 	private int tokenIndex;
 	private ScannerToken nextToken;
-	
+
 	@Override
-	public String run(String iFile) throws Exception {
+	public String run(String iFile) throws Exception
+	{
 		System.out.println("Parsing...");
 
-		String oFile = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT;
-		String tFile = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_SCANNER_OUTPUT_EXT;
-		
+		String oFile = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT;// 输出的ast.json文件
+		String tFile = MiniCCUtil.removeAllExt(iFile) + MiniCCCfg.MINICC_SCANNER_OUTPUT_EXT;// 词法分析的token文件
+
 		tknList = loadTokens(tFile);
 		tokenIndex = 0;
 
-		ASTNode root = program();
-		
-		
+		ASTNode root = program();// antlr的类
+
 		String[] dummyStrs = new String[16];
 		TreeViewer viewr = new TreeViewer(Arrays.asList(dummyStrs), root);
-	    viewr.open();
+		viewr.open();
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(new File(oFile), root);
 
-		//TODO: write to file
-		
-		
-		return oFile;
-	}
-	
+		// TODO: write to file
 
-	private ArrayList<ScannerToken> loadTokens(String tFile) {
+		return oFile;//
+	}
+
+	private ArrayList<ScannerToken> loadTokens(String tFile)
+	{
 		tknList = new ArrayList<ScannerToken>();
-		
+
 		ArrayList<String> tknStr = MiniCCUtil.readFile(tFile);
-		
-		for(String str: tknStr) {
-			if(str.trim().length() <= 0) {
+
+		for (String str : tknStr)
+		{
+			if (str.trim().length() <= 0)
+			{
 				continue;
 			}
-			
+
 			ScannerToken st = new ScannerToken();
-			//[@0,0:2='int',<'int'>,1:0]
+			// [@0,0:2='int',<'int'>,1:0]
 			String[] segs;
-			if(str.indexOf("<','>") > 0) {
+			if (str.indexOf("<','>") > 0)
+			{
 				str = str.replace("','", "'DOT'");
-				
+
 				segs = str.split(",");
 				segs[1] = "=','";
 				segs[2] = "<','>";
-				
-			}else {
+
+			} else
+			{
 				segs = str.split(",");
 			}
 			st.lexme = segs[1].substring(segs[1].indexOf("=") + 1);
-			st.type  = segs[2].substring(segs[2].indexOf("<") + 1, segs[2].length() - 1);
+			st.type = segs[2].substring(segs[2].indexOf("<") + 1, segs[2].length() - 1);
 			String[] lc = segs[3].split(":");
 			st.line = Integer.parseInt(lc[0]);
 			st.column = Integer.parseInt(lc[1].replace("]", ""));
-			
+
 			tknList.add(st);
 		}
-		
+
 		return tknList;
 	}
 
-	private ScannerToken getToken(int index){
-		if (index < tknList.size()){
+	private ScannerToken getToken(int index)
+	{
+		if (index < tknList.size())
+		{
 			return tknList.get(index);
 		}
 		return null;
 	}
 
-	public void matchToken(String type) {
-		if(tokenIndex < tknList.size()) {
+	public void matchToken(String type)
+	{
+		if (tokenIndex < tknList.size())
+		{
 			ScannerToken next = tknList.get(tokenIndex);
-			if(!next.type.equals(type)) {
-				System.out.println("[ERROR]Parser: unmatched token, expected = " + type + ", " 
-						+ "input = " + next.type);
-			}
-			else {
+			if (!next.type.equals(type))
+			{
+				System.out
+						.println("[ERROR]Parser: unmatched token, expected = " + type + ", " + "input = " + next.type);
+			} else
+			{
 				tokenIndex++;
 			}
 		}
 	}
 
-	//PROGRAM --> FUNC_LIST
-	public ASTNode program() {
+	// PROGRAM --> FUNC_LIST
+	public ASTNode program()
+	{
 		ASTCompilationUnit p = new ASTCompilationUnit();
 		ArrayList<ASTNode> fl = funcList();
-		if(fl != null) {
-			//p.getSubNodes().add(fl);
+		if (fl != null)
+		{
+			// p.getSubNodes().add(fl);
 			p.items.addAll(fl);
 		}
 		p.children.addAll(p.items);
 		return p;
 	}
 
-	//FUNC_LIST --> FUNC FUNC_LIST | e
-	public ArrayList<ASTNode> funcList() {
+	// FUNC_LIST --> FUNC FUNC_LIST | e
+	public ArrayList<ASTNode> funcList()
+	{
 		ArrayList<ASTNode> fl = new ArrayList<ASTNode>();
-		
+
 		nextToken = tknList.get(tokenIndex);
-		if(nextToken.type.equals("EOF")) {
+		if (nextToken.type.equals("EOF"))
+		{
 			return null;
-		}
-		else {
+		} else
+		{
 			ASTNode f = func();
 			fl.add(f);
 			ArrayList<ASTNode> fl2 = funcList();
-			if(fl2 != null) {
+			if (fl2 != null)
+			{
 				fl.addAll(fl2);
 			}
 			return fl;
 		}
 	}
 
-	//FUNC --> TYPE ID '(' ARGUMENTS ')' CODE_BLOCK
-	public ASTNode func() {
+	// FUNC --> TYPE ID '(' ARGUMENTS ')' CODE_BLOCK
+	public ASTNode func()
+	{
 		ASTFunctionDefine fdef = new ASTFunctionDefine();
-		
+
 		ASTToken s = type();
-		
+
 		fdef.specifiers.add(s);
 		fdef.children.add(s);
-		
+
 		ASTFunctionDeclarator fdec = new ASTFunctionDeclarator();
 
 		ASTIdentifier id = new ASTIdentifier();
@@ -178,17 +194,18 @@ public class ExampleParser implements IMiniCCParser {
 		matchToken("Identifier");
 
 		fdef.children.add(id);
-		
+
 		matchToken("'('");
 		ArrayList<ASTParamsDeclarator> pl = arguments();
 		matchToken("')'");
-		
-		//fdec.identifiers.add(id);
-		if(pl != null) {
+
+		// fdec.identifiers.add(id);
+		if (pl != null)
+		{
 			fdec.params.addAll(pl);
 			fdec.children.addAll(pl);
 		}
-		
+
 		ASTCompoundStatement cs = codeBlock();
 
 		fdef.declarator = fdec;
@@ -196,16 +213,17 @@ public class ExampleParser implements IMiniCCParser {
 		fdef.body = cs;
 		fdef.children.add(cs);
 
-		
 		return fdef;
 	}
 
-	//TYPE --> INT |FLOAT | CHART
-	public ASTToken type() {
+	// TYPE --> INT |FLOAT | CHART
+	public ASTToken type()
+	{
 		ScannerToken st = tknList.get(tokenIndex);
-		
+
 		ASTToken t = new ASTToken();
-		if(st.type.equals("'int'")) {
+		if (st.type.equals("'int'"))
+		{
 			t.tokenId = tokenIndex;
 			t.value = st.lexme;
 			tokenIndex++;
@@ -213,55 +231,59 @@ public class ExampleParser implements IMiniCCParser {
 		return t;
 	}
 
-	//ARGUMENTS --> e | ARG_LIST
-	public ArrayList<ASTParamsDeclarator> arguments() {
+	// ARGUMENTS --> e | ARG_LIST
+	public ArrayList<ASTParamsDeclarator> arguments()
+	{
 		nextToken = tknList.get(tokenIndex);
-		if(nextToken.type.equals("')'")) { //ending
+		if (nextToken.type.equals("')'"))
+		{ // ending
 			return null;
-		}
-		else {
+		} else
+		{
 			ArrayList<ASTParamsDeclarator> al = argList();
 			return al;
 		}
 	}
 
-	//ARG_LIST --> ARGUMENT ',' ARGLIST | ARGUMENT
-	public ArrayList<ASTParamsDeclarator> argList() {
+	// ARG_LIST --> ARGUMENT ',' ARGLIST | ARGUMENT
+	public ArrayList<ASTParamsDeclarator> argList()
+	{
 		ArrayList<ASTParamsDeclarator> pdl = new ArrayList<ASTParamsDeclarator>();
 		ASTParamsDeclarator pd = argument();
 		pdl.add(pd);
-		
+
 		nextToken = tknList.get(tokenIndex);
-		if(nextToken.type.equals("','")) {
+		if (nextToken.type.equals("','"))
+		{
 			matchToken("','");
 			ArrayList<ASTParamsDeclarator> pdl2 = argList();
 			pdl.addAll(pdl2);
 		}
-		
+
 		return pdl;
 	}
-		
-	//ARGUMENT --> TYPE ID
-	public ASTParamsDeclarator argument() {
+
+	// ARGUMENT --> TYPE ID
+	public ASTParamsDeclarator argument()
+	{
 		ASTParamsDeclarator pd = new ASTParamsDeclarator();
 		ASTToken t = type();
 		pd.specfiers.add(t);
-		
+
 		ASTIdentifier id = new ASTIdentifier();
 		id.tokenId = tokenIndex;
 		matchToken("Identifier");
-		
-		ASTVariableDeclarator vd =  new ASTVariableDeclarator();
+
+		ASTVariableDeclarator vd = new ASTVariableDeclarator();
 		vd.identifier = id;
 		pd.declarator = vd;
-		
+
 		return pd;
 	}
 
-	
-
-	//CODE_BLOCK --> '{' STMTS '}'
-	public ASTCompoundStatement codeBlock() {
+	// CODE_BLOCK --> '{' STMTS '}'
+	public ASTCompoundStatement codeBlock()
+	{
 		matchToken("'{'");
 		ASTCompoundStatement cs = stmts();
 		matchToken("'}'");
@@ -269,37 +291,43 @@ public class ExampleParser implements IMiniCCParser {
 		return cs;
 	}
 
-	//STMTS --> STMT STMTS | e
-	public ASTCompoundStatement stmts() {
+	// STMTS --> STMT STMTS | e
+	public ASTCompoundStatement stmts()
+	{
 		nextToken = tknList.get(tokenIndex);
 		if (nextToken.type.equals("'}'"))
 			return null;
-		else {
+		else
+		{
 			ASTCompoundStatement cs = new ASTCompoundStatement();
 			ASTStatement s = stmt();
 			cs.blockItems.add(s);
-			
+
 			ASTCompoundStatement cs2 = stmts();
-			if(cs2 != null)
+			if (cs2 != null)
 				cs.blockItems.add(cs2);
 			return cs;
 		}
 	}
 
-	//STMT --> ASSIGN_STMT | RETURN_STMT | DECL_STMT | FUNC_CALL
-	public ASTStatement stmt() {
+	// STMT --> ASSIGN_STMT | RETURN_STMT | DECL_STMT | FUNC_CALL
+	public ASTStatement stmt()
+	{
 		nextToken = tknList.get(tokenIndex);
 
-		if(nextToken.type.equals("'return'")) {
+		if (nextToken.type.equals("'return'"))
+		{
 			return returnStmt();
-		}else{
+		} else
+		{
 			System.out.println("[ERROR]Parser: unreachable stmt!");
 			return null;
 		}
 	}
 
-	//RETURN_STMT --> RETURN EXPR ';'
-	public ASTReturnStatement returnStmt() {
+	// RETURN_STMT --> RETURN EXPR ';'
+	public ASTReturnStatement returnStmt()
+	{
 		matchToken("'return'");
 		ASTReturnStatement rs = new ASTReturnStatement();
 		ASTExpression e = expr();
@@ -308,93 +336,110 @@ public class ExampleParser implements IMiniCCParser {
 		return rs;
 	}
 
-	//EXPR --> TERM EXPR'
-	public ASTExpression expr() {
+	// EXPR --> TERM EXPR'
+	public ASTExpression expr()
+	{
 		ASTExpression term = term();
 		ASTBinaryExpression be = expr2();
-		
-		if(be != null) {
+
+		if (be != null)
+		{
 			be.expr1 = term;
 			return be;
-		}else {
+		} else
+		{
 			return term;
 		}
 	}
 
-	//EXPR' --> '+' TERM EXPR' | '-' TERM EXPR' | e
-	public ASTBinaryExpression expr2() {
+	// EXPR' --> '+' TERM EXPR' | '-' TERM EXPR' | e
+	public ASTBinaryExpression expr2()
+	{
 		nextToken = tknList.get(tokenIndex);
 		if (nextToken.type.equals("';'"))
 			return null;
-		
-		if(nextToken.type.equals("'+'")){
+
+		if (nextToken.type.equals("'+'"))
+		{
 			ASTBinaryExpression be = new ASTBinaryExpression();
-			
+
 			ASTToken tkn = new ASTToken();
 			tkn.tokenId = tokenIndex;
 			matchToken("'+'");
-			
+
 			be.op = tkn;
 			be.expr2 = term();
-			
+
 			ASTBinaryExpression expr = expr2();
-			if(expr != null) {
+			if (expr != null)
+			{
 				expr.expr1 = be;
 				return expr;
 			}
-			
+
 			return be;
-		}else {
+		} else
+		{
 			return null;
 		}
 	}
 
-	//TERM --> FACTOR TERM2
-	public ASTExpression term() {
+	// TERM --> FACTOR TERM2
+	public ASTExpression term()
+	{
 		ASTExpression f = factor();
 		ASTBinaryExpression be = term2();
-		
-		if(be != null) {
+
+		if (be != null)
+		{
 			be.expr1 = f;
 			return be;
-		}else {
+		} else
+		{
 			return f;
 		}
 	}
 
-	//TERM'--> '*' FACTOR TERM' | '/' FACTOR TERM' | e
-	public ASTBinaryExpression term2() {
+	// TERM'--> '*' FACTOR TERM' | '/' FACTOR TERM' | e
+	public ASTBinaryExpression term2()
+	{
 		nextToken = tknList.get(tokenIndex);
-		if(nextToken.type.equals("'*'")){
+		if (nextToken.type.equals("'*'"))
+		{
 			ASTBinaryExpression be = new ASTBinaryExpression();
-			
+
 			ASTToken tkn = new ASTToken();
 			tkn.tokenId = tokenIndex;
 			matchToken("'*'");
-			
+
 			be.op = tkn;
 			be.expr2 = factor();
-			
+
 			ASTBinaryExpression term = term2();
-			if(term != null) {
+			if (term != null)
+			{
 				term.expr1 = be;
 				return term;
 			}
 			return be;
-		}else {
+		} else
+		{
 			return null;
 		}
 	}
 
-	//FACTOR --> '(' EXPR ')' | ID | CONST | FUNC_CALL
-	public ASTExpression factor() {
+	// FACTOR --> '(' EXPR ')' | ID | CONST | FUNC_CALL
+	public ASTExpression factor()
+	{
 		nextToken = tknList.get(tokenIndex);
-		if(nextToken.type.equals("Identifier")) {
+		if (nextToken.type.equals("Identifier"))
+		{
 			ASTIdentifier id = new ASTIdentifier();
 			id.tokenId = tokenIndex;
 			matchToken("Identifier");
 			return id;
-		}else {
+		} else
+		{
 			return null;
 		}
 	}

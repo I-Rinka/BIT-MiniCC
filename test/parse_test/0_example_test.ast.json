@@ -1,0 +1,90 @@
+{
+    "type": "FunctionDefine",
+    "specifiers": [
+        {
+            "type": "Token",
+            "value": "int",
+            "tokenId": 0
+        }
+    ],
+    "delclarator": {
+        "type": "FunctionDeclarator",
+        "declarator": {
+            "type": "VariableDeclarator",
+            "identifier": {
+                "type": "Identifier",
+                "value": "sum",
+                "tokenId": 1
+            }
+        },
+        "params": [
+            {
+                "type": "ParamsDeclarator",
+                "specifiers": [
+                    {
+                        "type": "Token",
+                        "value": "int",
+                        "tokenId": 3
+                    }
+                ],
+                "delcarator": {
+                    "type": "VariableDeclarator",
+                    "identifier": {
+                        "type": "Identifier",
+                        "value": "a",
+                        "tokenId": 4
+                    }
+                }
+            },
+            {
+                "type": "ParamsDeclarator",
+                "specifiers": [
+                    {
+                        "type": "Token",
+                        "value": "int",
+                        "tokenId": 6
+                    }
+                ],
+                "delcarator": {
+                    "type": "VariableDeclarator",
+                    "identifier": {
+                        "type": "Identifier",
+                        "value": "b",
+                        "tokenId": 7
+                    }
+                }
+            }
+        ],
+        "identifiers": [],
+        "subtype": "paramtype"
+    },
+    "declarations": [],
+    "body": {
+        "type": "CompoundStatement",
+        "blockitems": [
+            {
+                "type": "ReturnStatement",
+                "expr": [
+                    {
+                        "type": "BinaryExpression",
+                        "op": {
+                            "value": "+",
+                            "tokenId": 101
+                        },
+                        "expr1": {
+                            "type": "Identifier",
+                            "value": "a",
+                            "tokenId": 11
+                        },
+                        "expr2": {
+                            "type": "Identifier",
+                            "value": "b",
+                            "tokenId": 13
+                        }
+                    }
+                ],
+                "tokenId": 10
+            }
+        ]
+    }
+}

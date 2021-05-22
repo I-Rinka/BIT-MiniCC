@@ -7,19 +7,19 @@ import bit.minisys.minicc.MiniCCCfg;
 import bit.minisys.minicc.internal.util.MiniCCUtil;
 
 
-enum DFA_STATE{
-	DFA_STATE_INITIAL,
-	DFA_STATE_ID_0,
-	DFA_STATE_ID_1,
-	DFA_STATE_KB_O,
-	DFA_STATE_KB_C,
-	DFA_STATE_P_O,
-	DFA_STATE_P_C,
-	DFA_STATE_ADD_0,
-	DFA_STATE_ADD_1,
-	DFA_STATE_SM,
+enum Example_DFA_STATE{
+	Example_DFA_STATE_INITIAL,
+	Example_DFA_STATE_ID_0,
+	Example_DFA_STATE_ID_1,
+	Example_DFA_STATE_KB_O,
+	Example_DFA_STATE_KB_C,
+	Example_DFA_STATE_P_O,
+	Example_DFA_STATE_P_C,
+	Example_DFA_STATE_ADD_0,
+	Example_DFA_STATE_ADD_1,
+	Example_DFA_STATE_SM,
 	
-	DFA_STATE_UNKNW
+	Example_DFA_STATE_UNKNW
 }
 
 public class ExampleScanner implements IMiniCCScanner {
@@ -78,6 +78,7 @@ public class ExampleScanner implements IMiniCCScanner {
 	private String genToken2(int num, String lexme, String type) {
 		return genToken(num, lexme, type, this.cIndex - 2, this.lIndex);
 	}
+	//
 	private String genToken(int num, String lexme, String type, int cIndex, int lIndex) {
 		String strToken = "";
 		
@@ -96,7 +97,7 @@ public class ExampleScanner implements IMiniCCScanner {
 
 		this.srcLines = MiniCCUtil.readFile(iFile);
         
-        DFA_STATE state = DFA_STATE.DFA_STATE_INITIAL;		//FA state
+        Example_DFA_STATE state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;		//FA state
 		String lexme 	= "";		//token lexme
 		char c 			= ' ';		//next char
 		boolean keep 	= false;	//keep current char
@@ -110,44 +111,44 @@ public class ExampleScanner implements IMiniCCScanner {
 			keep = false;
 
 			switch(state) {
-			case DFA_STATE_INITIAL:	
+			case Example_DFA_STATE_INITIAL:
 				lexme = "";
 				
 				if(isAlpha(c)) {
-					state = DFA_STATE.DFA_STATE_ID_0;
+					state = Example_DFA_STATE.Example_DFA_STATE_ID_0;
 					lexme = lexme + c;
 				}else if(c == '+') {
-					state = DFA_STATE.DFA_STATE_ADD_0;
+					state = Example_DFA_STATE.Example_DFA_STATE_ADD_0;
 					lexme = lexme + c;
 				}else if(c == '-') {
 					strTokens += genToken(iTknNum, "-", "'-'");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}else if(c == '{') {
 					strTokens += genToken(iTknNum, "{", "'{'");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}else if(c == '}') {
 					strTokens += genToken(iTknNum, "}", "'}'");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}else if(c == '(') {
 					strTokens += genToken(iTknNum, "(", "'('");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}else if(c == ')') {
 					strTokens += genToken(iTknNum, ")", "')'");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}else if(c == ';') {
 					strTokens += genToken(iTknNum, ";", "';'");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}
-				else if(c == ',') {
+		else if(c == ',') {
 					strTokens += genToken(iTknNum, ",", "','");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				}else if(Character.isSpace(c)) {
 					
 				}else if(c == Character.MAX_VALUE) {
@@ -156,18 +157,18 @@ public class ExampleScanner implements IMiniCCScanner {
 					end = true;
 				}
 				break;
-			case DFA_STATE_ADD_0:
+			case Example_DFA_STATE_ADD_0:
 				if(c == '+') {
 					//TODO:++
 				}else {
 					strTokens += genToken2(iTknNum, "+", "'+'");
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 					keep = true;
 				}
-				state = DFA_STATE.DFA_STATE_INITIAL;
+				state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 				break;
-			case DFA_STATE_ID_0:
+			case Example_DFA_STATE_ID_0:
 				if(isAlphaOrDigit(c)) {
 					lexme = lexme + c;
 				}else {
@@ -177,7 +178,7 @@ public class ExampleScanner implements IMiniCCScanner {
 						strTokens += genToken2(iTknNum, lexme, "Identifier");
 					}
 					iTknNum++;
-					state = DFA_STATE.DFA_STATE_INITIAL;
+					state = Example_DFA_STATE.Example_DFA_STATE_INITIAL;
 					keep = true;
 				}
 				break;

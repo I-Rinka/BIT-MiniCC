@@ -1,0 +1,25 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch JDOMAbout",
+            "request": "launch",
+            "mainClass": "JDOMAbout",
+            "projectName": "bitmincc-clean"
+        },
+        {
+            "type": "java",
+            "name": "Launch BITMiniCC",
+            "request": "launch",
+            "mainClass": "bit.minisys.minicc.BITMiniCC",
+            "projectName": "bitmincc-clean",
+            // "args": "test\\parse_test\\2_parser_test1.c"
+            // "args": "test\\nc_tests\\0_BubbleSort.c"
+            "args": "src/bit/minisys/minicc/parser/test.c"
+        }
+    ]
+}
