@@ -48,9 +48,9 @@ additiveExpression:
 	| additiveExpression '-' multiplicativeExpression	# additiveExpression_;
 
 shiftExpression:
-	additiveExpression
-	| shiftExpression '<<' additiveExpression
-	| shiftExpression '>>' additiveExpression;
+	additiveExpression  # shiftExpression_pass
+	| shiftExpression '<<' additiveExpression # shiftExpression_
+	| shiftExpression '>>' additiveExpression # shiftExpression_;
 
 relationalExpression:
 	shiftExpression								# relationalExpression_pass
