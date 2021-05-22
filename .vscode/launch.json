@@ -19,7 +19,7 @@
             "projectName": "bitmincc-clean",
             // "args": "test\\parse_test\\2_parser_test1.c"
             // "args": "test\\nc_tests\\0_BubbleSort.c"
-            "args": "src/bit/minisys/minicc/parser/test.c"
+            "args": "test/semantic_testcases/0_var_not_defined.c"
         }
     ]
 }
