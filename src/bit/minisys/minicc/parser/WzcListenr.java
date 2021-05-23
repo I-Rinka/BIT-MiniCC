@@ -158,6 +158,8 @@ public class WzcListenr extends CBaseListener
                 break;
             case CLexer.PlusPlus:
             case CLexer.MinusMinus:
+            case CLexer.Tilde:
+            case CLexer.Not:
                 if (parentNode instanceof ASTPostfixExpression)
                 {
                     ((ASTPostfixExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
@@ -534,7 +536,7 @@ public class WzcListenr extends CBaseListener
         else if (parentNode.getClass() == ASTUnaryExpression.class)
         {
             ASTUnaryExpression unaryExpression = (ASTUnaryExpression) parentNode;
-            unaryExpression.expr = (ASTUnaryExpression) thisNode1;
+            unaryExpression.expr = (ASTExpression) thisNode1;
         }
         else if (parentNode.getClass() == ASTFunctionCall.class)
         {
@@ -727,6 +729,18 @@ public class WzcListenr extends CBaseListener
     public void exitMultiplicativeExpression_(MultiplicativeExpression_Context ctx)
     {
         exitExpressionNode();
+    }
+
+    @Override
+    public void exitUnaryExpression_(UnaryExpression_Context ctx)
+    {
+        exitExpressionNode();
+    }
+
+    @Override
+    public void enterUnaryExpression_(UnaryExpression_Context ctx)
+    {
+        nodeStack.push(new ASTUnaryExpression());
     }
 
     @Override
