@@ -328,25 +328,49 @@ public class CBaseListener implements CListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLogicalAndExpression(CParser.LogicalAndExpressionContext ctx) { }
+	@Override public void enterLogicalAndExpression_pass(CParser.LogicalAndExpression_passContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx) { }
+	@Override public void exitLogicalAndExpression_pass(CParser.LogicalAndExpression_passContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLogicalOrExpression(CParser.LogicalOrExpressionContext ctx) { }
+	@Override public void enterLogicalAndExpression_(CParser.LogicalAndExpression_Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitLogicalOrExpression(CParser.LogicalOrExpressionContext ctx) { }
+	@Override public void exitLogicalAndExpression_(CParser.LogicalAndExpression_Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLogicalOrExpression_(CParser.LogicalOrExpression_Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLogicalOrExpression_(CParser.LogicalOrExpression_Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLogicalOrExpression_pass(CParser.LogicalOrExpression_passContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLogicalOrExpression_pass(CParser.LogicalOrExpression_passContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

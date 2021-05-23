@@ -1792,24 +1792,46 @@ public class CParser extends Parser {
 	}
 
 	public static class LogicalAndExpressionContext extends ParserRuleContext {
-		public InclusiveOrExpressionContext inclusiveOrExpression() {
-			return getRuleContext(InclusiveOrExpressionContext.class,0);
-		}
-		public LogicalAndExpressionContext logicalAndExpression() {
-			return getRuleContext(LogicalAndExpressionContext.class,0);
-		}
-		public TerminalNode AndAnd() { return getToken(CParser.AndAnd, 0); }
 		public LogicalAndExpressionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_logicalAndExpression; }
+	 
+		public LogicalAndExpressionContext() { }
+		public void copyFrom(LogicalAndExpressionContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	public static class LogicalAndExpression_passContext extends LogicalAndExpressionContext {
+		public InclusiveOrExpressionContext inclusiveOrExpression() {
+			return getRuleContext(InclusiveOrExpressionContext.class,0);
+		}
+		public LogicalAndExpression_passContext(LogicalAndExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof CListener ) ((CListener)listener).enterLogicalAndExpression(this);
+			if ( listener instanceof CListener ) ((CListener)listener).enterLogicalAndExpression_pass(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof CListener ) ((CListener)listener).exitLogicalAndExpression(this);
+			if ( listener instanceof CListener ) ((CListener)listener).exitLogicalAndExpression_pass(this);
+		}
+	}
+	public static class LogicalAndExpression_Context extends LogicalAndExpressionContext {
+		public LogicalAndExpressionContext logicalAndExpression() {
+			return getRuleContext(LogicalAndExpressionContext.class,0);
+		}
+		public TerminalNode AndAnd() { return getToken(CParser.AndAnd, 0); }
+		public InclusiveOrExpressionContext inclusiveOrExpression() {
+			return getRuleContext(InclusiveOrExpressionContext.class,0);
+		}
+		public LogicalAndExpression_Context(LogicalAndExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterLogicalAndExpression_(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitLogicalAndExpression_(this);
 		}
 	}
 
@@ -1829,6 +1851,10 @@ public class CParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			{
+			_localctx = new LogicalAndExpression_passContext(_localctx);
+			_ctx = _localctx;
+			_prevctx = _localctx;
+
 			setState(345);
 			inclusiveOrExpression(0);
 			}
@@ -1842,7 +1868,7 @@ public class CParser extends Parser {
 					_prevctx = _localctx;
 					{
 					{
-					_localctx = new LogicalAndExpressionContext(_parentctx, _parentState);
+					_localctx = new LogicalAndExpression_Context(new LogicalAndExpressionContext(_parentctx, _parentState));
 					pushNewRecursionContext(_localctx, _startState, RULE_logicalAndExpression);
 					setState(347);
 					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
@@ -1871,24 +1897,46 @@ public class CParser extends Parser {
 	}
 
 	public static class LogicalOrExpressionContext extends ParserRuleContext {
-		public LogicalAndExpressionContext logicalAndExpression() {
-			return getRuleContext(LogicalAndExpressionContext.class,0);
-		}
-		public LogicalOrExpressionContext logicalOrExpression() {
-			return getRuleContext(LogicalOrExpressionContext.class,0);
-		}
-		public TerminalNode OrOr() { return getToken(CParser.OrOr, 0); }
 		public LogicalOrExpressionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_logicalOrExpression; }
+	 
+		public LogicalOrExpressionContext() { }
+		public void copyFrom(LogicalOrExpressionContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	public static class LogicalOrExpression_Context extends LogicalOrExpressionContext {
+		public LogicalOrExpressionContext logicalOrExpression() {
+			return getRuleContext(LogicalOrExpressionContext.class,0);
+		}
+		public TerminalNode OrOr() { return getToken(CParser.OrOr, 0); }
+		public LogicalAndExpressionContext logicalAndExpression() {
+			return getRuleContext(LogicalAndExpressionContext.class,0);
+		}
+		public LogicalOrExpression_Context(LogicalOrExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof CListener ) ((CListener)listener).enterLogicalOrExpression(this);
+			if ( listener instanceof CListener ) ((CListener)listener).enterLogicalOrExpression_(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof CListener ) ((CListener)listener).exitLogicalOrExpression(this);
+			if ( listener instanceof CListener ) ((CListener)listener).exitLogicalOrExpression_(this);
+		}
+	}
+	public static class LogicalOrExpression_passContext extends LogicalOrExpressionContext {
+		public LogicalAndExpressionContext logicalAndExpression() {
+			return getRuleContext(LogicalAndExpressionContext.class,0);
+		}
+		public LogicalOrExpression_passContext(LogicalOrExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).enterLogicalOrExpression_pass(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CListener ) ((CListener)listener).exitLogicalOrExpression_pass(this);
 		}
 	}
 
@@ -1908,6 +1956,10 @@ public class CParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			{
+			_localctx = new LogicalOrExpression_passContext(_localctx);
+			_ctx = _localctx;
+			_prevctx = _localctx;
+
 			setState(356);
 			logicalAndExpression(0);
 			}
@@ -1921,7 +1973,7 @@ public class CParser extends Parser {
 					_prevctx = _localctx;
 					{
 					{
-					_localctx = new LogicalOrExpressionContext(_parentctx, _parentState);
+					_localctx = new LogicalOrExpression_Context(new LogicalOrExpressionContext(_parentctx, _parentState));
 					pushNewRecursionContext(_localctx, _startState, RULE_logicalOrExpression);
 					setState(358);
 					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");

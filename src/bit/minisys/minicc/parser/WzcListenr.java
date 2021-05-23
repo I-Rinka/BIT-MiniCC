@@ -150,9 +150,26 @@ public class WzcListenr extends CBaseListener
             case CLexer.StarAssign:
             case CLexer.LeftShift:
             case CLexer.RightShift:
+            case CLexer.AndAnd:
+            case CLexer.OrOr:
+            case CLexer.Mod:
+            case CLexer.PlusAssign:
+            case CLexer.DivAssign:
+            case CLexer.AndAssign:
+            case CLexer.MinusAssign:
+            case CLexer.ModAssign:
+            case CLexer.OrAssign:
+            case CLexer.XorAssign:
+            case CLexer.LeftShiftAssign:
+            case CLexer.RightShiftAssign:
                 if (parentNode instanceof ASTBinaryExpression)
                 {
                     ((ASTBinaryExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
+                            node.getSymbol().getTokenIndex());
+                }
+                else if (parentNode instanceof ASTUnaryExpression)
+                {
+                    ((ASTUnaryExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
                             node.getSymbol().getTokenIndex());
                 }
                 break;
@@ -160,6 +177,9 @@ public class WzcListenr extends CBaseListener
             case CLexer.MinusMinus:
             case CLexer.Tilde:
             case CLexer.Not:
+            case CLexer.Caret:
+            case CLexer.Or:
+            case CLexer.And:
                 if (parentNode instanceof ASTPostfixExpression)
                 {
                     ((ASTPostfixExpression) parentNode).op = new ASTToken(node.getSymbol().getText(),
@@ -738,9 +758,33 @@ public class WzcListenr extends CBaseListener
     }
 
     @Override
+    public void exitLogicalAndExpression_(LogicalAndExpression_Context ctx)
+    {
+        exitExpressionNode();
+    }
+
+    @Override
+    public void exitLogicalOrExpression_(LogicalOrExpression_Context ctx)
+    {
+        exitExpressionNode();
+    }
+
+    @Override
     public void enterUnaryExpression_(UnaryExpression_Context ctx)
     {
         nodeStack.push(new ASTUnaryExpression());
+    }
+
+    @Override
+    public void enterLogicalOrExpression_(LogicalOrExpression_Context ctx)
+    {
+        nodeStack.push(new ASTBinaryExpression());
+    }
+
+    @Override
+    public void enterLogicalAndExpression_(LogicalAndExpression_Context ctx)
+    {
+        nodeStack.push(new ASTBinaryExpression());
     }
 
     @Override

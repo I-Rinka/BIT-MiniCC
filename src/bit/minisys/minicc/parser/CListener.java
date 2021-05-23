@@ -306,25 +306,53 @@ public interface CListener extends ParseTreeListener {
 	 */
 	void exitInclusiveOrExpression(CParser.InclusiveOrExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#logicalAndExpression}.
+	 * Enter a parse tree produced by the {@code logicalAndExpression_pass}
+	 * labeled alternative in {@link CParser#logicalAndExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterLogicalAndExpression(CParser.LogicalAndExpressionContext ctx);
+	void enterLogicalAndExpression_pass(CParser.LogicalAndExpression_passContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#logicalAndExpression}.
+	 * Exit a parse tree produced by the {@code logicalAndExpression_pass}
+	 * labeled alternative in {@link CParser#logicalAndExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx);
+	void exitLogicalAndExpression_pass(CParser.LogicalAndExpression_passContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CParser#logicalOrExpression}.
+	 * Enter a parse tree produced by the {@code logicalAndExpression_}
+	 * labeled alternative in {@link CParser#logicalAndExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterLogicalOrExpression(CParser.LogicalOrExpressionContext ctx);
+	void enterLogicalAndExpression_(CParser.LogicalAndExpression_Context ctx);
 	/**
-	 * Exit a parse tree produced by {@link CParser#logicalOrExpression}.
+	 * Exit a parse tree produced by the {@code logicalAndExpression_}
+	 * labeled alternative in {@link CParser#logicalAndExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitLogicalOrExpression(CParser.LogicalOrExpressionContext ctx);
+	void exitLogicalAndExpression_(CParser.LogicalAndExpression_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code logicalOrExpression_}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterLogicalOrExpression_(CParser.LogicalOrExpression_Context ctx);
+	/**
+	 * Exit a parse tree produced by the {@code logicalOrExpression_}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitLogicalOrExpression_(CParser.LogicalOrExpression_Context ctx);
+	/**
+	 * Enter a parse tree produced by the {@code logicalOrExpression_pass}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterLogicalOrExpression_pass(CParser.LogicalOrExpression_passContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code logicalOrExpression_pass}
+	 * labeled alternative in {@link CParser#logicalOrExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitLogicalOrExpression_pass(CParser.LogicalOrExpression_passContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code conditionalExpression_pass}
 	 * labeled alternative in {@link CParser#conditionalExpression}.

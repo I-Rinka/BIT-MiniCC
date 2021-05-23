@@ -77,12 +77,12 @@ inclusiveOrExpression:
 	| inclusiveOrExpression '|' exclusiveOrExpression;
 
 logicalAndExpression:
-	inclusiveOrExpression
-	| logicalAndExpression '&&' inclusiveOrExpression;
+	inclusiveOrExpression # logicalAndExpression_pass
+	| logicalAndExpression '&&' inclusiveOrExpression # logicalAndExpression_;
 
 logicalOrExpression:
-	logicalAndExpression
-	| logicalOrExpression '||' logicalAndExpression;
+	logicalAndExpression # logicalOrExpression_pass
+	| logicalOrExpression '||' logicalAndExpression # logicalOrExpression_;
 
 conditionalExpression:
 	logicalOrExpression # conditionalExpression_pass
