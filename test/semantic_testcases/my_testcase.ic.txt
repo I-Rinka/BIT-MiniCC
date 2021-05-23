@@ -1,0 +1,22 @@
+var $a <[10][20]> i32
+var $b i32
+func &f1(var %x i32, var %y i32) i32{
+var %z i32
+dassign %6(
+	add i32(dread i32 %x,dread i32 %y))
+dassign %7(regread i32 %6)
+dassign %z(regread i32 %7)
+return (dread i32 %z)}
+
+func &f2() void{
+}
+
+func &main() i32{
+var %a1 i32
+var %a2 i32
+var %res i32
+dassign %9(constval i32 1)
+dassign %a1(regread i32 %9)
+dassign %11(constval i32 2)
+dassign %a2(regread i32 %11)}
+
