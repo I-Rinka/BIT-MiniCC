@@ -15,7 +15,7 @@ public class WzcListenr extends CBaseListener {
     Stack<ASTNode> nodeStack;
     ASTNode thisNode;
     ASTNode parentNode;
-    ASTNode returNode;
+    public ASTNode returNode;
 
     @Override
     public void visitTerminal(TerminalNode node) {
