@@ -12,7 +12,7 @@ public class WzcListenr extends CBaseListener {
     // 每次进入函数的时候把自己的节点放进去
     // 每次出来的时候获取父节点（不弹出父节点），然后将自己放进去
 
-    Stack<ASTNode> nodeStack;
+    protected Stack<ASTNode> nodeStack;
     ASTNode thisNode;
     ASTNode parentNode;
     public ASTNode returNode;

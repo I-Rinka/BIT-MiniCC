@@ -1,7 +1,5 @@
 grammar C;
 
-start: translationUnit;
-
 primaryExpression:
 	Identifier
 	| Constant
