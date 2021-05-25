@@ -70,7 +70,9 @@ public class WzcLLVMIR extends WzcListenr
         }
 
         String type = thisNode.specifiers.get(0).value.toString();//int 之类的
-        if (type == "int")
+
+        //todo 整一个拓展性好的类型映射表，不然太捞了
+        if (type.equals("int"))
         {
             type = "i32";
         }
@@ -100,7 +102,7 @@ public class WzcLLVMIR extends WzcListenr
         super.exitParameterDeclaration(ctx);
 
         String type = thisNode.specfiers.get(0).value.toString();//int 之类的
-        if (type == "int")
+        if (type.equals("int"))
         {
             type = "i32";
         }
@@ -113,10 +115,12 @@ public class WzcLLVMIR extends WzcListenr
                 int now_reg = GetRegCount();
                 //新增一个变量的流程 todo Hashmap查重复变量
                 LocalSyTable.put(((ASTVariableDeclarator) thisNode.declarator).identifier.value.toString(), new IdentifierSymbol(now_reg, type));
-                InsBuffer.add(new IRInstruction("%" + now_reg, "alloca", type, null, null));
+                //参数不输出
+                //InsBuffer.add(new IRInstruction("%" + now_reg, "alloca", type, null, null));
             }
         }
 
+        //从这里算是函数的基本块，所以让reg自增1试试
     }
 
     @Override
@@ -125,44 +129,78 @@ public class WzcLLVMIR extends WzcListenr
         ASTFunctionDefine thisNode = (ASTFunctionDefine) super.nodeStack.peek(); //维护下本节点的值
         super.exitFunctionDefinition(ctx);
 
-        String func_out_header="define ";
+        String func_out_header = "define ";
 
         //从本节点取出关键信息
 
         // 先只支持取一个specifier
-        String type = thisNode.specifiers.get(0).value.toString();
-        if (type == "int")
+        String func_rt_type = thisNode.specifiers.get(0).value.toString();
+
+        if (func_rt_type.equals("int"))
         {
-            type = "i32";
+            func_rt_type = "i32";
         }
-        func_out_header+=type;
 
-        String func_name=" @";
+        func_out_header += func_rt_type;
 
-        ASTFunctionDeclarator ast_func_declarator=(ASTFunctionDeclarator) thisNode.declarator;
+
+        String func_name = " @";
+
+        ASTFunctionDeclarator ast_func_declarator = (ASTFunctionDeclarator) thisNode.declarator;
 
         if (ast_func_declarator.declarator instanceof ASTVariableDeclarator)
         {
-            func_name+=((ASTVariableDeclarator)ast_func_declarator.declarator).identifier.value.toString();
+            func_name += ((ASTVariableDeclarator) ast_func_declarator.declarator).identifier.value.toString();
         }
 
 
-        func_out_header+=func_name+"(";
+        func_out_header += func_name + "(";
+
+        int param_count = 0;
 
         //todo 从FunctionDeclarator 取值
         //注意，params中的东西应该从符号表中取,来自declaration
+        for (ASTParamsDeclarator params :
+                ast_func_declarator.params
+        )
+        {
+//            String para_type=params.specfiers.get(0).value.toString();
+            //todo 不知道还有没有除了variableDeclarator之外的类型
+            String id_name = ((ASTVariableDeclarator) params.declarator).identifier.value.toString();
+            int reg = LocalSyTable.get(id_name).reg_num;
+            String para_type = LocalSyTable.get(id_name).i_type;
 
+            if (param_count != 0)
+            {
+                func_out_header += ", ";
+            }
+            func_out_header += para_type + " %" + reg;
+            param_count++;
+        }
 
+        func_out_header += ") #0 {\n";//开始前的最后一句
 
-        func_out_header+=") #0 {\n";//开始前的最后一句
         WriteLine(func_out_header);
+
+        //这里要不加个label表示函数起来了，这样就不用额外的搞个基本块
+        WriteLine(func_name.substring(2)+"_start:\n");
+
         //打印所有中间语句
         while (!InsBuffer.isEmpty())
         {
-            WriteLine(InsBuffer.pop());
+            WriteLine("  "+InsBuffer.pop());//顺便搞个缩进
         }
+
+
         //todo 增加return语句是否添加检查
-        WriteLine("}\n");//输出一个函数的结尾
+        // 一般return是从哪个默认寄存器读值？
+        WriteLine("  ret "+func_rt_type);
+        if (!func_rt_type.equals("void"))
+        {
+            WriteLine(" "+0+"\n");
+        }
+
+        WriteLine("}\n\n");//输出一个函数的结尾
 
         LocalSyTable = null;//清零后，后续出现的所有值都是不在老变量表中了。仅存的符号表其实只有全局的了
     }
