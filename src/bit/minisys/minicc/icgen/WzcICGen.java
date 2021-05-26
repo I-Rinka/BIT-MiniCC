@@ -7,6 +7,8 @@ import bit.minisys.minicc.parser.CLexer;
 import bit.minisys.minicc.parser.CParser;
 
 import bit.minisys.minicc.internal.util.MiniCCUtil;
+import bit.minisys.minicc.parser.WzcListenr;
+import bit.minisys.minicc.parser.ast.ASTCompilationUnit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -44,20 +46,32 @@ public class WzcICGen implements IMiniCCICGen
         parser.setErrorHandler(new BailErrorStrategy()); // 设置错误处理
         ParseTree root = parser.compilationUnit();
 
-        WzcLLVMIR listener = new WzcLLVMIR(oFile);
+        WzcListenr listener = new WzcListenr();
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(listener, root);
+
+        //输出AST
+        ASTCompilationUnit ASTRoot = (ASTCompilationUnit) listener.returNode;
+        System.out.println("AST Output: " + MiniCCUtil.removeAllExt(oFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT);
+        FileOutputStream fileOutputStream = new FileOutputStream(MiniCCUtil.removeAllExt(oFile) + MiniCCCfg.MINICC_PARSER_OUTPUT_EXT);
+        ObjectMapper mapper = new ObjectMapper();
+        String outPutJson = mapper.writeValueAsString(listener.returNode);
+        fileOutputStream.write(outPutJson.getBytes());
+        fileOutputStream.close();
+
+        //生成IR
+        WzcLLVMIR IR = new WzcLLVMIR(ASTRoot);
+
+        String LLVM_IR = IR.GetResult();
+
+        //输出IR
+        fileOutputStream = new FileOutputStream(oFile);
+        fileOutputStream.write(LLVM_IR.getBytes());
+        fileOutputStream.close();
 
         System.out.println("LLVM-IR Generated!");
 
         //输出AST
-        System.out.println("AST Output: " + MiniCCUtil.removeAllExt(oFile)+ MiniCCCfg.MINICC_PARSER_OUTPUT_EXT);
-        FileOutputStream fileOutputStream = new FileOutputStream(MiniCCUtil.removeAllExt(oFile)+ MiniCCCfg.MINICC_PARSER_OUTPUT_EXT);
-        ObjectMapper mapper = new ObjectMapper();
-        String outPutJson = mapper.writeValueAsString(listener.returNode);
-//        System.out.println(outPutJson);
-        fileOutputStream.write(outPutJson.getBytes());
-
         System.out.println("LLVM-IR Output: " + oFile);
         return oFile;
     }

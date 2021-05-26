@@ -1,251 +1,89 @@
 package bit.minisys.minicc.icgen;
 
-import bit.minisys.minicc.internal.util.MiniCCUtil;
-import bit.minisys.minicc.parser.CParser;
-import bit.minisys.minicc.parser.WzcListenr;
 import bit.minisys.minicc.parser.ast.*;
+import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 
-public class WzcLLVMIR extends WzcListenr
+public class WzcLLVMIR
 {
-    private final String OpenFile;
     public String target_data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128";
     public String target_triple = "x86_64-pc-linux-gnu";
+    String global_declaration="";
+    String IR_code = "";
+    ASTCompilationUnit ASTRoot = null;
+    String now_function_type_C = null;
 
-    private LinkedList<IRInstruction> InsBuffer; //存放一个函数中要输出的所有指令，函数节点退栈时输出。
-    private final LinkedList<LinkedList<IRInstruction>> CompoundStatementBuffer;
-
-    private final Stack<LinkedList<IRInstruction>> Segment;
-
-    private final HashMap<String, String> OperatorMap;
-    private final HashMap<String, String> TypeMap;
-
-    private final Stack<HashMap<String, IdentifierSymbol>> SyTableStack;
+    //为了有scope的支持，需要使用栈
+    private Stack<HashMap<String, IdentifierSymbol>> SymbolTableStack;
+    private LinkedList<IRInstruction> InsBuffer;
+    private HashMap<String, String> OperatorMap;
 
     private int register_count = 0;
 
-    @Override
-    public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx)
+
+    void Run()
     {
-        //todo 注意基本块！是否进入函数后的一瞬间，或者是退出parameter的时候要把reg号增加一下
-        this.register_count = 0;
+        for (ASTNode item : ASTRoot.items)
+        {
+            if (item instanceof ASTDeclaration)
+            {
+                GlobalDeclarationHandler((ASTDeclaration) item);
+            }
+            else if (item instanceof ASTFunctionDefine)
+            {
+                FunctionDefineHandler((ASTFunctionDefine) item);
+            }
+        }
+    }
+
+    void FunctionDefineHandler(ASTFunctionDefine functionDefine)
+    {
+        SymbolTableStack.push(new HashMap<>());
         InsBuffer = new LinkedList<>();
-        super.enterFunctionDefinition(ctx);
-    }
-
-    @Override
-    public void exitDeclaration(CParser.DeclarationContext ctx)
-    {
-        //只对全局变量做操作
-        //全局变量: SyTableStack的大小等于1
-        if (SyTableStack.size() == 1)
-        {
-            ASTDeclaration thisNode = (ASTDeclaration) super.nodeStack.peek();
-            String type = thisNode.specifiers.get(0).value.toString();
-
-            //todo: 符号映射支持
-
-            type = TypeMap.get(type);
-            for (ASTInitList il : thisNode.initLists)
-            {
-                if (il.declarator instanceof ASTVariableDeclarator)
-                {
-                    String global_name = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
-                    if (GetSymbolInfo(global_name) == null)
-                    {
-                        SyTableStack.peek().put(global_name, new IdentifierSymbol("@" + global_name, type));
-                    }
-                    //重复定义
-                    else
-                    {
-                        SemanticError.ES02(true, global_name);
-                    }
-                    String num = "0";
-                    if (il.exprs != null && il.exprs.size() >= 1)
-                    {
-                        if (il.exprs.get(0) instanceof ASTIntegerConstant)
-                        {
-                            num = ((ASTIntegerConstant) il.exprs.get(0)).value.toString();
-                        }
-                    }
-                    WriteLine(new IRInstruction("@" + global_name, "global", type, num, null));
-                }
-            }
-        }
-        super.exitDeclaration(ctx);
-    }
-
-    private void HandleDeclaration(ASTDeclaration declaration)
-    {
-        //todo 添加long long和无符号数的支持
-        String type = declaration.specifiers.get(0).value.toString();
-        type = TypeMap.get(type);
-
-        type = TypeMap.get(type);
-        for (ASTInitList il : declaration.initLists)
-        {
-            if (il.declarator instanceof ASTVariableDeclarator)
-            {
-                int now_reg = GetRegCount();
-                String var_name = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
-                if (GetSymbolInfo(var_name) == null)
-                {
-                    SyTableStack.peek().put("%" + now_reg, new IdentifierSymbol("%" + now_reg, type));
-                }
-                //重复定义
-                else
-                {
-                    SemanticError.ES02(true, var_name);
-                }
-                String num = "0";
-                if (il.exprs != null && il.exprs.size() >= 1)
-                {
-                    if (il.exprs.get(0) instanceof ASTIntegerConstant)
-                    {
-                        num = ((ASTIntegerConstant) il.exprs.get(0)).value.toString();
-                    }
-                }
-                InsBuffer.add(new IRInstruction("%" + now_reg, "alloca", type, null, null));
-            }
-        }
-    }
-
-    @Override
-    public void enterSelectionStatement(CParser.SelectionStatementContext ctx)
-    {
-        super.enterSelectionStatement(ctx);
-    }
-
-    @Override
-    public void exitSelectionStatement(CParser.SelectionStatementContext ctx)
-    {
-        super.exitSelectionStatement(ctx);
-    }
-
-    @Override
-    public void enterCompoundStatement(CParser.CompoundStatementContext ctx)
-    {
-        //compoundStatement有个特点就是后进先出，因此可能需要用一个栈来对其数据收集进行保存，而且这个是宏观的
-        //1. 新的符号表
-        //2. 新的指令表 todo: 顶层节点，即function的那个compound里面增加一个指令栈，直接在最底层那里
-
-        //新的符号表
-        this.SyTableStack.push(new HashMap<>());
-
-        //新的指令表
-        LinkedList<IRInstruction> ins_segment = new LinkedList<>();
-
-        //保存当前的指令栈
-        Segment.push(this.InsBuffer);
-        this.InsBuffer = ins_segment;
-
-        super.enterCompoundStatement(ctx);
-    }
-
-    //declaration只用来声明全局变量！
-    //把它变成正序遍历！
-
-    //enter函数或者exitparam的时候必须增加一个regCount，主要是要看看即使param是空，它还会不会走
-
-    @Override
-    public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx)
-    {
-        ASTFunctionDefine thisNode = (ASTFunctionDefine) super.nodeStack.peek();
-        super.exitFunctionDefinition(ctx);
 
         String func_out_header = "define ";
+        now_function_type_C = TypeSpecifierListHandler(functionDefine.specifiers);
 
-        //todo: longlong等类型的支持
-        String func_rt_type = thisNode.specifiers.get(0).value.toString();
-        func_rt_type = TypeMap.get(func_rt_type);
+        func_out_header += ConvertCType2LLVMIR(now_function_type_C);
 
-        func_out_header += func_rt_type;
         String func_name = "";
-        ASTFunctionDeclarator ast_func_declarator = (ASTFunctionDeclarator) thisNode.declarator;
+        ASTFunctionDeclarator ast_func_declarator = (ASTFunctionDeclarator) functionDefine.declarator;
 
         if (ast_func_declarator.declarator instanceof ASTVariableDeclarator)
         {
             func_name += ((ASTVariableDeclarator) ast_func_declarator.declarator).identifier.value.toString();
         }
-        //todo: 将函数声明放到全局符号表
 
-        func_out_header += "@" + func_name + "(";
+        func_out_header += " @" + func_name + "(";
 
-//        //注意，params中的东西应该从符号表中取,来自declaration
-//        for (ASTParamsDeclarator params :
-//                ast_func_declarator.params
-//        )
-//        {
-////            String para_type=params.specfiers.get(0).value.toString();
-//            //todo 不知道还有没有除了variableDeclarator之外的类型
-//            String id_name = ((ASTVariableDeclarator) params.declarator).identifier.value.toString();
-//            int reg = LocalSyTable.get(id_name).reg_num;
-//            String para_type = LocalSyTable.get(id_name).i_type;
-//
-//            if (param_count != 0)
-//            {
-//                func_out_header += ", ";
-//            }
-//            func_out_header += para_type + " %" + reg;
-//            param_count++;
-//        }
+        //todo: params
 
-        func_out_header += ") #0 {\n";//开始前的最后一句
-        WriteLine(func_out_header);
+        func_out_header += ") #0 {\n";
+        GetRegCount();
 
-        InsBuffer = CompoundStatementBuffer.pop();
-        while (!InsBuffer.isEmpty())
+        IR_code += func_out_header;
+
+        //退出
+        for (IRInstruction instruction :
+                InsBuffer)
         {
-            WriteLine(InsBuffer.pop());
+            IR_code += instruction.toString();
         }
-
-        WriteLine(func_out_header);
+        IR_code += "}\n";
+        SymbolTableStack.pop();
+        now_function_type_C = null;
     }
 
-    @Override
-    public void exitCompoundStatement(CParser.CompoundStatementContext ctx)
+    void DeclarationHandler(ASTDeclaration declaration)
     {
-        ASTCompoundStatement thisNode = (ASTCompoundStatement) nodeStack.peek();
-        //收集信息
-        // blocItems 可能的节点:
-        // 1. 各种Statement
-        // 2. 各种Declarations
-
-        for (ASTNode blockItem :
-                thisNode.blockItems)
-        {
-            //在这里进行判断操作
-            if (blockItem instanceof ASTDeclaration)
-            {
-            }
-            else if (blockItem instanceof ASTStatement)
-            {
-                if (blockItem instanceof ASTCompoundStatement)
-                {
-                    //从队列中取出insBuffer并合并
-                    LinkedList<IRInstruction> child_compound = CompoundStatementBuffer.pop();
-                    this.InsBuffer.addAll(child_compound);
-                }
-            }
-        }
-        //把自己这部分指令压入队列
-        CompoundStatementBuffer.push(this.InsBuffer);
-        this.InsBuffer = Segment.pop();//恢复到原来的段
-
-        //收集信息后退栈，然后现在才在上一个地方留下自己的痕迹 //原则:只有退出时才向原来的地方写入 (真的能写入吗，要不就存到队列里? 不对，只有顶层引用了，才能向指令栈中写入
-        SyTableStack.pop();
-        super.exitCompoundStatement(ctx);
 
     }
 
-    public String TraverseExpression(ASTExpression expression) //递归调用
+    public String ExpressionHandler(ASTExpression expression) //递归调用
     {
         //叶节点1: 整形
         if (expression instanceof ASTIntegerConstant || expression instanceof ASTStringConstant || expression instanceof ASTCharConstant || expression instanceof ASTFloatConstant)
@@ -255,13 +93,13 @@ public class WzcLLVMIR extends WzcListenr
         else if (expression instanceof ASTBinaryExpression)
         {
             ASTBinaryExpression thisNode = (ASTBinaryExpression) expression;
-            String src1 = TraverseExpression(thisNode.expr1);
+            String src1 = ExpressionHandler(thisNode.expr1);
             //先全考虑整型
             if (src1 == null) //constant todo 添加constant判断，先假定所有的都是i32
             {
                 src1 = ((ASTIntegerConstant) thisNode.expr1).value.toString();
             }
-            String src2 = TraverseExpression(thisNode.expr2);
+            String src2 = ExpressionHandler(thisNode.expr2);
             if (src2 == null) //constant
             {
                 src2 = ((ASTIntegerConstant) thisNode.expr2).value.toString();
@@ -306,55 +144,128 @@ public class WzcLLVMIR extends WzcListenr
 
             return rt_reg;
         }
-        //叶节点2: 变量
-        else if (expression instanceof ASTIdentifier)
-
-        {
-            ASTIdentifier thisNode = (ASTIdentifier) expression;
-            //未声明使用报错
-            IdentifierSymbol detail = GetSymbolInfo(thisNode.value.toString());
-            String src = "";
-            String type = "";
-            if (detail == null) //未出现，进行报错
-            {
-                SemanticError.ES01(true, thisNode.value.toString());
-                String new_reg = "%" + GetRegCount();
-
-                InsBuffer.add(new IRInstruction(new_reg, "add", "i32", "0", "0"));
-                return new_reg;//todo 把这里临时alloca出一个来
-            }
-            else
-            {
-                src = detail.addr;
-                //todo: 写个C语言到llvm的类型映射
-                if (detail.i_type.equals("int"))
-                {
-                    type = "i32";
-                }
-                String new_reg = "%" + GetRegCount();
-                InsBuffer.add(new IRInstruction(new_reg, "load", type, null, type + "* " + src));
-                return new_reg;
-            }
-
-        }
-        //todo 添加其他操作类型的支持
-
-        return "none";
+        return null;
     }
 
-
-    WzcLLVMIR(String oFileName) throws IOException
+    //todo: 字符串支持
+    void NamelessStrHandler(ASTStringConstant stringConstant)
     {
-        OpenFile = oFileName;
-        this.SyTableStack = new Stack<>();
-        this.SyTableStack.push(new HashMap<>());
+
+    }
+
+    void GlobalDeclarationHandler(ASTDeclaration declaration)
+    {
+        String type = TypeSpecifierListHandler(declaration.specifiers);
+
+        type = ConvertCType2LLVMIR(type);
+
+        //todo: 函数定义
+        for (ASTInitList il : declaration.initLists)
+        {
+            if (il.declarator instanceof ASTVariableDeclarator)
+            {
+                String global_name = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
+                if (GetSymbolInfo(global_name) == null)
+                {
+                    SymbolTableStack.firstElement().put(global_name, new IdentifierSymbol("@" + global_name, type));
+                }
+                //重复定义
+                else
+                {
+                    SemanticErrorHandler.ES02(true, global_name);
+                }
+                String num = "0";
+                if (il.exprs != null && il.exprs.size() >= 1)
+                {
+                    if (il.exprs.get(0) instanceof ASTIntegerConstant)
+                    {
+                        num = ((ASTIntegerConstant) il.exprs.get(0)).value.toString();
+                    }
+                }
+                global_declaration += (new IRInstruction("@" + global_name, "global", type, num, null)).toString();
+            }
+        }
+    }
+
+    String TypeSpecifierListHandler(List<ASTToken> specifiers)
+    {
+        String type = specifiers.get(0).value.toString();
+        for (int i = 1; i < specifiers.size(); i++)
+        {
+            type += specifiers.get(1).value.toString() + " ";
+        }
+        return type;
+    }
+
+    String ConvertCType2LLVMIR(String type)
+    {
+        if (type.contains("long long"))
+        {
+            return "i64";
+        }
+        else if (type.contains("char"))
+        {
+            return "i8";
+        }
+        else if (type.contains("bit"))
+        {
+            return "i1";
+        }
+        else if (type.contains("int"))
+        {
+            return "i32";
+        }
+        return "unknownType";
+    }
+
+    boolean isSignedType(String type)
+    {
+        if (type.contains("unsigned"))
+        {
+            return false;
+
+        }
+        return true;
+    }
+
+    public String GetResult()
+    {
+        Run();
+        return target_data_layout + "\n" +
+                target_triple + "\n" +
+                global_declaration + "\n" +
+                IR_code;
+    }
+
+    int GetRegCount()
+    {
+        int t = this.register_count;
+        register_count++;
+        return t;
+    }
+
+    IdentifierSymbol GetSymbolInfo(String SymbolName)
+    {
+        for (int j = SymbolTableStack.size() - 1; j >= 0; j--)
+        {
+            //最好把这个东西的使用禁止掉
+            HashMap<String, IdentifierSymbol> syTable = SymbolTableStack.get(j);
+            if (syTable.containsKey(SymbolName))
+            {
+                return syTable.get(SymbolName);
+            }
+        }
+        SemanticErrorHandler.ES01(true, SymbolName);
+        return null;//没有找到符号
+    }
+
+    WzcLLVMIR(ASTCompilationUnit ASTNode)
+    {
+        this.ASTRoot = ASTNode;
+        this.SymbolTableStack = new Stack<>();
+        this.SymbolTableStack.push(new HashMap<>());
 
         this.InsBuffer = new LinkedList<>();
-
-        this.Segment = new Stack<>();
-        this.CompoundStatementBuffer = new LinkedList<>();
-
-        WriteIRHeader();
 
         OperatorMap = new HashMap<>();
         //构造运算符的映射
@@ -365,151 +276,9 @@ public class WzcLLVMIR extends WzcListenr
         OperatorMap.put("/", "sdiv");
         OperatorMap.put("<<", "shl");
         OperatorMap.put("%", "srem");
-
-        TypeMap = new HashMap<>();
-        TypeMap.put("int", "i32");
-        TypeMap.put("long", "i32");
-        TypeMap.put("char", "i8");
-        TypeMap.put("long long", "i64");
-        TypeMap.put("cmp", "i1");
-    }
-
-    IdentifierSymbol GetSymbolInfo(String SymbolName)
-    {
-        for (int j = SyTableStack.size() - 1; j >= 0; j--)
-        {
-            //最好把这个东西的使用禁止掉
-            HashMap<String, IdentifierSymbol> syTable = SyTableStack.get(j);
-            if (syTable.containsKey(SymbolName))
-            {
-                return syTable.get(SymbolName);
-            }
-        }
-        return null;//没有找到符号
-    }
-
-    //返回目前的值，并让其自增1
-    int GetRegCount()
-    {
-        int t = this.register_count;
-        register_count++;
-        return t;
-    }
-
-    void WriteIRHeader()
-    {
-        String cFile = MiniCCUtil.removeAllExt(OpenFile) + ".c";
-        String header = "source_filename = " + "\"" + cFile + "\"\n" +
-                "target datalayout = \"" + target_data_layout + "\"\n" +
-                "target triple = \"" + target_triple + "\"\n";
-
-        FileOutputStream fileOutputStream = null;
-        try
-        {
-            fileOutputStream = new FileOutputStream(OpenFile, false);
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            fileOutputStream.write(header.getBytes());
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            fileOutputStream.close();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private void WriteLine(Object obj)
-    {
-        this.WriteLine(obj.toString());
-    }
-
-    private void WriteLine(String OutputStr)
-    {
-        FileOutputStream fileOutputStream = null;
-        try
-        {
-            fileOutputStream = new FileOutputStream(OpenFile, true);
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            fileOutputStream.write(OutputStr.getBytes());
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            fileOutputStream.close();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-}
-
-class SemanticError
-{
-    static void ES01(boolean isIdentifier, String Name)
-    {
-        if (isIdentifier)
-        {
-            System.out.println("ES01 >> Identifier: " + Name + " is not defined.\n");
-        }
-    }
-
-    static void ES02(boolean isIdentifier, String Name)
-    {
-        if (isIdentifier)
-        {
-            System.out.println("ES02 >> Declaration: " + Name + " has been declared.\n");
-        }
-    }
-
-    static void ES03()
-    {
-    }
-
-    static void ES04()
-    {
-    }
-
-    static void ES05()
-    {
-    }
-
-    static void ES06()
-    {
-    }
-
-    static void ES07()
-    {
-    }
-
-    static void ES08()
-    {
     }
 }
 
-//这个东西得不停迭代想新的方法
 class IdentifierSymbol
 {
     public String addr;
@@ -542,7 +311,6 @@ class IRInstruction
         this.src_var1 = src1;
         this.src_var2 = src2;
     }
-
 
     @Override
     public String toString()
