@@ -1,9 +1,5 @@
-int main(int a,int b)
+int main()
 {
-    b=1+2*3*(5+6);
-    int c,d=3;
-    {
-        int c=36;
-    }
-    return c;
+    int a=1;
+    a=a<<2;
 }

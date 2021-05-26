@@ -1,6 +1,7 @@
 package bit.minisys.minicc.icgen;
 
 import bit.minisys.minicc.parser.ast.*;
+import bit.minisys.minicc.pp.internal.I;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
 import java.util.HashMap;
@@ -26,6 +27,10 @@ public class WzcLLVMIR
 
     private int register_count = 0;
 
+    //todo:
+    //break无条件跳转到结束，continue无条件跳转到开头
+    //对于goto的支持，拉链反填
+    //数组
 
     void Run()
     {
@@ -39,6 +44,41 @@ public class WzcLLVMIR
             {
                 FunctionDefineHandler((ASTFunctionDefine) item);
             }
+        }
+    }
+
+    void StatementHandler(ASTStatement statement)
+    {
+        if (statement instanceof ASTCompoundStatement)
+        {
+            SymbolTableStack.push(new HashMap<>());
+            CompoundStatementHandler((ASTCompoundStatement) statement);
+            SymbolTableStack.pop();
+            //从队列中取出insBuffer并合并
+            //准备递归调用，不过在这之前，先新建一个环境
+        }
+        else if (statement instanceof ASTExpressionStatement)
+        {
+            ASTExpressionStatement expressionStatement = (ASTExpressionStatement) statement;
+            ExpressionHandler(expressionStatement.exprs.get(0));
+        }
+        else if (statement instanceof ASTReturnStatement)
+        {
+            ReturnStatementHandler((ASTReturnStatement) statement);
+        }
+        else if (statement instanceof ASTSelectionStatement)
+        {
+            SelectionStatementHandler((ASTSelectionStatement) statement);
+        }
+        else if (statement instanceof ASTIterationDeclaredStatement)
+        {
+            SymbolTableStack.push(new HashMap<>());
+            DcIterationStatementHandler((ASTIterationDeclaredStatement) statement);
+            SymbolTableStack.pop();
+        }
+        else if (statement instanceof ASTIterationStatement)
+        {
+            IterationStatementHandler((ASTIterationStatement) statement);
         }
     }
 
@@ -133,40 +173,120 @@ public class WzcLLVMIR
             }
             else if (blockItem instanceof ASTStatement)
             {
-                if (blockItem instanceof ASTCompoundStatement)
-                {
-                    //从队列中取出insBuffer并合并
-                    //准备递归调用，不过在这之前，先新建一个环境
-                }
-                else if (blockItem instanceof ASTExpressionStatement)
-                {
-                    ASTExpressionStatement expressionStatement = (ASTExpressionStatement) blockItem;
-                    ExpressionHandler(expressionStatement.exprs.get(0));
-                }
-                else if (blockItem instanceof ASTReturnStatement)
-                {
-                    now_function_return_exist = true;
-                    ASTReturnStatement returnStatement = (ASTReturnStatement) blockItem;
-                    if (returnStatement.expr == null || returnStatement.expr.size() == 0)
-                    {
-                        InsBuffer.add(new IRInstruction(null, "ret", "void", null, null));
-                    }
-                    else
-                    {
-                        String val = ExpressionHandler(returnStatement.expr.get(0));
-                        String type = ConvertCType2LLVMIR(now_function_type_C);
-                        if (val == null)
-                        {
-                            if (returnStatement.expr.get(0) instanceof ASTIntegerConstant)
-                            {
-                                val = ((ASTIntegerConstant) returnStatement.expr.get(0)).value.toString();
-                            }
-                        }
-                        InsBuffer.add(new IRInstruction(null, "ret", type, val, null));
-                    }
-                }
+                StatementHandler((ASTStatement) blockItem);
             }
         }
+    }
+
+    void ReturnStatementHandler(ASTReturnStatement returnStatement)
+    {
+        now_function_return_exist = true;
+        if (returnStatement.expr == null || returnStatement.expr.size() == 0)
+        {
+            InsBuffer.add(new IRInstruction(null, "ret", "void", null, null));
+        }
+        else
+        {
+            String val = ExpressionHandler(returnStatement.expr.get(0));
+            String type = ConvertCType2LLVMIR(now_function_type_C);
+            if (val == null)
+            {
+                if (returnStatement.expr.get(0) instanceof ASTIntegerConstant)
+                {
+                    val = ((ASTIntegerConstant) returnStatement.expr.get(0)).value.toString();
+                }
+            }
+            InsBuffer.add(new IRInstruction(null, "ret", type, val, null));
+        }
+    }
+
+    void SelectionStatementHandler(ASTSelectionStatement selectionStatement)
+    {
+        String ans_reg = ExpressionHandler(selectionStatement.cond.get(0));
+        int True_label = GetRegCount();
+        IRInstruction br1 = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
+        InsBuffer.add(br1);
+        InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
+
+        StatementHandler(selectionStatement.then);
+
+        IRInstruction br2 = new IRInstruction(null, "br", "label", null, null);
+        InsBuffer.add(br2);
+
+        int False_label = GetRegCount();
+        br1.src_var2 = "label " + "%" + False_label;
+        InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
+
+        if (selectionStatement.otherwise != null)
+        {
+            StatementHandler(selectionStatement.otherwise);
+            int Out_label = GetRegCount();
+            br2.src_var1 = "%" + Out_label;
+            IRInstruction br3 = new IRInstruction(null, "br", "label", "%" + Out_label, null);
+            InsBuffer.add(br3);
+            InsBuffer.add(new IRInstruction(null, Out_label + ":", "", "", null));
+        }
+        else
+        {
+            br2.src_var1 = "%" + False_label;
+
+        }
+
+    }
+
+    void DcIterationStatementHandler(ASTIterationDeclaredStatement itDeclaredStatement)
+    {
+        DeclarationHandler(itDeclaredStatement.init);
+        int Start_label = GetRegCount();
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
+        InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
+
+        //cmp
+        String ans_reg = ExpressionHandler(itDeclaredStatement.cond.getLast());
+        int True_label = GetRegCount();
+        IRInstruction br1 = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
+        InsBuffer.add(br1);
+        InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
+
+        StatementHandler(itDeclaredStatement.stat);
+        int Nxt_label = GetRegCount();
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Nxt_label, null));
+        InsBuffer.add(new IRInstruction(null, Nxt_label + ":", "", "", null));
+
+
+        ExpressionHandler(itDeclaredStatement.step.getLast());
+        int False_label = GetRegCount();
+        br1.src_var2 = "%" + False_label;
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
+        InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
+
+    }
+
+    void IterationStatementHandler(ASTIterationStatement iterationStatement)
+    {
+        ExpressionHandler(iterationStatement.init.getLast());
+        int Start_label = GetRegCount();
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
+        InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
+
+        //cmp
+        String ans_reg = ExpressionHandler(iterationStatement.cond.getLast());
+        int True_label = GetRegCount();
+        IRInstruction br1 = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
+        InsBuffer.add(br1);
+        InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
+
+        StatementHandler(iterationStatement.stat);
+        int Nxt_label = GetRegCount();
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Nxt_label, null));
+        InsBuffer.add(new IRInstruction(null, Nxt_label + ":", "", "", null));
+
+
+        ExpressionHandler(iterationStatement.step.getLast());
+        int False_label = GetRegCount();
+        br1.src_var2 = "%" + False_label;
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
+        InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
     }
 
     //注册，打印
@@ -265,22 +385,22 @@ public class WzcLLVMIR
                 switch (op)
                 {
                     case ">":
-                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sle i32", src1, src2));
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sgt", " i32" + src1, src2));
                         break;
                     case "<":
-                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sge i32", src1, src2));
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "slt", " i32" + src1, src2));
                         break;
                     case ">=":
-                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sl i32", src1, src2));
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sge", " i32" + src1, src2));
                         break;
                     case "<=":
-                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sg i32", src1, src2));
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sle", " i32" + src1, src2));
                         break;
                     case "==":
-                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "eq i32", src1, src2));
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "eq", " i32" + src1, src2));
                         break;
                     case "!=":
-                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "ne i32", src1, src2));
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "ne", " i32" + src1, src2));
                         break;
                     default:
                         op = OperatorMap.get(op);
