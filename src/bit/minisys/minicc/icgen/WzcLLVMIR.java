@@ -192,7 +192,33 @@ public class WzcLLVMIR
 
     void DeclarationHandler(ASTDeclaration declaration)
     {
+        String C_type = TypeSpecifierListHandler(declaration.specifiers);
 
+
+        for (ASTInitList il : declaration.initLists)
+        {
+            if (il.declarator instanceof ASTVariableDeclarator)
+            {
+                ASTVariableDeclarator variableDeclarator = (ASTVariableDeclarator) il.declarator;
+                VariableDeclaratorHandler(variableDeclarator, C_type);
+                //从expression中加载值
+                if (il.exprs.size() > 0)
+                {
+                    String store_val = "";
+                    if (il.exprs.get(0) instanceof ASTIntegerConstant)
+                    {
+                        store_val = ((ASTIntegerConstant) il.exprs.get(0)).value.toString();
+                    }
+                    else
+                    {
+                        store_val = ExpressionHandler(il.exprs.get(0));
+                    }
+                    String var = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
+                    var = GetSymbolInfo(var).addr;
+                    InsBuffer.add(new IRInstruction(null, "store", ConvertCType2LLVMIR(C_type), store_val, ConvertCType2LLVMIR(C_type) + "* " + var));
+                }
+            }
+        }
     }
 
     public String ExpressionHandler(ASTExpression expression) //递归调用
@@ -205,56 +231,67 @@ public class WzcLLVMIR
         else if (expression instanceof ASTBinaryExpression)
         {
             ASTBinaryExpression thisNode = (ASTBinaryExpression) expression;
-            String src1 = ExpressionHandler(thisNode.expr1);
-            //先全考虑整型
-            if (src1 == null) //constant todo 添加constant判断，先假定所有的都是i32
-            {
-                src1 = ((ASTIntegerConstant) thisNode.expr1).value.toString();
-            }
-            String src2 = ExpressionHandler(thisNode.expr2);
-            if (src2 == null) //constant
-            {
-                src2 = ((ASTIntegerConstant) thisNode.expr2).value.toString();
-            }
-
-            //操作符判断
             String op = thisNode.op.value.toString();
             String type = "";
-            String rt_reg = "%" + GetRegCount();
-
-            switch (op)
+            if (op.equals("="))
             {
-                case "=":
-                    InsBuffer.add(new IRInstruction(null, "store", "i32", src2, "i32* " + src1));
-                    register_count--;//并没有使用新的寄存器，因此--
+                String src1 = ((ASTIdentifier) thisNode.expr1).value.toString();
+                String src2 = ExpressionHandler(thisNode.expr2);
+                type = "i32";
+                if (src2 == null) //constant
+                {
+                    src2 = ((ASTIntegerConstant) thisNode.expr2).value.toString();
+                }
+                InsBuffer.add(new IRInstruction(null, "store", type, src2, type + "* " + GetSymbolInfo(src1).addr));
 
-                    return src2;
-                case ">":
-                    InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sle i32", src1, src2));
-                    break;
-                case "<":
-                    InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sge i32", src1, src2));
-                    break;
-                case ">=":
-                    InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sl i32", src1, src2));
-                    break;
-                case "<=":
-                    InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sg i32", src1, src2));
-                    break;
-                case "==":
-                    InsBuffer.add(new IRInstruction(rt_reg, "icmp", "eq i32", src1, src2));
-                    break;
-                case "!=":
-                    InsBuffer.add(new IRInstruction(rt_reg, "icmp", "ne i32", src1, src2));
-                    break;
-                default:
-                    op = OperatorMap.get(op);
-                    // todo:添加类型检查
-                    InsBuffer.add(new IRInstruction(rt_reg, op, type, src1, src2));
-                    break;
+                return "Assignment";
             }
+            else
+            {
+                //先全考虑整型
+                String src1 = ExpressionHandler(thisNode.expr1);
+                if (src1 == null) //constant todo 添加constant判断，先假定所有的都是i32
+                {
+                    src1 = ((ASTIntegerConstant) thisNode.expr1).value.toString();
+                }
+                String src2 = ExpressionHandler(thisNode.expr2);
+                if (src2 == null) //constant
+                {
+                    src2 = ((ASTIntegerConstant) thisNode.expr2).value.toString();
+                }
+                String rt_reg = "%" + GetRegCount();
 
-            return rt_reg;
+                //操作符判断
+                switch (op)
+                {
+                    case ">":
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sle i32", src1, src2));
+                        break;
+                    case "<":
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sge i32", src1, src2));
+                        break;
+                    case ">=":
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sl i32", src1, src2));
+                        break;
+                    case "<=":
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "sg i32", src1, src2));
+                        break;
+                    case "==":
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "eq i32", src1, src2));
+                        break;
+                    case "!=":
+                        InsBuffer.add(new IRInstruction(rt_reg, "icmp", "ne i32", src1, src2));
+                        break;
+                    default:
+                        op = OperatorMap.get(op);
+                        // todo:添加类型检查
+                        type = "i32";
+                        InsBuffer.add(new IRInstruction(rt_reg, op, type, src1, src2));
+                        break;
+                }
+
+                return rt_reg;
+            }
         }
         //叶节点2: 变量
         else if (expression instanceof ASTIdentifier)
@@ -268,7 +305,6 @@ public class WzcLLVMIR
             {
                 SemanticErrorHandler.ES01(true, thisNode.value.toString());
                 String new_reg = "%" + GetRegCount();
-
                 InsBuffer.add(new IRInstruction(new_reg, "add", "i32", "0", "0"));
                 return new_reg;//todo 把这里临时alloca出一个来
             }
@@ -371,8 +407,8 @@ public class WzcLLVMIR
     public String GetResult()
     {
         Run();
-        return target_data_layout + "\n" +
-                target_triple + "\n" +
+        return "target datalayout = \"" + target_data_layout + "\"\n" +
+                "target triple = \"" + target_triple + "\"\n" +
                 global_declaration + "\n" +
                 IR_code;
     }
