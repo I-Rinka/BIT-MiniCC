@@ -38,7 +38,8 @@ public class SemanticErrorHandler
     {
     }
 
-    public static void ES08()
+    public static void ES08(String func_name)
     {
+        System.out.println("ES08 >> Function: " + func_name + " must have a return in the end.\n");
     }
 }

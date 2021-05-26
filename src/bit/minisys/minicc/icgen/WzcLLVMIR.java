@@ -12,10 +12,12 @@ public class WzcLLVMIR
 {
     public String target_data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128";
     public String target_triple = "x86_64-pc-linux-gnu";
-    String global_declaration="";
+    String global_declaration = "";
     String IR_code = "";
     ASTCompilationUnit ASTRoot = null;
+
     String now_function_type_C = null;
+    boolean now_function_return_exist = false;
 
     //为了有scope的支持，需要使用栈
     private Stack<HashMap<String, IdentifierSymbol>> SymbolTableStack;
@@ -62,10 +64,50 @@ public class WzcLLVMIR
 
         //todo: params
 
-        func_out_header += ") #0 {\n";
-        GetRegCount();
+        String para_string = "";
 
+        //遍历params收集信息
+        for (ASTParamsDeclarator para :
+                ((ASTFunctionDeclarator) functionDefine.declarator).params)
+        {
+            String para_type = TypeSpecifierListHandler(para.specfiers);
+            if (para.declarator instanceof ASTVariableDeclarator)
+            {
+                String para_reg = "%" + GetRegCount();
+                if (!para_string.equals(""))
+                {
+                    para_string += ", ";
+                }
+                para_string += ConvertCType2LLVMIR(para_type) + " " + para_reg;
+            }
+        }
+        func_out_header += para_string;
+        func_out_header += ") #0 {\n";
         IR_code += func_out_header;
+        GetRegCount();
+        int para_count = 0;//准备进入函数，将形参load一遍
+
+        for (ASTParamsDeclarator para :
+                ((ASTFunctionDeclarator) functionDefine.declarator).params)
+        {
+            String para_type = TypeSpecifierListHandler(para.specfiers);
+            if (para.declarator instanceof ASTVariableDeclarator)
+            {
+                String C_type = TypeSpecifierListHandler(para.specfiers);
+                VariableDeclaratorHandler((ASTVariableDeclarator) para.declarator, C_type);
+                //然后load值
+                InsBuffer.add(new IRInstruction(null, "store", ConvertCType2LLVMIR(C_type), "%" + para_count, ConvertCType2LLVMIR(C_type) + "* " + GetSymbolInfo((((ASTVariableDeclarator) para.declarator).identifier.value.toString())).addr));
+            }
+            para_count++;
+        }
+
+        //真正执行CompoundStatement中的指令
+        CompoundStatementHandler(functionDefine.body);
+
+        if (!now_function_return_exist)
+        {
+            SemanticErrorHandler.ES08(func_name);
+        }
 
         //退出
         for (IRInstruction instruction :
@@ -76,6 +118,76 @@ public class WzcLLVMIR
         IR_code += "}\n";
         SymbolTableStack.pop();
         now_function_type_C = null;
+        now_function_return_exist = false;
+    }
+
+    void CompoundStatementHandler(ASTCompoundStatement compoundStatement)
+    {
+        for (ASTNode blockItem :
+                compoundStatement.blockItems)
+        {
+            //在这里进行判断操作
+            if (blockItem instanceof ASTDeclaration)
+            {
+                DeclarationHandler((ASTDeclaration) blockItem);
+            }
+            else if (blockItem instanceof ASTStatement)
+            {
+                if (blockItem instanceof ASTCompoundStatement)
+                {
+                    //从队列中取出insBuffer并合并
+                    //准备递归调用，不过在这之前，先新建一个环境
+                }
+                else if (blockItem instanceof ASTExpressionStatement)
+                {
+                    ASTExpressionStatement expressionStatement = (ASTExpressionStatement) blockItem;
+                    ExpressionHandler(expressionStatement.exprs.get(0));
+                }
+                else if (blockItem instanceof ASTReturnStatement)
+                {
+                    now_function_return_exist = true;
+                    ASTReturnStatement returnStatement = (ASTReturnStatement) blockItem;
+                    if (returnStatement.expr == null || returnStatement.expr.size() == 0)
+                    {
+                        InsBuffer.add(new IRInstruction(null, "ret", "void", null, null));
+                    }
+                    else
+                    {
+                        String val = ExpressionHandler(returnStatement.expr.get(0));
+                        String type = ConvertCType2LLVMIR(now_function_type_C);
+                        if (val == null)
+                        {
+                            if (returnStatement.expr.get(0) instanceof ASTIntegerConstant)
+                            {
+                                val = ((ASTIntegerConstant) returnStatement.expr.get(0)).value.toString();
+                            }
+                        }
+                        InsBuffer.add(new IRInstruction(null, "ret", type, val, null));
+                    }
+                }
+            }
+        }
+    }
+
+    //注册，打印
+    void VariableDeclaratorHandler(ASTVariableDeclarator variableDeclarator, String C_type)
+    {
+        int now_reg = GetRegCount();
+        String var_name = variableDeclarator.identifier.value.toString();
+        //Scope,只看当前层是否重复定义
+        if (!SymbolTableStack.peek().containsKey(var_name))
+        {
+            SymbolTableStack.peek().put(var_name, new IdentifierSymbol("%" + now_reg, ConvertCType2LLVMIR(C_type)));
+        }
+        //重复定义
+        else
+        {
+            SemanticErrorHandler.ES02(true, var_name);
+        }
+        //打印
+        //声明以后应该alloca
+        InsBuffer.add(new IRInstruction("%" + now_reg, "alloca", ConvertCType2LLVMIR(C_type), null, null));
+
     }
 
     void DeclarationHandler(ASTDeclaration declaration)
@@ -144,7 +256,35 @@ public class WzcLLVMIR
 
             return rt_reg;
         }
-        return null;
+        //叶节点2: 变量
+        else if (expression instanceof ASTIdentifier)
+
+        {
+            ASTIdentifier thisNode = (ASTIdentifier) expression;
+            //未声明使用报错
+            IdentifierSymbol detail = GetSymbolInfo(thisNode.value.toString());
+            String src = "";
+            if (detail == null) //未出现，进行报错
+            {
+                SemanticErrorHandler.ES01(true, thisNode.value.toString());
+                String new_reg = "%" + GetRegCount();
+
+                InsBuffer.add(new IRInstruction(new_reg, "add", "i32", "0", "0"));
+                return new_reg;//todo 把这里临时alloca出一个来
+            }
+            else
+            {
+                src = detail.addr;
+                //todo: 写个C语言到llvm的类型映射
+                String new_reg = "%" + GetRegCount();
+                InsBuffer.add(new IRInstruction(new_reg, "load", detail.i_type, null, detail.i_type + "* " + src));
+                return new_reg;
+            }
+
+        }
+        //todo 添加其他操作类型的支持
+
+        return "none";
     }
 
     //todo: 字符串支持
