@@ -2,10 +2,12 @@ package bit.minisys.minicc.icgen;
 
 import java.io.*;
 
+import bit.minisys.minicc.MiniCCCfg;
 import bit.minisys.minicc.parser.CLexer;
 import bit.minisys.minicc.parser.CParser;
 
 import bit.minisys.minicc.internal.util.MiniCCUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -47,6 +49,14 @@ public class WzcICGen implements IMiniCCICGen
         walker.walk(listener, root);
 
         System.out.println("LLVM-IR Generated!");
+
+        //输出AST
+        System.out.println("AST Output: " + MiniCCUtil.removeAllExt(oFile)+ MiniCCCfg.MINICC_PARSER_OUTPUT_EXT);
+        FileOutputStream fileOutputStream = new FileOutputStream(MiniCCUtil.removeAllExt(oFile)+ MiniCCCfg.MINICC_PARSER_OUTPUT_EXT);
+        ObjectMapper mapper = new ObjectMapper();
+        String outPutJson = mapper.writeValueAsString(listener.returNode);
+//        System.out.println(outPutJson);
+        fileOutputStream.write(outPutJson.getBytes());
 
         System.out.println("LLVM-IR Output: " + oFile);
         return oFile;
