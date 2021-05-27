@@ -78,11 +78,10 @@ public class WzcLLVMIR
     {
         if (statement instanceof ASTCompoundStatement)
         {
+            //准备递归调用，不过在这之前，先新建一个环境
             SymbolTableStack.push(new HashMap<>());
             CompoundStatementHandler((ASTCompoundStatement) statement);
             SymbolTableStack.pop();
-            //从队列中取出insBuffer并合并
-            //准备递归调用，不过在这之前，先新建一个环境
         }
         else if (statement instanceof ASTExpressionStatement)
         {
@@ -132,6 +131,14 @@ public class WzcLLVMIR
             {
                 ContinueStatementHandler((ASTContinueStatement) statement);
             }
+        }
+        else if (statement instanceof ASTLabeledStatement)
+        {
+            LabelStatementHandler((ASTLabeledStatement) statement);
+        }
+        else if (statement instanceof ASTGotoStatement)
+        {
+            GotoStatementHandler((ASTGotoStatement) statement);
         }
     }
 
@@ -386,6 +393,7 @@ public class WzcLLVMIR
         }
     }
 
+
     //todo 基本块的标号应该怎么处理
     void BreakStatementHandler(ASTBreakStatement breakStatement)
     {
@@ -397,6 +405,61 @@ public class WzcLLVMIR
     void ContinueStatementHandler(ASTContinueStatement continueStatement)
     {
         InsBuffer.add(new IRInstruction(null, "br", "label", "%" + now_continue_position, null));
+    }
+
+    //注意一下基本块，这里可能需要添加一个标号
+    void GotoStatementHandler(ASTGotoStatement gotoStatement)
+    {
+        String label = gotoStatement.label.value.toString();
+        IdentifierSymbol goto_info = GetSymbolInfo(label);
+        IRInstruction goto_ins = new IRInstruction(null, "br", "label", null, null);//在src1处填
+        if (goto_info == null)
+        {
+            goto_info.ins_pointer = goto_ins;
+        }
+        else
+        {
+            goto_ins.src_var1 = goto_info.addr;
+        }
+        InsBuffer.add(goto_ins);
+    }
+
+    void LabelStatementHandler(ASTLabeledStatement labeledStatement)
+    {
+        String label = labeledStatement.label.value.toString();
+        IdentifierSymbol label_info = GetSymbolInfo(label);
+        if (label_info == null)
+        {
+            SymbolTableStack.peek().put(label, new IdentifierSymbol("%" + GetRegCount(), "label"));
+            InsBuffer.add(new IRInstruction(null, (register_counter - 1) + ":", "", "", null));
+        }
+        else
+        {
+            if (label_info.addr == null)
+            {
+                InsBuffer.add(new IRInstruction(null, GetRegCount() + ":", "", "", null));
+                LLFT(label_info.ins_pointer, "%" + (register_counter - 1));
+                label_info.addr = "%" + (register_counter - 1);
+            }
+            else
+            {
+                SemanticErrorHandler.ES02(true, label);
+            }
+        }
+        if (labeledStatement.stat != null)
+        {
+            StatementHandler(labeledStatement.stat);
+        }
+    }
+
+    //拉链反填
+    void LLFT(IRInstruction instruction, String branch_tag)
+    {
+        instruction.src_var1 = branch_tag;
+        if (instruction.ins_pointer != null)
+        {
+            LLFT(instruction.ins_pointer, branch_tag);
+        }
     }
 
     //注册，打印
@@ -660,12 +723,11 @@ public class WzcLLVMIR
                 SemanticErrorHandler.ES01(true, thisNode.value.toString());
                 String new_reg = "%" + GetRegCount();
                 InsBuffer.add(new IRInstruction(new_reg, "add", "i32", "0", "0"));
-                return new_reg;//todo 把这里临时alloca出一个来
+                return new_reg;
             }
             else
             {
                 src = detail.addr;
-                //todo: 写个C语言到llvm的类型映射
                 String new_reg = "%" + GetRegCount();
                 InsBuffer.add(new IRInstruction(new_reg, "load", detail.llvm_type, null, detail.llvm_type + "* " + src));
                 RegLineage.put(new_reg, detail.llvm_type);
@@ -673,8 +735,6 @@ public class WzcLLVMIR
             }
 
         }
-        //todo 添加其他操作类型的支持
-
         return "none";
     }
 
