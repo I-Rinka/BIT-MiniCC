@@ -104,6 +104,17 @@ public class WzcLLVMIR
                 BreakStatementHandler((ASTBreakStatement) statement);
             }
         }
+        else if (statement instanceof ASTContinueStatement)
+        {
+            if (iteration_counter == 0)
+            {
+                //continue错误
+            }
+            else
+            {
+                ContinueStatementHandler((ASTContinueStatement) statement);
+            }
+        }
     }
 
     void FunctionDefineHandler(ASTFunctionDefine functionDefine)
@@ -129,6 +140,7 @@ public class WzcLLVMIR
         //todo: params
 
         String para_string = "";
+        LinkedList<String> para_list = new LinkedList<>();
 
         //遍历params收集信息
         for (ASTParamsDeclarator para :
@@ -143,6 +155,8 @@ public class WzcLLVMIR
                     para_string += ", ";
                 }
                 para_string += ConvertCType2LLVMIR(para_type) + " " + para_reg;
+
+                para_list.add(para_type);
             }
         }
         func_out_header += para_string;
@@ -150,6 +164,9 @@ public class WzcLLVMIR
         IR_code += func_out_header;
         GetRegCount();
         int para_count = 0;//准备进入函数，将形参load一遍
+
+        //函数表注册函数
+        FunctionDecHandler(func_name, now_function_type_C, para_list, false);
 
         for (ASTParamsDeclarator para :
                 ((ASTFunctionDeclarator) functionDefine.declarator).params)
@@ -392,12 +409,49 @@ public class WzcLLVMIR
         }
     }
 
+    //GetRegType?查寄存器对应标号的类型？直接更改RegCount? ->这样就可以有类型检查了
+
+    //返回结果存的寄存器
     public String ExpressionHandler(ASTExpression expression) //递归调用
     {
         //叶节点1: 整形
         if (expression instanceof ASTIntegerConstant || expression instanceof ASTStringConstant || expression instanceof ASTCharConstant || expression instanceof ASTFloatConstant)
         {
             return null;
+        }
+        else if (expression instanceof ASTFunctionCall)
+        {
+            ASTFunctionCall functionCall = (ASTFunctionCall) expression;
+            String func_name = ((ASTIdentifier) functionCall.funcname).value.toString();
+            GlobalSymbol func_info = GetFuncInfo(func_name);//函数未声明报错已经写在里面了
+            if (func_info == null)
+            {
+                //未声明情况，随便整个地址给它
+                int fake_reg = GetRegCount();
+                String expect_LLVM_type = "i32";
+                InsBuffer.add(new IRInstruction("%" + fake_reg, "alloca", expect_LLVM_type, null, null));
+                int fake_reg2 = GetRegCount();
+                InsBuffer.add(new IRInstruction("%" + fake_reg2, "load", expect_LLVM_type, null, expect_LLVM_type + "* " + fake_reg));
+                return "%" + fake_reg2;
+            }
+            else
+            {
+                String func_para = "";
+                for (ASTExpression arg : functionCall.argList)
+                {
+                    String reg = ExpressionHandler(arg);
+                    if (reg == null)
+                    {
+                        //判断整形之类的
+                    }
+                    else
+                    {
+                        func_para += "i32" + " " + reg;
+                    }
+                }
+                int rt_reg = GetRegCount();
+            }
+
         }
         else if (expression instanceof ASTBinaryExpression)
         {
@@ -494,10 +548,23 @@ public class WzcLLVMIR
         return "none";
     }
 
-    //todo: 字符串支持
-    void NamelessStrHandler(ASTStringConstant stringConstant)
+    //无名字符串支持 返回字符串的地址
+    String NamelessStrHandler(ASTStringConstant stringConstant)
     {
+        String rt_String = "i8*";
+        String strContent = stringConstant.value.toString();
+        IdentifierSymbol str = SymbolTableStack.firstElement().get("\"" + strContent + "\"");
+        if (str == null)
+        {
+            str = new GlobalSymbol(strContent, "@.str" + nameless_str_counter, strContent.length());
+            nameless_str_counter++;
+            SymbolTableStack.firstElement().put("\"" + strContent + "\"", str);
+            global_declaration += ((GlobalSymbol) str).GetIRFormat(null);
+        }
 
+        rt_String += " getelementptr inbounds ";
+        rt_String += "([" + strContent.length() + " x i8], [" + strContent.length() + " x i8]* " + str.addr + ", i64 0, i64 0)";
+        return rt_String;
     }
 
     GlobalSymbol FunctionDecHandler(String func_name, String rt_type, LinkedList<String> para_type, boolean is_external)
@@ -644,7 +711,6 @@ public class WzcLLVMIR
                 return syTable.get(SymbolName);
             }
         }
-        SemanticErrorHandler.ES01(true, SymbolName);
         return null;//没有找到符号
     }
 
@@ -671,6 +737,7 @@ public class WzcLLVMIR
     {
         LinkedList<String> func_para;
         boolean is_function = false;
+        String string_content = "";
 
         GlobalSymbol(String addr, String i_type)
         {
@@ -682,6 +749,12 @@ public class WzcLLVMIR
             super("function", rt_type);
             this.func_para = para_type;
             is_function = true;
+        }
+
+        GlobalSymbol(String string_content, String string_name, int string_len)
+        {
+            super(string_name, "[" + string_len + " x i8]");
+            string_content = string_content;
         }
 
         public String GetIRFormat(String Name)
@@ -713,8 +786,13 @@ public class WzcLLVMIR
                 }
                 rt_str += ")" + " #1";
             }
+            else
+            {
+                rt_str += super.addr + " = " + "private unnamed_addr constant" + super.i_type + " c\"" + string_content + "\\00\"";
+            }
             return rt_str;
         }
+
 
     }
 
