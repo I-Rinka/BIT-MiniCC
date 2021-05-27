@@ -355,13 +355,14 @@ public class WzcLLVMIR
 
         if (itDeclaredStatement.step != null && itDeclaredStatement.step.size() > 0)
         {
-            ExpressionHandler(itDeclaredStatement.step.getLast());
             int new_label = GetRegCount();
             InsertBranch("%" + new_label);
             InsertTag(new_label + "");
+            ExpressionHandler(itDeclaredStatement.step.getLast());
         }
 
         False_label = GetRegCount() + "";
+        InsertBranch("%" + False_label);
         InsertTag(False_label);
         if (condition != null)
         {
@@ -407,14 +408,15 @@ public class WzcLLVMIR
 
         if (iterationStatement.step != null && iterationStatement.step.size() > 0)
         {
-            ExpressionHandler(iterationStatement.step.getLast());
             int new_label = GetRegCount();
             InsertBranch("%" + new_label);
             InsertTag(new_label + "");
+            ExpressionHandler(iterationStatement.step.getLast());
         }
 
         False_label = GetRegCount() + "";
         InsertBranch(False_label);
+        InsertTag(False_label + "");
         if (condition != null)
         {
             condition.src_var2 = "label " + "%" + False_label;
