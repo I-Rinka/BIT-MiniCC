@@ -33,7 +33,7 @@ public class SemanticErrorHandler
 
     public static void ES04(String func_name)
     {
-        System.out.println("ES4 >> FunctionCall:"+func_name+"'s param type is not matched.");
+        System.out.println("ES4 >> FunctionCall:" + func_name + "'s param type is not matched.");
     }
 
     public static void ES05(String op)
@@ -52,8 +52,9 @@ public class SemanticErrorHandler
     {
     }
 
-    public static void ES07()
+    public static void ES07(String label)
     {
+        System.out.println("ES7 >> Label:" + label + " is not defined.");
     }
 
     public static void ES08(String func_name)

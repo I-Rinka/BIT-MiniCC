@@ -3,10 +3,7 @@ package bit.minisys.minicc.icgen;
 import bit.minisys.minicc.parser.ast.*;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /*
     目前支持情况:
@@ -17,7 +14,7 @@ import java.util.Stack;
     4. 函数调用参数不匹配 ✅
     5. 操作类型不匹配 ✅
     6. 数组越界
-    7. goto标签不存在
+    7. goto标签不存在 ✅
     8. 函数缺少return ✅
 
     中间代码生成:
@@ -29,7 +26,7 @@ import java.util.Stack;
     7. 运算操作 ✅
     8. 循环语句 ✅
     9. 选择语句 ✅
-    10. 跳转语句
+    10. 跳转语句 ✅
 
  */
 
@@ -230,6 +227,18 @@ public class WzcLLVMIR
                 InsBuffer)
         {
             IR_code += "  " + instruction.toString();
+            if (instruction.src_var1 == null && instruction.action.equals("br"))//检查未反填goto
+            {
+                for (Map.Entry<String, IdentifierSymbol> record :
+                        SymbolTableStack.firstElement().entrySet())
+                {
+                    if (record.getValue().ins_pointer == instruction)
+                    {
+                        SemanticErrorHandler.ES07(record.getKey());
+                        break;
+                    }
+                }
+            }
         }
         IR_code += "}\n";
         SymbolTableStack.pop();
@@ -415,6 +424,8 @@ public class WzcLLVMIR
         IRInstruction goto_ins = new IRInstruction(null, "br", "label", null, null);//在src1处填
         if (goto_info == null)
         {
+            goto_info = new IdentifierSymbol(null, "label");
+            SymbolTableStack.firstElement().put(label, goto_info);
             goto_info.ins_pointer = goto_ins;
         }
         else
@@ -430,7 +441,7 @@ public class WzcLLVMIR
         IdentifierSymbol label_info = GetSymbolInfo(label);
         if (label_info == null)
         {
-            SymbolTableStack.peek().put(label, new IdentifierSymbol("%" + GetRegCount(), "label"));
+            SymbolTableStack.firstElement().put(label, new IdentifierSymbol("%" + GetRegCount(), "label"));
             InsBuffer.add(new IRInstruction(null, (register_counter - 1) + ":", "", "", null));
         }
         else
@@ -443,7 +454,7 @@ public class WzcLLVMIR
             }
             else
             {
-                SemanticErrorHandler.ES02(true, label);
+                SemanticErrorHandler.ES07(label);
             }
         }
         if (labeledStatement.stat != null)
