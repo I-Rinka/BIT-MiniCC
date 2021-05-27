@@ -20,6 +20,10 @@ public class SemanticErrorHandler
         {
             System.out.println("ES02 >> Declaration: " + Name + " has been declared.\n");
         }
+        else
+        {
+            System.out.println("ES02 >> Function: " + Name + " has been declared.\n");
+        }
     }
 
     public static void ES03()

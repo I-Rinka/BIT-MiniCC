@@ -196,15 +196,15 @@ public class WzcLLVMIR
             }
             else
             {
-                InsBuffer.add(new IRInstruction(null, "ret", now_function_type_C, "0", null));
+                InsBuffer.add(new IRInstruction(null, "ret", ConvertCType2LLVMIR(now_function_type_C), "0", null));
             }
         }
 
-        //退出
+        //输出符号
         for (IRInstruction instruction :
                 InsBuffer)
         {
-            IR_code += instruction.toString();
+            IR_code += "  " + instruction.toString();
         }
         IR_code += "}\n";
         SymbolTableStack.pop();
@@ -323,36 +323,72 @@ public class WzcLLVMIR
 
     void IterationStatementHandler(ASTIterationStatement iterationStatement)
     {
-        ExpressionHandler(iterationStatement.init.getLast());
-        int Start_label = GetRegCount();
+        int Start_label = -1; //一定存在
+        int True_label = -1;
+        int After_label = -1;
+        int False_label = -1;
 
+        IRInstruction feedback = null;
+
+        if (iterationStatement.init != null && iterationStatement.init.size() > 0)
+        {
+            ExpressionHandler(iterationStatement.init.getLast());
+        }
+        Start_label = GetRegCount();
         now_continue_position = Start_label;
+        int LastLabel = Start_label;
 
         InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
         InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
 
         //cmp
-        String ans_reg = ExpressionHandler(iterationStatement.cond.getLast());
-        int True_label = GetRegCount();
-        IRInstruction br1 = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
-        InsBuffer.add(br1);
-        InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
-
+        if (iterationStatement.cond != null && iterationStatement.cond.size() > 0)
+        {
+            String ans_reg = ExpressionHandler(iterationStatement.cond.getLast());
+            True_label = GetRegCount();
+            feedback = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
+            InsBuffer.add(feedback);
+            InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null)); //每段一个br下一个、一个标号
+        }
+        else
+        {
+            //这里好像啥都不干就行
+        }
+        //stat如果不存在应该怎么处理，先假设都存在?
         StatementHandler(iterationStatement.stat);
-        int Nxt_label = GetRegCount();
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Nxt_label, null));
-        InsBuffer.add(new IRInstruction(null, Nxt_label + ":", "", "", null));
+        After_label = GetRegCount();
+        IRInstruction stat = new IRInstruction(null, "br", "label", "%" + After_label, null);
+        InsBuffer.add(stat);
+        InsBuffer.add(new IRInstruction(null, After_label + ":", "", "", null));
 
-
-        ExpressionHandler(iterationStatement.step.getLast());
-        int False_label = GetRegCount();
+        if (iterationStatement.step != null && iterationStatement.step.size() > 0)
+        {
+            ExpressionHandler(iterationStatement.step.getLast());
+            False_label = GetRegCount();
+            InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
+            InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
+            if (True_label != -1)//condition存在
+            {
+                feedback.src_var2 = "%" + False_label;
+            }
+        }
+        else
+        {
+            //没有++，那么最后一个jmp是stat的
+            stat.src_var2 = "%" + Start_label;
+            if (True_label != -1)//condition存在，回填false
+            {
+                feedback.src_var2 = "%" + After_label;
+            }
+            else
+            {
+                False_label=After_label;
+            }
+        }
         for (int i = 0; i < break_statements_buffer.size(); i++)
         {
             break_statements_buffer.pop().src_var1 = "%" + False_label;
         }
-        br1.src_var2 = "%" + False_label;
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
-        InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
     }
 
     //todo 基本块的标号应该怎么处理
@@ -482,11 +518,11 @@ public class WzcLLVMIR
                 }
                 if (func_info.i_type.equals("void"))
                 {
-                    InsBuffer.add(new IRInstruction(null, "call", ConvertCType2LLVMIR(func_info.i_type), func_info.GetFuncCallList() + " @" + func_name + func_para, null));
+                    InsBuffer.add(new IRInstruction(null, "call", ConvertCType2LLVMIR(func_info.i_type), "@" + func_name + "()", null));
                     return "none";
                 }
                 int rt_reg = GetRegCount();
-                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", ConvertCType2LLVMIR(func_info.i_type), func_info.GetFuncCallList() + " @" + func_name + func_para, null));
+                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", ConvertCType2LLVMIR(func_info.i_type), func_info.GetFuncCallList() + "@" + func_name + "(" + func_para + ")", null));
                 return "%" + rt_reg;
             }
         }
@@ -606,6 +642,19 @@ public class WzcLLVMIR
 
     GlobalSymbol FunctionDecHandler(String func_name, String rt_type, LinkedList<String> para_type, boolean is_external)
     {
+        IdentifierSymbol func_info = SymbolTableStack.firstElement().get(func_name);
+        if ((GlobalSymbol) func_info != null)
+        {
+            if (!is_external && !((GlobalSymbol) func_info).function_implements)
+            {
+                ((GlobalSymbol) func_info).function_implements = true;
+            }
+            else
+            {
+                SemanticErrorHandler.ES02(false, func_name);
+            }
+            return (GlobalSymbol) func_info;
+        }
         GlobalSymbol func_symbol = new GlobalSymbol(rt_type, para_type);
         SymbolTableStack.firstElement().put(func_name, func_symbol);
         if (is_external)
@@ -780,6 +829,7 @@ public class WzcLLVMIR
         LinkedList<String> func_para;
         boolean is_function = false;
         String string_content = "";
+        public boolean function_implements = false;
 
         GlobalSymbol(String addr, String i_type)
         {
