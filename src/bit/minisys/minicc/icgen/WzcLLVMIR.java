@@ -582,7 +582,7 @@ public class WzcLLVMIR
                         InsBuffer.add(new IRInstruction(rt_reg, "icmp", "ne", " " + op_type + src1, src2));
                         break;
                     default:
-                        if (op_type.equals(op_type2))
+                        if (!op_type.equals(op_type2))
                         {
                             SemanticErrorHandler.ES05(op);
                         }
