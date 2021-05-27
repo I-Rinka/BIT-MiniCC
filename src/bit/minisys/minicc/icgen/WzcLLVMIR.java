@@ -473,7 +473,7 @@ public class WzcLLVMIR
             {
                 String func_para = "";
                 int para_count = 0;
-                if (functionCall.argList.size() != func_info.func_para.size())
+                if (functionCall.argList.size() != func_info.func_para_LLVM.size())
                 {
                     SemanticErrorHandler.ES04(func_name);//函数参数不对
                 }
@@ -486,7 +486,6 @@ public class WzcLLVMIR
                     String reg = ExpressionHandler(arg);
                     if (reg == null)
                     {
-
                         //判断整形之类的
                         if (arg instanceof ASTStringConstant)
                         {
@@ -505,7 +504,7 @@ public class WzcLLVMIR
                     else
                     {
                         func_para += RegLineage.get(reg) + " " + reg;
-                        if (!RegLineage.get(reg).equals(func_info.func_para.get(para_count)))//函数操作不相容
+                        if (!RegLineage.get(reg).equals(func_info.func_para_LLVM.get(para_count)))//函数操作不相容
                         {
                             SemanticErrorHandler.ES04(func_name);
                         }
@@ -514,14 +513,48 @@ public class WzcLLVMIR
                 }
                 if (func_info.llvm_type.equals("void"))
                 {
-                    InsBuffer.add(new IRInstruction(null, "call", ConvertCType2LLVMIR(func_info.llvm_type), "@" + func_name + "()", null));
+                    InsBuffer.add(new IRInstruction(null, "call", func_info.llvm_type, "@" + func_name + "()", null));
                     return "none";
                 }
                 int rt_reg = GetRegCount();
-                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", ConvertCType2LLVMIR(func_info.llvm_type), func_info.GetFuncCallList() + "@" + func_name + "(" + func_para + ")", null));
-                RegLineage.put("%" + rt_reg, ConvertCType2LLVMIR(func_info.llvm_type));
+                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", func_info.llvm_type, func_info.GetFuncCallList() + "@" + func_name + "(" + func_para + ")", null));
+                RegLineage.put("%" + rt_reg, func_info.llvm_type);
                 return "%" + rt_reg;
             }
+        }
+        else if (expression instanceof ASTUnaryExpression || expression instanceof ASTPostfixExpression)
+        {
+            String op = "";
+            String src = "";
+            if (expression instanceof ASTUnaryExpression)
+            {
+                src = ExpressionHandler(((ASTUnaryExpression) expression).expr);
+                op = ((ASTUnaryExpression) expression).op.value.toString();
+            }
+            else
+            {
+                src = ExpressionHandler(((ASTPostfixExpression) expression).expr);
+                op = ((ASTPostfixExpression) expression).op.value.toString();
+            }
+            String op_type = RegLineage.get(src);
+            String rt_reg = "";
+            switch (op)
+            {
+                case "!":
+                    InsBuffer.add(new IRInstruction("%" + GetRegCount(), "icmp" + " ne ", op_type, src, "0"));
+                    InsBuffer.add(new IRInstruction("%" + GetRegCount(), "xor", "i1", "%" + register_counter, "true"));
+                    rt_reg = "%" + GetRegCount();
+                    InsBuffer.add(new IRInstruction(rt_reg, "zext", "i1", "%" + register_counter + " to " + op_type, null));
+                    break;
+                case "~":
+                    rt_reg = "%" + GetRegCount();
+                    break;
+                case "++":
+                    rt_reg = "%" + GetRegCount();
+                    InsBuffer.add(new IRInstruction(rt_reg, "xor", op_type, src, "-1"));
+                    break;
+            }
+            return rt_reg;
         }
         else if (expression instanceof ASTBinaryExpression)
         {
@@ -544,9 +577,15 @@ public class WzcLLVMIR
                 InsBuffer.add(new IRInstruction(null, "store", op_type, src2, op_type + "* " + GetSymbolInfo(src1).addr));
                 return "Assignment";
             }
+            else if (op.equals("&&"))//短路
+            {
+                String src1 = ExpressionHandler(thisNode.expr1);
+                String rt_reg = "%" + GetRegCount();
+                InsBuffer.add(new IRInstruction(rt_reg, "icmp", "ne" + " " + RegLineage.get(src1), src1, "0"));
+                return rt_reg;
+            }
             else
             {
-                //先全考虑整型
                 String src1 = ExpressionHandler(thisNode.expr1);
                 if (src1 == null)
                 {
@@ -575,8 +614,6 @@ public class WzcLLVMIR
                     op_type2 = RegLineage.get(src2);
                 }
                 String rt_reg = "%" + GetRegCount();
-
-
                 //操作符判断
                 switch (op)
                 {
@@ -836,7 +873,7 @@ public class WzcLLVMIR
 
     class GlobalSymbol extends IdentifierSymbol
     {
-        LinkedList<String> func_para;
+        LinkedList<String> func_para_LLVM;
         boolean is_function = false;
         String string_content = "";
         public boolean function_implements = false;
@@ -849,7 +886,7 @@ public class WzcLLVMIR
         GlobalSymbol(String rt_type, LinkedList<String> para_type_LLVM)
         {
             super("function", rt_type);
-            this.func_para = para_type_LLVM;
+            this.func_para_LLVM = para_type_LLVM;
             is_function = true;
         }
 
@@ -870,7 +907,7 @@ public class WzcLLVMIR
                 rt_str += "(";
                 int para_count = 0;
                 for (String para :
-                        func_para)
+                        func_para_LLVM)
                 {
                     if (para_count > 0)
                     {
@@ -901,7 +938,7 @@ public class WzcLLVMIR
             rt_str += "(";
             int para_count = 0;
             for (String para :
-                    func_para)
+                    func_para_LLVM)
             {
                 if (para_count > 0)
                 {
@@ -914,7 +951,7 @@ public class WzcLLVMIR
                 }
                 else
                 {
-                    rt_str += ConvertCType2LLVMIR(para);
+                    rt_str += para;
                 }
             }
             rt_str += ")";
