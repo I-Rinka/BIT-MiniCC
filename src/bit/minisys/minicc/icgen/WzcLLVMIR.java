@@ -8,6 +8,31 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
+/*
+    目前支持情况:
+    语义检查:
+    1. 未定义检测 ✅
+    2. 重复定义 ✅
+    3. 未在循环内使用break ✅
+    4. 函数调用参数不匹配 ✅
+    5. 操作类型不匹配 ✅
+    6. 数组越界
+    7. goto标签不存在
+    8. 函数缺少return ✅
+
+    中间代码生成:
+    1. 全局变量声明 ✅
+    2. 局部变量声明 ✅
+    3. 递归作用域 ✅
+    4. 无名字符串 ✅
+    6. 函数调用 ✅
+    7. 运算操作 ✅
+    8. 循环语句 ✅
+    9. 选择语句 ✅
+    10. 跳转语句
+
+ */
+
 public class WzcLLVMIR
 {
     public String target_data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128";
@@ -15,7 +40,6 @@ public class WzcLLVMIR
     String global_declaration = "";
     String IR_code = "";
     ASTCompilationUnit ASTRoot = null;
-
 
     //为了有scope的支持，需要使用栈
     private Stack<HashMap<String, IdentifierSymbol>> SymbolTableStack;
@@ -34,12 +58,6 @@ public class WzcLLVMIR
     private int register_counter = 0; //虚拟寄存器以及基本块的值
     private int iteration_counter = 0;//目前循环的层数，用于检测break是否在循环内
     private int nameless_str_counter = 0;//用于无名字符串的声明
-
-    //todo:
-    //continue无条件跳转到开头实际上应该用队列
-    //对于goto的支持，拉链反填
-    //数组
-    //语法分析还没支持long long之类的
 
     void Run()
     {
@@ -281,7 +299,6 @@ public class WzcLLVMIR
         else
         {
             br2.src_var1 = "%" + False_label;
-
         }
 
     }
@@ -916,8 +933,9 @@ public class WzcLLVMIR
             this.addr = addr;
             this.llvm_type = llvm_type;
         }
-    }
 
+        public IRInstruction ins_pointer = null;//准备为拉链反填做支持,拉链反填的标号将会放在addr处，如果addr为空，那么说明需要通过这个进行反填
+    }
 
     class IRInstruction
     {
@@ -929,7 +947,7 @@ public class WzcLLVMIR
         public String src_var1 = null;
         public String src_var2 = null;
 
-        public LinkedList<IRInstruction> insBufferPointer = null;
+        public IRInstruction ins_pointer = null;//为拉链反填做支持
 
         IRInstruction(String dest, String instruction, String instruction_type, String src1, String src2)
         {
