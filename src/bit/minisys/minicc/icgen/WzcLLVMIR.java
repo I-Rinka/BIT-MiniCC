@@ -56,6 +56,8 @@ public class WzcLLVMIR
     private int iteration_counter = 0;//目前循环的层数，用于检测break是否在循环内
     private int nameless_str_counter = 0;//用于无名字符串的声明
 
+    private boolean is_condition_expression = false;//条件判断expression的行为有些不一样
+
     void Run()
     {
         for (ASTNode item : ASTRoot.items)
@@ -213,7 +215,7 @@ public class WzcLLVMIR
             SemanticErrorHandler.ES08(func_name);
             if (now_function_type_C.equals("void"))
             {
-                InsBuffer.add(new IRInstruction(null, "ret", now_function_type_C, null, null));
+                InsBuffer.add(new IRInstruction(null, "ret", ConvertCType2LLVMIR(now_function_type_C), null, null));
 
             }
             else
@@ -288,16 +290,18 @@ public class WzcLLVMIR
 
     void SelectionStatementHandler(ASTSelectionStatement selectionStatement)
     {
+        is_condition_expression = true;
         String ans_reg = ExpressionHandler(selectionStatement.cond.get(0));
+        is_condition_expression = false;
         int True_label = GetRegCount();
         IRInstruction br1 = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
-        InsBuffer.add(br1);
-        InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
+        InsertBranch(br1);
+        InsertTag(True_label + "");
 
         StatementHandler(selectionStatement.then);
 
         IRInstruction br2 = new IRInstruction(null, "br", "label", null, null);
-        InsBuffer.add(br2);
+        InsertBranch(br2);
 
         int False_label = GetRegCount();
         br1.src_var2 = "label " + "%" + False_label;
@@ -309,8 +313,8 @@ public class WzcLLVMIR
             int Out_label = GetRegCount();
             br2.src_var1 = "%" + Out_label;
             IRInstruction br3 = new IRInstruction(null, "br", "label", "%" + Out_label, null);
-            InsBuffer.add(br3);
-            InsBuffer.add(new IRInstruction(null, Out_label + ":", "", "", null));
+            InsertBranch(br3);
+            InsertTag(Out_label + "");
         }
         else
         {
@@ -321,36 +325,53 @@ public class WzcLLVMIR
 
     void DcIterationStatementHandler(ASTIterationDeclaredStatement itDeclaredStatement)
     {
-        DeclarationHandler(itDeclaredStatement.init);
+        if (itDeclaredStatement.init != null)
+        {
+            DeclarationHandler(itDeclaredStatement.init);
+        }
         int Start_label = GetRegCount();
+        now_continue_position = Start_label;//todo: continue日后也需要队列支持
+        InsertBranch("%" + Start_label);
+        InsertTag(Start_label + "");
 
-        now_continue_position = Start_label;
+        IRInstruction condition = null;
 
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
-        InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
+        String True_label = "";
+        String False_label = "";
 
         //cmp
-        String ans_reg = ExpressionHandler(itDeclaredStatement.cond.getLast());
-        int True_label = GetRegCount();
-        IRInstruction br1 = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
-        InsBuffer.add(br1);
-        InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
+        if (itDeclaredStatement.cond != null && itDeclaredStatement.cond.size() > 0)
+        {
+            is_condition_expression = true;
+            String ans_reg = ExpressionHandler(itDeclaredStatement.cond.getLast());
+            True_label += GetRegCount();
+            condition = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
+            InsertBranch(condition);
+            InsertTag(True_label);
+            is_condition_expression = false;
+        }
 
         StatementHandler(itDeclaredStatement.stat);
-        int Nxt_label = GetRegCount();
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Nxt_label, null));
-        InsBuffer.add(new IRInstruction(null, Nxt_label + ":", "", "", null));
 
+        if (itDeclaredStatement.step != null && itDeclaredStatement.step.size() > 0)
+        {
+            ExpressionHandler(itDeclaredStatement.step.getLast());
+            int new_label = GetRegCount();
+            InsertBranch("%" + new_label);
+            InsertTag(new_label + "");
+        }
 
-        ExpressionHandler(itDeclaredStatement.step.getLast());
-        int False_label = GetRegCount();
-        br1.src_var2 = "%" + False_label;
+        False_label = GetRegCount() + "";
+        InsertTag(False_label);
+        if (condition != null)
+        {
+            condition.src_var2 = "label " + "%" + False_label;
+        }
+
         for (int i = 0; i < break_statements_buffer.size(); i++)
         {
             break_statements_buffer.pop().src_var1 = "%" + False_label;
         }
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
-        InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
 
     }
 
@@ -362,8 +383,8 @@ public class WzcLLVMIR
         }
         int Start_label = GetRegCount();
         now_continue_position = Start_label;//todo: continue日后也需要队列支持
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
-        InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
+        InsertBranch("%" + Start_label);
+        InsertTag(Start_label + "");
 
         IRInstruction condition = null;
 
@@ -373,27 +394,30 @@ public class WzcLLVMIR
         //cmp
         if (iterationStatement.cond != null && iterationStatement.cond.size() > 0)
         {
+            is_condition_expression = true;
             String ans_reg = ExpressionHandler(iterationStatement.cond.getLast());
+            is_condition_expression = false;
             True_label += GetRegCount();
             condition = new IRInstruction(null, "br", "i1 " + ans_reg + ",", "label " + "%" + True_label, null);
-            InsBuffer.add(new IRInstruction(null, True_label + ":", "", "", null));
+            InsertBranch(condition);
+            InsertTag(True_label);
         }
 
         StatementHandler(iterationStatement.stat);
 
         if (iterationStatement.step != null && iterationStatement.step.size() > 0)
         {
-            int new_label = GetRegCount();
-            InsBuffer.add(new IRInstruction(null, "br", "label", "%" + new_label, null));
-            InsBuffer.add(new IRInstruction(null, new_label + ":", "", "", null));
             ExpressionHandler(iterationStatement.step.getLast());
+            int new_label = GetRegCount();
+            InsertBranch("%" + new_label);
+            InsertTag(new_label + "");
         }
 
-        False_label += GetRegCount();
-        InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
+        False_label = GetRegCount() + "";
+        InsertBranch(False_label);
         if (condition != null)
         {
-            condition.src_var2 += "%" + False_label;
+            condition.src_var2 = "label " + "%" + False_label;
         }
 
         for (int i = 0; i < break_statements_buffer.size(); i++)
@@ -402,18 +426,19 @@ public class WzcLLVMIR
         }
     }
 
-
     //todo 基本块的标号应该怎么处理
     void BreakStatementHandler(ASTBreakStatement breakStatement)
     {
-        IRInstruction break_statement = new IRInstruction(null, "br", "label", null, null);
-        InsBuffer.add(break_statement);//到时候在src1的时候填
+        IRInstruction break_statement = InsertBranch((String) null);
+        InsertTag("" + GetRegCount());
+
         break_statements_buffer.add(break_statement);
     }
 
     void ContinueStatementHandler(ASTContinueStatement continueStatement)
     {
-        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + now_continue_position, null));
+        InsertBranch("%" + now_continue_position);
+        InsertTag("" + GetRegCount());
     }
 
     //注意一下基本块，这里可能需要添加一个标号
@@ -432,7 +457,8 @@ public class WzcLLVMIR
         {
             goto_ins.src_var1 = goto_info.addr;
         }
-        InsBuffer.add(goto_ins);
+        InsertBranch(goto_ins);
+        InsertTag("" + GetRegCount());
     }
 
     void LabelStatementHandler(ASTLabeledStatement labeledStatement)
@@ -442,13 +468,13 @@ public class WzcLLVMIR
         if (label_info == null)
         {
             SymbolTableStack.firstElement().put(label, new IdentifierSymbol("%" + GetRegCount(), "label"));
-            InsBuffer.add(new IRInstruction(null, (register_counter - 1) + ":", "", "", null));
+            InsertTag("" + (register_counter - 1));
         }
         else
         {
             if (label_info.addr == null)
             {
-                InsBuffer.add(new IRInstruction(null, GetRegCount() + ":", "", "", null));
+                InsertTag("" + GetRegCount());
                 LLFT(label_info.ins_pointer, "%" + (register_counter - 1));
                 label_info.addr = "%" + (register_counter - 1);
             }
@@ -461,6 +487,50 @@ public class WzcLLVMIR
         {
             StatementHandler(labeledStatement.stat);
         }
+    }
+
+    //查上一条指令是不是br，如果是的话，则需要新建一个标号
+    IRInstruction InsertBranch(String target_label)
+    {
+        //有些无效操作可能导致action为空
+        if (InsBuffer.size() > 0 && InsBuffer.getLast().action != null && InsBuffer.getLast().action.contains("br"))
+        {
+            InsertTag("" + GetRegCount());
+        }
+        IRInstruction instruction = new IRInstruction(null, "br", "label", target_label, null);
+        InsBuffer.add(instruction);
+        return instruction;
+    }
+
+    IRInstruction InsertBranch(String compare_reg, String true_label, String false_label)
+    {
+        if (InsBuffer.size() > 0 && InsBuffer.getLast().action != null && InsBuffer.getLast().action.contains("br"))
+        {
+            InsertTag("" + GetRegCount());
+        }
+        IRInstruction instruction = new IRInstruction(null, "br ", "i1 " + compare_reg + ",", "label " + true_label, false_label);
+        InsBuffer.add(instruction);
+        return instruction;
+    }
+
+    void InsertBranch(IRInstruction instruction)
+    {
+        if (InsBuffer.size() > 0 && InsBuffer.getLast().action != null && InsBuffer.getLast().action.contains("br"))
+        {
+            InsertTag("" + GetRegCount());
+        }
+        InsBuffer.add(instruction);
+    }
+
+    //查上一条指令是不是tag，如果是的话，需要加入一条无意义的branch
+    //label不要带%！
+    void InsertTag(String label)
+    {
+        if (InsBuffer.size() > 0 && InsBuffer.getLast().action != null && InsBuffer.getLast().action.contains(":") && InsBuffer.getLast().src_var2 == null)
+        {
+            InsertBranch("%" + label);
+        }
+        InsBuffer.add(new IRInstruction(null, label + ":", "", "", null));
     }
 
     //拉链反填
@@ -591,7 +661,7 @@ public class WzcLLVMIR
                     return "none";
                 }
                 int rt_reg = GetRegCount();
-                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", func_info.llvm_type, func_info.GetFuncCallList() + "@" + func_name + "(" + func_para + ")", null));
+                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", func_info.llvm_type, "@" + func_name + "(" + func_para + ")", null));
                 RegLineage.put("%" + rt_reg, func_info.llvm_type);
                 return "%" + rt_reg;
             }
@@ -600,34 +670,49 @@ public class WzcLLVMIR
         {
             String op = "";
             String src = "";
+            String name = null;
+            ASTExpression tmp;
             if (expression instanceof ASTUnaryExpression)
             {
                 src = ExpressionHandler(((ASTUnaryExpression) expression).expr);
+                tmp = ((ASTUnaryExpression) expression).expr;
                 op = ((ASTUnaryExpression) expression).op.value.toString();
             }
             else
             {
                 src = ExpressionHandler(((ASTPostfixExpression) expression).expr);
+                tmp = ((ASTPostfixExpression) expression).expr;
                 op = ((ASTPostfixExpression) expression).op.value.toString();
+            }
+            if (tmp instanceof ASTIdentifier)
+            {
+                name = ((ASTIdentifier) tmp).value.toString();
             }
             String op_type = RegLineage.get(src);
             String rt_reg = "";
             switch (op)
             {
                 case "!":
-                    InsBuffer.add(new IRInstruction("%" + GetRegCount(), "icmp" + " ne ", op_type, src, "0"));
-                    InsBuffer.add(new IRInstruction("%" + GetRegCount(), "xor", "i1", "%" + register_counter, "true"));
-                    rt_reg = "%" + GetRegCount();
-                    InsBuffer.add(new IRInstruction(rt_reg, "zext", "i1", "%" + register_counter + " to " + op_type, null));
+                    InsBuffer.add(new IRInstruction("%" + GetRegCount(), "icmp" + " ne", op_type, src, "0"));
+                    rt_reg = "%" + (register_counter - 1);
+                    if (!is_condition_expression)
+                    {
+                        InsBuffer.add(new IRInstruction("%" + GetRegCount(), "xor", "i1", "%" + (register_counter - 2), "true"));
+                        rt_reg = "%" + GetRegCount();
+                        InsBuffer.add(new IRInstruction(rt_reg, "zext", "i1", "%" + (register_counter - 2) + " to " + op_type, null));
+                    }
                     break;
                 case "~":
                     rt_reg = "%" + GetRegCount();
+                    InsBuffer.add(new IRInstruction(rt_reg, "xor", op_type, src, "-1"));
                     break;
                 case "++":
                     rt_reg = "%" + GetRegCount();
-                    InsBuffer.add(new IRInstruction(rt_reg, "xor", op_type, src, "-1"));
+                    InsBuffer.add(new IRInstruction(rt_reg, "add", op_type, src, "1"));
+                    InsBuffer.add(new IRInstruction(null, "store", op_type, rt_reg, op_type + "* " + GetSymbolInfo(name).addr));
                     break;
             }
+            RegLineage.put(rt_reg, op_type);
             return rt_reg;
         }
         else if (expression instanceof ASTBinaryExpression)
@@ -635,18 +720,28 @@ public class WzcLLVMIR
             ASTBinaryExpression thisNode = (ASTBinaryExpression) expression;
             String op = thisNode.op.value.toString();
             String op_type = "";
-            if (op.equals("="))
+            if (op.equals("=") || op.equals("+="))
             {
                 String src1 = ((ASTIdentifier) thisNode.expr1).value.toString();
                 String src2 = ExpressionHandler(thisNode.expr2);
-                op_type = RegLineage.get(src2);
-                if (!GetSymbolInfo(src1).llvm_type.equals(op_type))
-                {
-                    SemanticErrorHandler.ES05("=");
-                }
                 if (src2 == null) //constant
                 {
                     src2 = ((ASTIntegerConstant) thisNode.expr2).value.toString();
+                    op_type = GetSymbolInfo(src1).llvm_type;
+                }
+                else
+                {
+                    op_type = RegLineage.get(src2);
+                    if (!GetSymbolInfo(src1).llvm_type.equals(op_type))
+                    {
+                        SemanticErrorHandler.ES05(op);
+                    }
+                }
+                if (op.equals("+="))
+                {
+                    String val_reg = ExpressionHandler(thisNode.expr1);
+                    InsBuffer.add(new IRInstruction("%" + GetRegCount(), "add", op_type, val_reg, src2));
+                    src2 = "%" + (register_counter - 1);
                 }
                 InsBuffer.add(new IRInstruction(null, "store", op_type, src2, op_type + "* " + GetSymbolInfo(src1).addr));
                 return "Assignment";
@@ -768,7 +863,7 @@ public class WzcLLVMIR
         return rt_String;
     }
 
-    GlobalSymbol FunctionDecHandler(String func_name, String rt_type, LinkedList<String> para_type_LLVM, boolean is_external)
+    GlobalSymbol FunctionDecHandler(String func_name, String C_rt_type, LinkedList<String> para_type_LLVM, boolean is_external)
     {
         IdentifierSymbol func_info = SymbolTableStack.firstElement().get(func_name);
         if ((GlobalSymbol) func_info != null)
@@ -783,7 +878,7 @@ public class WzcLLVMIR
             }
             return (GlobalSymbol) func_info;
         }
-        GlobalSymbol func_symbol = new GlobalSymbol(rt_type, para_type_LLVM);
+        GlobalSymbol func_symbol = new GlobalSymbol(ConvertCType2LLVMIR(C_rt_type), para_type_LLVM);
         SymbolTableStack.firstElement().put(func_name, func_symbol);
         if (is_external)
         {
