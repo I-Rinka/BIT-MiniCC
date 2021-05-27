@@ -2,6 +2,7 @@ package bit.minisys.minicc.icgen;
 
 import bit.minisys.minicc.parser.ast.*;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
+import org.python.antlr.op.In;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -188,6 +189,15 @@ public class WzcLLVMIR
         if (!now_function_return_exist)
         {
             SemanticErrorHandler.ES08(func_name);
+            if (now_function_type_C.equals("void"))
+            {
+                InsBuffer.add(new IRInstruction(null, "ret", now_function_type_C, null, null));
+
+            }
+            else
+            {
+                InsBuffer.add(new IRInstruction(null, "ret", now_function_type_C, "0", null));
+            }
         }
 
         //退出
@@ -200,6 +210,7 @@ public class WzcLLVMIR
         SymbolTableStack.pop();
         now_function_type_C = null;
         now_function_return_exist = false;
+        this.register_counter = 0;
     }
 
     void CompoundStatementHandler(ASTCompoundStatement compoundStatement)
@@ -437,21 +448,47 @@ public class WzcLLVMIR
             else
             {
                 String func_para = "";
+                int para_count = 0;
                 for (ASTExpression arg : functionCall.argList)
                 {
+                    if (para_count > 0)
+                    {
+                        func_para += ", ";
+                    }
                     String reg = ExpressionHandler(arg);
                     if (reg == null)
                     {
                         //判断整形之类的
+                        if (arg instanceof ASTStringConstant)
+                        {
+                            reg = NamelessStrHandler(((ASTStringConstant) arg));
+                        }
+                        else if (arg instanceof ASTIntegerConstant)
+                        {
+                            reg += "i32" + " " + ((ASTIntegerConstant) arg).value.toString();
+
+                        }
+                        else if (arg instanceof ASTCharConstant)
+                        {
+
+                        }
+                        func_para += reg;
                     }
                     else
                     {
                         func_para += "i32" + " " + reg;
                     }
+                    para_count++;
+                }
+                if (func_info.i_type.equals("void"))
+                {
+                    InsBuffer.add(new IRInstruction(null, "call", ConvertCType2LLVMIR(func_info.i_type), func_info.GetFuncCallList() + " @" + func_name + func_para, null));
+                    return "none";
                 }
                 int rt_reg = GetRegCount();
+                InsBuffer.add(new IRInstruction("%" + rt_reg, "call", ConvertCType2LLVMIR(func_info.i_type), func_info.GetFuncCallList() + " @" + func_name + func_para, null));
+                return "%" + rt_reg;
             }
-
         }
         else if (expression instanceof ASTBinaryExpression)
         {
@@ -655,6 +692,10 @@ public class WzcLLVMIR
         {
             return "i8";
         }
+        else if (type.contains("void"))
+        {
+            return "void";
+        }
         else if (type.contains("bit"))
         {
             return "i1";
@@ -719,6 +760,7 @@ public class WzcLLVMIR
         this.ASTRoot = ASTNode;
         this.SymbolTableStack = new Stack<>();
         this.SymbolTableStack.push(new HashMap<>());
+        this.break_statements_buffer = new LinkedList<>();
 
         this.InsBuffer = new LinkedList<>();
 
@@ -793,6 +835,31 @@ public class WzcLLVMIR
             return rt_str;
         }
 
+        public String GetFuncCallList()
+        {
+            String rt_str = "";
+            rt_str += "(";
+            int para_count = 0;
+            for (String para :
+                    func_para)
+            {
+                if (para_count > 0)
+                {
+                    rt_str += ", ";
+                }
+                para_count++;
+                if (para.equals("..."))
+                {
+                    rt_str += "...";
+                }
+                else
+                {
+                    rt_str += ConvertCType2LLVMIR(para);
+                }
+            }
+            rt_str += ")";
+            return rt_str;
+        }
 
     }
 

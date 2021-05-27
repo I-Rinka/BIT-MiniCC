@@ -1,10 +1,13 @@
-int f(int a,double b);
+void hello()
+{
+
+}
 int main()
 {
-	int res = f();
-	int c = a+1;
-	return 0;
+    int a;
+    int b;
+    hello();
 }
-int f(){
-	return 1;
-}
+// int f(){
+// 	return 1;
+// }
