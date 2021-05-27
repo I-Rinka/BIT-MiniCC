@@ -50,6 +50,7 @@ public class SemanticErrorHandler
 
     public static void ES06()
     {
+        System.out.println("ES6 >> ArrayAccess:Out of Bounds.\n");
     }
 
     public static void ES07(String label)

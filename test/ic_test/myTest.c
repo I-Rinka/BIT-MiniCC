@@ -1,47 +1,12 @@
-int a[10][20];
-int b = 1;
+int main()
+{
+	int a[5][3]; //ArrayDeclarator 直到遍历到variable.队列结束
+	int res = a[5][0];
 
-int f1(int x,int y){
-	int z = x + y;
-	return z;
-}
-void f2(){
-	Mars_PrintStr("in f2\n");
-	return;
-}
+	// The following example will not remind us
+	res = a[5+5][0];
+	//ArrayAccess可能需要一个队列
 
-int main(){
-	int a1 = 1;
-	int a2 = 2;
-	int res;
-	// unary oper
-	res = !a1;
-	res = ~a1;
-	// binary oper
-	res = a1+a2;
-	res = a1%a2;
-	res = a1 << a2;
-	// selfchange
-	res = a1++;
-	res = ++a1;
-	// short-circuit evaluation and "if" control-flow
-	if(a1 && a2){
-		res = f1(a1,a2);
-	}else if(!a1){
-		// b is global
-		res = f1(b,a2);
-	}else{
-		f2();
-	}
-	// "for" control-flow
-	for(int i = 0; i<a1; i++){
-		break;
-		continue;
-		res += 1;
-	}
-	// label and goto
-	k:
-	goto k;
-	// return
+	//array Get ptr
 	return 0;
 }

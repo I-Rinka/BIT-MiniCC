@@ -1,10 +1,9 @@
-//int f();
 int main()
 {
-	int res = f();
-	int c = a+1;
+	int a[5][3];
+	int res = a[5][0];
+
+	// The following example will not remind us
+	res = a[5+5][0];
 	return 0;
-}
-int f(){
-	return 1;
 }

@@ -2,6 +2,7 @@ package bit.minisys.minicc.icgen;
 
 import bit.minisys.minicc.parser.ast.*;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
+import org.python.antlr.op.In;
 
 import java.util.*;
 
@@ -428,6 +429,47 @@ public class WzcLLVMIR
         }
     }
 
+    //返回一个Reg
+    String ArrayDeclaratorHandler(ASTArrayDeclarator arrayDeclarator, String type_LLVM, boolean isLocal)
+    {
+        LinkedList<Integer> array_dimension = new LinkedList<>();
+        String array_name = "";
+        ASTArrayDeclarator now_declarator = arrayDeclarator;
+        while (true)
+        {
+            array_dimension.push((Integer) ((ASTIntegerConstant) ((ASTArrayDeclarator) now_declarator).expr).value);
+            if ((now_declarator).declarator instanceof ASTArrayDeclarator)
+            {
+                now_declarator = (ASTArrayDeclarator) now_declarator.declarator;
+            }
+            else
+            {
+                if (now_declarator.declarator instanceof ASTVariableDeclarator)
+                {
+                    array_name = ((((ASTVariableDeclarator) now_declarator.declarator).identifier).value);
+                }
+                break;
+            }
+        }
+        if (isLocal)
+        {
+            //todo: 重复定义
+            String addr = "%" + GetRegCount();
+            ArraySymbol array = new ArraySymbol(addr, GetArrayType(type_LLVM, array_dimension), type_LLVM, array_dimension);
+            SymbolTableStack.peek().put(array_name, array);
+            InsBuffer.add(new IRInstruction(addr, "alloca", array.llvm_type, null, null));
+            return addr;
+        }
+        else
+        {
+            String addr = "@" + array_name;
+            ArraySymbol array = new ArraySymbol(addr, GetArrayType(type_LLVM, array_dimension), type_LLVM, array_dimension);
+            SymbolTableStack.firstElement().put(array_name, array);
+            global_declaration += addr + " = " + "common" + " global " + array.llvm_type + " zeroinitializer\n";
+            return addr;
+        }
+    }
+
     //todo 基本块的标号应该怎么处理
     void BreakStatementHandler(ASTBreakStatement breakStatement)
     {
@@ -570,8 +612,6 @@ public class WzcLLVMIR
     void DeclarationHandler(ASTDeclaration declaration)
     {
         String C_type = TypeSpecifierListHandler(declaration.specifiers);
-
-
         for (ASTInitList il : declaration.initLists)
         {
             if (il.declarator instanceof ASTVariableDeclarator)
@@ -595,7 +635,43 @@ public class WzcLLVMIR
                     InsBuffer.add(new IRInstruction(null, "store", ConvertCType2LLVMIR(C_type), store_val, ConvertCType2LLVMIR(C_type) + "* " + var));
                 }
             }
+            if (il.declarator instanceof ASTArrayDeclarator)
+            {
+                ArrayDeclaratorHandler((ASTArrayDeclarator) il.declarator, ConvertCType2LLVMIR(C_type), true);
+            }
         }
+    }
+
+    //todo: 变量数组访问
+    String ArrayAccessHandler(ASTArrayAccess arrayAccess)
+    {
+        //如果expression是变量，需要分多次访问
+        String rt_reg = "%" + GetRegCount();
+        ASTArrayAccess now_array = arrayAccess;
+        LinkedList<Integer> access_info = new LinkedList<>();
+        String array_name = "";
+        while (true)
+        {
+            if (now_array.elements.get(0) instanceof ASTIntegerConstant)
+            {
+                access_info.push(Integer.valueOf(((ASTIntegerConstant) now_array.elements.get(0)).value.toString()));
+            }
+            if (now_array.arrayName instanceof ASTArrayAccess)
+            {
+                now_array = (ASTArrayAccess) now_array.arrayName;
+            }
+            else
+            {
+                if (now_array.arrayName instanceof ASTIdentifier)
+                {
+                    array_name = ((ASTIdentifier) now_array.arrayName).value.toString();
+                }
+                break;
+            }
+        }
+        ArraySymbol array = (ArraySymbol) GetSymbolInfo(array_name);
+        InsBuffer.add(new IRInstruction(rt_reg, array.GetArrayPtr(access_info), null, null, null));
+        return rt_reg;
     }
 
     //返回结果存的寄存器
@@ -605,6 +681,10 @@ public class WzcLLVMIR
         if (expression instanceof ASTIntegerConstant || expression instanceof ASTStringConstant || expression instanceof ASTCharConstant || expression instanceof ASTFloatConstant)
         {
             return null;
+        }
+        else if (expression instanceof ASTArrayAccess)
+        {
+            return ArrayAccessHandler((ASTArrayAccess) expression);
         }
         else if (expression instanceof ASTFunctionCall)
         {
@@ -943,6 +1023,10 @@ public class WzcLLVMIR
                 }
                 FunctionDecHandler(func_name, type, para_type, true);
             }
+            else if (il.declarator instanceof ASTArrayDeclarator)
+            {
+                ArrayDeclaratorHandler((ASTArrayDeclarator) il.declarator, type, false);
+            }
         }
     }
 
@@ -1126,6 +1210,63 @@ public class WzcLLVMIR
             return rt_str;
         }
 
+    }
+
+    class ArraySymbol extends IdentifierSymbol
+    {
+        String array_atom_type_LLVM = "";
+        LinkedList<Integer> dimension_info;
+
+        ArraySymbol(String addr, String llvm_type, String array_atom_type_LLVM, LinkedList<Integer> dimension_info)
+        {
+            super(addr, llvm_type);
+            this.array_atom_type_LLVM = array_atom_type_LLVM;
+            this.dimension_info = dimension_info;
+        }
+
+        //因为是64位系统，所以地址全是i64?
+        String GetArrayPtr(LinkedList<Integer> access_addr)
+        {
+            int max_size = access_addr.size();
+            String type_info = "";
+            String offset_info = "";
+            boolean is_out_bound = false;
+            //直接在这里查
+            if (dimension_info.size() < access_addr.size())
+            {
+                max_size = dimension_info.size();
+                is_out_bound = true;
+            }
+            for (int i = 0; i < max_size; i++)
+            {
+                if (access_addr.get(i) >= dimension_info.get(i))
+                {
+                    is_out_bound = true;
+                }
+                offset_info += ", i64 " + access_addr;
+            }
+            type_info = GetArrayType(array_atom_type_LLVM, dimension_info);
+            if (is_out_bound)
+            {
+                SemanticErrorHandler.ES06();
+            }
+            return array_atom_type_LLVM + "*" + " getelementptr" + " inbounds (" + type_info + ", " + type_info + "* " + addr + ", i64 0" + offset_info + ")";
+        }
+
+    }
+
+    public static String GetArrayType(String atom_type_LLVM, LinkedList<Integer> AccessInfo)
+    {
+        String type_info = "";
+        String right_brackets = "";
+        for (Integer i :
+                AccessInfo)
+        {
+            type_info += "[" + i + " x ";
+            right_brackets += "]";
+        }
+        type_info += atom_type_LLVM + right_brackets;
+        return type_info;
     }
 
     class IdentifierSymbol
