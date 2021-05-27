@@ -8,6 +8,10 @@ public class SemanticErrorHandler
         {
             System.out.println("ES01 >> Identifier: " + Name + " is not defined.\n");
         }
+        else
+        {
+            System.out.println("ES01 >> Function: " + Name + " is not defined.\n");
+        }
     }
 
     public static void ES02(boolean isIdentifier, String Name)
@@ -20,6 +24,7 @@ public class SemanticErrorHandler
 
     public static void ES03()
     {
+        System.out.println("ES3 >> BreakStatement: must be in a LoopStatement.\n");
     }
 
     public static void ES04()

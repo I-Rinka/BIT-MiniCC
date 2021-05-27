@@ -1,7 +1,6 @@
 package bit.minisys.minicc.icgen;
 
 import bit.minisys.minicc.parser.ast.*;
-import bit.minisys.minicc.pp.internal.I;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
 import java.util.HashMap;
@@ -17,20 +16,30 @@ public class WzcLLVMIR
     String IR_code = "";
     ASTCompilationUnit ASTRoot = null;
 
-    String now_function_type_C = null;
-    boolean now_function_return_exist = false;
 
     //为了有scope的支持，需要使用栈
     private Stack<HashMap<String, IdentifierSymbol>> SymbolTableStack;
     private LinkedList<IRInstruction> InsBuffer;
     private HashMap<String, String> OperatorMap;
 
-    private int register_count = 0;
+    //因为查错的状态是全局性的，因此需要在外面
+    boolean now_function_return_exist = false;//用于检测函数是否有return
+    String now_function_type_C = null; //用于函数返回类型
+
+    //使用break或者continue时的标号
+    private LinkedList<IRInstruction> break_statements_buffer;//给break语句的标号进行反填
+    private int now_continue_position = 0;
+
+    private int register_counter = 0; //虚拟寄存器以及基本块的值
+    private int iteration_counter = 0;//目前循环的层数，用于检测break是否在循环内
+    private int nameless_str_counter = 0;//用于无名字符串的声明
+
 
     //todo:
     //break无条件跳转到结束，continue无条件跳转到开头
     //对于goto的支持，拉链反填
     //数组
+    //语法分析还没支持longlong之类的
 
     void Run()
     {
@@ -72,13 +81,28 @@ public class WzcLLVMIR
         }
         else if (statement instanceof ASTIterationDeclaredStatement)
         {
+            iteration_counter++;
             SymbolTableStack.push(new HashMap<>());
             DcIterationStatementHandler((ASTIterationDeclaredStatement) statement);
             SymbolTableStack.pop();
+            iteration_counter--;
         }
         else if (statement instanceof ASTIterationStatement)
         {
+            iteration_counter++;
             IterationStatementHandler((ASTIterationStatement) statement);
+            iteration_counter--;
+        }
+        else if (statement instanceof ASTBreakStatement)
+        {
+            if (iteration_counter == 0)
+            {
+                SemanticErrorHandler.ES03();
+            }
+            else
+            {
+                BreakStatementHandler((ASTBreakStatement) statement);
+            }
         }
     }
 
@@ -238,6 +262,9 @@ public class WzcLLVMIR
     {
         DeclarationHandler(itDeclaredStatement.init);
         int Start_label = GetRegCount();
+
+        now_continue_position = Start_label;
+
         InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
         InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
 
@@ -257,6 +284,10 @@ public class WzcLLVMIR
         ExpressionHandler(itDeclaredStatement.step.getLast());
         int False_label = GetRegCount();
         br1.src_var2 = "%" + False_label;
+        for (int i = 0; i < break_statements_buffer.size(); i++)
+        {
+            break_statements_buffer.pop().src_var1 = "%" + False_label;
+        }
         InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
         InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
 
@@ -266,6 +297,9 @@ public class WzcLLVMIR
     {
         ExpressionHandler(iterationStatement.init.getLast());
         int Start_label = GetRegCount();
+
+        now_continue_position = Start_label;
+
         InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
         InsBuffer.add(new IRInstruction(null, Start_label + ":", "", "", null));
 
@@ -284,9 +318,26 @@ public class WzcLLVMIR
 
         ExpressionHandler(iterationStatement.step.getLast());
         int False_label = GetRegCount();
+        for (int i = 0; i < break_statements_buffer.size(); i++)
+        {
+            break_statements_buffer.pop().src_var1 = "%" + False_label;
+        }
         br1.src_var2 = "%" + False_label;
         InsBuffer.add(new IRInstruction(null, "br", "label", "%" + Start_label, null));
         InsBuffer.add(new IRInstruction(null, False_label + ":", "", "", null));
+    }
+
+    //todo 基本块的标号应该怎么处理
+    void BreakStatementHandler(ASTBreakStatement breakStatement)
+    {
+        IRInstruction break_statement = new IRInstruction(null, "br", "label", null, null);
+        InsBuffer.add(break_statement);//到时候在src1的时候填
+        break_statements_buffer.add(break_statement);
+    }
+
+    void ContinueStatementHandler(ASTContinueStatement continueStatement)
+    {
+        InsBuffer.add(new IRInstruction(null, "br", "label", "%" + now_continue_position, null));
     }
 
     //注册，打印
@@ -449,6 +500,28 @@ public class WzcLLVMIR
 
     }
 
+    GlobalSymbol FunctionDecHandler(String func_name, String rt_type, LinkedList<String> para_type, boolean is_external)
+    {
+        GlobalSymbol func_symbol = new GlobalSymbol(rt_type, para_type);
+        SymbolTableStack.firstElement().put(func_name, func_symbol);
+        if (is_external)
+        {
+            global_declaration += func_symbol.GetIRFormat(func_name);
+        }
+        return func_symbol;
+    }
+
+    GlobalSymbol GetFuncInfo(String func_name)
+    {
+        IdentifierSymbol func = SymbolTableStack.firstElement().get(func_name);
+        if (func != null && func instanceof GlobalSymbol)
+        {
+            return (GlobalSymbol) func;
+        }
+        SemanticErrorHandler.ES01(false, func_name);
+        return null;
+    }
+
     void GlobalDeclarationHandler(ASTDeclaration declaration)
     {
         String type = TypeSpecifierListHandler(declaration.specifiers);
@@ -479,6 +552,18 @@ public class WzcLLVMIR
                     }
                 }
                 global_declaration += (new IRInstruction("@" + global_name, "global", type, num, null)).toString();
+            }
+            else if (il.declarator instanceof ASTFunctionDeclarator)
+            {
+                ASTFunctionDeclarator functionDeclarator = (ASTFunctionDeclarator) il.declarator;
+                String func_name = ((ASTVariableDeclarator) functionDeclarator.declarator).identifier.value.toString();
+                LinkedList<String> para_type = new LinkedList<>();
+                for (ASTParamsDeclarator para :
+                        functionDeclarator.params)
+                {
+                    para_type.add(TypeSpecifierListHandler(para.specfiers));
+                }
+                FunctionDecHandler(func_name, type, para_type, true);
             }
         }
     }
@@ -511,6 +596,14 @@ public class WzcLLVMIR
         {
             return "i32";
         }
+        else if (type.equals("double"))
+        {
+            return "double";
+        }
+        else if (type.equals("float"))
+        {
+            return "float";
+        }
         return "unknownType";
     }
 
@@ -535,8 +628,8 @@ public class WzcLLVMIR
 
     int GetRegCount()
     {
-        int t = this.register_count;
-        register_count++;
+        int t = this.register_counter;
+        register_counter++;
         return t;
     }
 
@@ -573,58 +666,111 @@ public class WzcLLVMIR
         OperatorMap.put("<<", "shl");
         OperatorMap.put("%", "srem");
     }
-}
 
-class IdentifierSymbol
-{
-    public String addr;
-    public String i_type;
-
-    IdentifierSymbol(String addr, String i_type)
+    class GlobalSymbol extends IdentifierSymbol
     {
-        this.addr = addr;
-        this.i_type = i_type;
+        LinkedList<String> func_para;
+        boolean is_function = false;
+
+        GlobalSymbol(String addr, String i_type)
+        {
+            super(addr, i_type);
+        }
+
+        GlobalSymbol(String rt_type, LinkedList<String> para_type)
+        {
+            super("function", rt_type);
+            this.func_para = para_type;
+            is_function = true;
+        }
+
+        public String GetIRFormat(String Name)
+        {
+            String rt_str = "";
+            if (is_function)
+            {
+                rt_str += "declare";
+                rt_str += " " + this.i_type;
+                rt_str += " @" + Name;
+                rt_str += "(";
+                int para_count = 0;
+                for (String para :
+                        func_para)
+                {
+                    if (para_count > 0)
+                    {
+                        rt_str += ", ";
+                    }
+                    para_count++;
+                    if (para.equals("..."))
+                    {
+                        rt_str += "...";
+                    }
+                    else
+                    {
+                        rt_str += ConvertCType2LLVMIR(para);
+                    }
+                }
+                rt_str += ")" + " #1";
+            }
+            return rt_str;
+        }
+
+    }
+
+    class IdentifierSymbol
+    {
+        public String addr;
+        public String i_type;
+
+        IdentifierSymbol(String addr, String i_type)
+        {
+            this.addr = addr;
+            this.i_type = i_type;
+        }
+    }
+
+
+    class IRInstruction
+    {
+        public String dest_var = null;
+
+        public String action = null;
+        public String action_type = null;
+
+        public String src_var1 = null;
+        public String src_var2 = null;
+
+        public LinkedList<IRInstruction> insBufferPointer = null;
+
+        IRInstruction(String dest, String instruction, String instruction_type, String src1, String src2)
+        {
+            this.dest_var = dest;
+            this.action = instruction;
+            this.action_type = instruction_type;
+            this.src_var1 = src1;
+            this.src_var2 = src2;
+        }
+
+        @Override
+        public String toString()
+        {
+            String Out = "";
+            if (dest_var != null)
+            {
+                Out = dest_var + " = ";
+            }
+            Out = Out + action + " " + action_type;
+            if (src_var1 != null)
+            {
+                Out = Out + " " + src_var1;
+            }
+            if (src_var2 != null)
+            {
+                Out = Out + ", " + src_var2;
+            }
+            return Out + "\n";
+        }
     }
 }
 
-class IRInstruction
-{
-    public String dest_var = null;
-
-    public String action = null;
-    public String action_type = null;
-
-    public String src_var1 = null;
-    public String src_var2 = null;
-
-    public LinkedList<IRInstruction> insBufferPointer = null;
-
-    IRInstruction(String dest, String instruction, String instruction_type, String src1, String src2)
-    {
-        this.dest_var = dest;
-        this.action = instruction;
-        this.action_type = instruction_type;
-        this.src_var1 = src1;
-        this.src_var2 = src2;
-    }
-
-    @Override
-    public String toString()
-    {
-        String Out = "";
-        if (dest_var != null)
-        {
-            Out = dest_var + " = ";
-        }
-        Out = Out + action + " " + action_type;
-        if (src_var1 != null)
-        {
-            Out = Out + " " + src_var1;
-        }
-        if (src_var2 != null)
-        {
-            Out = Out + ", " + src_var2;
-        }
-        return Out + "\n";
-    }
-}

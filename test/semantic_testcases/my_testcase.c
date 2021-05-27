@@ -1,5 +1,10 @@
+int f(int a,double b);
 int main()
 {
-    int a=1;
-    a=a<<2;
+	int res = f();
+	int c = a+1;
+	return 0;
+}
+int f(){
+	return 1;
 }
