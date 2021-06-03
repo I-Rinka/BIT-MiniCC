@@ -2,6 +2,8 @@
 
 © 版权所有 2021 王梓丞
 
+基于Java和antlr的C语言1.5遍编译器。通过antlr进行词法和语法分析，利用ast节点生成中间代码并在退出函数前将其解析为目标平台代码。
+
 请勿抄袭以及过度借鉴，不然实验0蛋
 
 BIT Mini C Compiler is a C compiler framework in Java for teaching.
