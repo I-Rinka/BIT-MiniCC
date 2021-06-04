@@ -3,6 +3,7 @@ package bit.minisys.minicc.icgen;
 import java.io.*;
 
 import bit.minisys.minicc.MiniCCCfg;
+import bit.minisys.minicc.ncgen.WzcLLVM;
 import bit.minisys.minicc.parser.CLexer;
 import bit.minisys.minicc.parser.CParser;
 
@@ -60,7 +61,7 @@ public class WzcICGen implements IMiniCCICGen
         fileOutputStream.close();
 
         //生成IR
-        WzcLLVMIR IR = new WzcLLVMIR(ASTRoot);
+        WzcLLVM IR = new WzcLLVM(ASTRoot);
 
         String LLVM_IR = IR.GetResult();
 
