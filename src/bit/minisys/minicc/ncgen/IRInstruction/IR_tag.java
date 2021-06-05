@@ -2,16 +2,16 @@ package bit.minisys.minicc.ncgen.IRInstruction;
 
 public class IR_tag implements IR_instruction
 {
-    String dest;
+    public String target_label;
 
-    public IR_tag(String dest_origin)
+    public IR_tag(String dest_label)
     {
-        this.dest = dest_origin;
+        this.target_label = dest_label;
     }
 
     @Override
     public String toString()
     {
-        return dest + ":";
+        return target_label + ":";
     }
 }

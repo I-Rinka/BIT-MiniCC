@@ -1,6 +1,5 @@
 package bit.minisys.minicc.ncgen;
 
-import bit.minisys.minicc.icgen.internal.IRBuilder;
 import bit.minisys.minicc.parser.ast.*;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 import bit.minisys.minicc.ncgen.IRInstruction.*;
@@ -70,7 +69,7 @@ public class WzcLLVM
             }
             else if (item instanceof ASTFunctionDefine)
             {
-                FunctionDefineHandler((ASTFunctionDefine) item);
+                FunctionHandler((ASTFunctionDefine) item);
             }
         }
     }
@@ -144,7 +143,7 @@ public class WzcLLVM
     }
 
     //这个很重要
-    void FunctionDefineHandler(ASTFunctionDefine functionDefine)
+    void FunctionHandler(ASTFunctionDefine functionDefine)
     {
         //进行局部环境的初始化
         SymbolTableStack.push(new HashMap<>());
@@ -225,6 +224,9 @@ public class WzcLLVM
             }
         }
 
+        //生成目标代码的支持
+        WzcIRScanner maker=new WzcIRScanner(InsBuffer);
+
         //输出符号
         for (IR_instruction instruction :
                 InsBuffer)
@@ -247,11 +249,16 @@ public class WzcLLVM
                 }
             }
         }
+
+
+
+
         IR_code += "}\n";
         SymbolTableStack.pop();
         now_function_type_C = null;
         now_function_return_exist = false;
         this.register_counter = 0;
+
     }
 
     void CompoundStatementHandler(ASTCompoundStatement compoundStatement)
@@ -1110,6 +1117,15 @@ public class WzcLLVM
         OperatorMap.put("/", "sdiv");
         OperatorMap.put("<<", "shl");
         OperatorMap.put("%", "srem");
+
+        LinkedList<String>para=new LinkedList<>();
+        para.add("i8*");
+        FunctionDecHandler("Mars_PrintStr","void",para,true);
+        FunctionDecHandler("Mars_GetInt","i32",new LinkedList<>(),true);
+
+        para=new LinkedList<>();
+        para.add("i32");
+        FunctionDecHandler("Mars_PrintInt", "void", para, true);
     }
 
     class GlobalSymbol extends IdentifierSymbol
@@ -1173,32 +1189,6 @@ public class WzcLLVM
             return rt_str;
         }
 
-        public String GetFuncCallList()
-        {
-            String rt_str = "";
-            rt_str += "(";
-            int para_count = 0;
-            for (String para :
-                    func_para_LLVM)
-            {
-                if (para_count > 0)
-                {
-                    rt_str += ", ";
-                }
-                para_count++;
-                if (para.equals("..."))
-                {
-                    rt_str += "...";
-                }
-                else
-                {
-                    rt_str += para;
-                }
-            }
-            rt_str += ")";
-            return rt_str;
-        }
-
     }
 
     class ArraySymbol extends IdentifierSymbol
@@ -1216,30 +1206,8 @@ public class WzcLLVM
         //因为是64位系统，所以地址全是i64?
         String GetArrayPtr(LinkedList<Integer> access_addr)
         {
-            int max_size = access_addr.size();
-            String type_info = "";
-            String offset_info = "";
-            boolean is_out_bound = false;
-            //直接在这里查
-            if (dimension_info.size() < access_addr.size())
-            {
-                max_size = dimension_info.size();
-                is_out_bound = true;
-            }
-            for (int i = 0; i < max_size; i++)
-            {
-                if (access_addr.get(i) >= dimension_info.get(i))
-                {
-                    is_out_bound = true;
-                }
-                offset_info += ", i64 " + access_addr;
-            }
-            type_info = GetArrayType(array_atom_type_LLVM, dimension_info);
-            if (is_out_bound)
-            {
-                SemanticErrorHandler.ES06();
-            }
-            return array_atom_type_LLVM + "*" + " getelementptr" + " inbounds (" + type_info + ", " + type_info + "* " + addr + ", i64 0" + offset_info + ")";
+
+            return array_atom_type_LLVM;
         }
 
     }
