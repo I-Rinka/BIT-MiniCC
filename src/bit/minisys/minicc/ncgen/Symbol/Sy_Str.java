@@ -1,6 +1,6 @@
 package bit.minisys.minicc.ncgen.Symbol;
 
-public class Sy_Str implements Sy_Item
+public class Sy_Str implements Sy_Item, Sy_PolyItem
 {
     String name;
     String content;
@@ -13,12 +13,6 @@ public class Sy_Str implements Sy_Item
         content = str_content;
     }
 
-    public String GetAddr()
-    {
-        String type = "[" + char_count + " x " + "i8" + "]";
-        return "getelementptr" + "(" + type + ", " + type + "* " + "@" + name + ", " + "i32 0, i32 0" + ")";
-    }
-
     @Override
     public String GetName()
     {
@@ -29,5 +23,12 @@ public class Sy_Str implements Sy_Item
     public String GetLType()
     {
         return "i8*";
+    }
+
+    @Override
+    public String GetElementPrt(int index)
+    {
+        String type = "[" + char_count + " x " + "i8" + "]";
+        return "getelementptr" + " " + type + ", " + type + "* " + "@" + name + ", " + "i32 0, i32 0";
     }
 }

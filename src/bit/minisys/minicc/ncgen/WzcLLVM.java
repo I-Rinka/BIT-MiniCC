@@ -193,34 +193,44 @@ public class WzcLLVM
 
         int count = 0;
 
-        //遍历params收集信息
+        LinkedList<String> params_for_FunctionContent = new LinkedList<>();
+        // 1.检查参数，添加参数的符号表
         for (ASTParamsDeclarator para :
                 ((ASTFunctionDeclarator) functionDefine.declarator).params)
         {
             String para_type = TypeSpecifierListHandler(para.specfiers);
             if (para.declarator instanceof ASTVariableDeclarator)
             {
-                VariableDeclaratorHandler((ASTVariableDeclarator) para.declarator, para_type);
-                Sy_AtomVar thisVar = SymbolTable.GetAtomTypeIDInfo((((ASTVariableDeclarator) para.declarator).identifier.value.toString())); //todo 目前没有复合类型参数的支持
-                String para_reg = GetReg(thisVar.GetLType());
+                GetReg(ConvertCType2LLVMIR(para_type));
                 if (!para_string.toString().equals(""))
                 {
                     para_string.append(", ");
                 }
-                para_string.append(ConvertCType2LLVMIR(para_type)).append(" ").append(para_reg);
+                para_string.append(ConvertCType2LLVMIR(para_type)).append(" ").append("%" + (register_counter - 1));
+            }
+        }
 
-                para_types[count] = ConvertCType2LLVMIR(para_type);//增加类型
+        GetRegCount(); //函数基本块起点
 
+        // 2.进行参数的load
+        for (ASTParamsDeclarator para :
+                ((ASTFunctionDeclarator) functionDefine.declarator).params)
+        {
+            String para_type = TypeSpecifierListHandler(para.specfiers);
+            if (para.declarator instanceof ASTVariableDeclarator)
+            {
+                VariableDeclaratorHandler(((ASTVariableDeclarator) para.declarator), para_type);//为参数申请空间
+
+                Sy_AtomVar thisVar = SymbolTable.GetAtomTypeIDInfo((((ASTVariableDeclarator) para.declarator).identifier.value.toString()));
+                para_types[count] = thisVar.GetLType();//增加类型
                 //得到参数对应的寄存器
-                InsBuffer.add(new IR_store(ConvertCType2LLVMIR(para_type), "%" + count, thisVar.reg_addr)); //这样会导致 alloca和store交替出现
-
+                InsBuffer.add(new IR_store(thisVar.GetLType(), "%" + count, thisVar.reg_addr));
                 count++;
             }
         }
         func_out_header += para_string;
         func_out_header += ") #0 {\n";
         IR_code += func_out_header;
-        GetRegCount();
 
         //注册当前函数
         SymbolTable.PutFunctionDec(new Sy_Func(func_name, ConvertCType2LLVMIR(now_function_type_C), para_types));
@@ -266,7 +276,7 @@ public class WzcLLVM
         now_function_return_exist = false;
         this.register_counter = 0;
 
-        return new FunctionContent(func_name, InsBuffer);
+        return new FunctionContent(func_name, InsBuffer, params_for_FunctionContent);
     }
 
     void CompoundStatementHandler(ASTCompoundStatement compoundStatement)
@@ -574,7 +584,7 @@ public class WzcLLVM
         }
     }
 
-    //注册，打印
+    //注册,返回寄存器
     void VariableDeclaratorHandler(ASTVariableDeclarator variableDeclarator, String C_type)
     {
         String now_reg = GetReg(ConvertCType2LLVMIR(C_type));
@@ -590,9 +600,7 @@ public class WzcLLVM
             SemanticErrorHandler.ES02(true, var_name);
         }
         //打印
-        //声明以后应该alloca
         InsBuffer.add(new IR_alloca(now_reg, ConvertCType2LLVMIR(C_type)));
-
     }
 
     void DeclarationHandler(ASTDeclaration declaration)
@@ -659,8 +667,10 @@ public class WzcLLVM
                 SymbolTable.PutStr(stringConstant.value.toString(), str);
                 nameless_str_counter++;
             }
+            String rt_reg = GetReg("i8*");
+            InsBuffer.add(new IR_getelementptr(rt_reg, str.GetName(), 0, str));
             //无名字符串: 首先查找，如果没找到，则增加新的。 无名字符串的键：其实是字符串值本身
-            return str.GetAddr();
+            return rt_reg;
         }
         else if (constant instanceof ASTCharConstant)
         {

@@ -28,7 +28,7 @@ public class IR_branch implements IR_instruction
     {
         if (dest == null)
         {
-            return "br" + " il " + cond + ", " + "label " + true_dest + ", label " + false_dest;
+            return "br" + " i1 " + cond + ", " + "label " + true_dest + ", label " + false_dest;
         }
         return "br" + " label " + dest;
     }

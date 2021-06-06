@@ -2,7 +2,7 @@ package bit.minisys.minicc.ncgen.Symbol;
 
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
-public class Sy_PolyVar implements Sy_Item
+public class Sy_PolyVar implements Sy_Item, Sy_PolyItem
 {
     Sy_Item inside_Item;
     int item_count = 0;
