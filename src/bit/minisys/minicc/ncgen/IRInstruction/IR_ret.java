@@ -3,7 +3,7 @@ package bit.minisys.minicc.ncgen.IRInstruction;
 public class IR_ret implements IR_instruction
 {
     String type = "void";
-    String value = null;
+    public String value = null;
 
     public IR_ret()
     {

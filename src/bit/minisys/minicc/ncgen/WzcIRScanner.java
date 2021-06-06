@@ -1,9 +1,7 @@
 package bit.minisys.minicc.ncgen;
 
 import bit.minisys.minicc.icgen.internal.IRBuilder;
-import bit.minisys.minicc.ncgen.IRInstruction.IR_branch;
-import bit.minisys.minicc.ncgen.IRInstruction.IR_instruction;
-import bit.minisys.minicc.ncgen.IRInstruction.IR_tag;
+import bit.minisys.minicc.ncgen.IRInstruction.*;
 import bit.minisys.minicc.pp.internal.H;
 
 import java.util.HashMap;
@@ -61,7 +59,34 @@ public class WzcIRScanner
             }
             for (IR_instruction instruction : basicBlock.DAGS)
             {
+                if (instruction instanceof IR_ret)
+                {
+                    if (((IR_ret)instruction).value!=null && ((IR_ret)instruction).value.contains("%"))
+                    {
+                        //还要判断是不是寄存器
+                        basicBlock.USE_live_reg.add(((IR_ret)instruction).value);
+                    }
+                }
+                else if (instruction instanceof IR_call)
+                {
 
+                }
+                else if (instruction instanceof IR_op)
+                {
+
+                }
+                else if (instruction instanceof IR_load) // load好像没有？
+                {
+
+                }
+                else if (instruction instanceof  IR_store)
+                {
+
+                }
+                else if (instruction instanceof IR_alloca)
+                {
+
+                }
             }
         }
 

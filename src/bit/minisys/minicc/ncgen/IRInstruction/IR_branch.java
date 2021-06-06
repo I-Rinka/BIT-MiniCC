@@ -2,8 +2,8 @@ package bit.minisys.minicc.ncgen.IRInstruction;
 
 public class IR_branch implements IR_instruction
 {
+    public IR_instruction ins_pointer = null;
     public boolean is_conditional = false;
-
     public String dest = null;
 
     public IR_branch(String dest)

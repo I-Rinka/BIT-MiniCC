@@ -1,8 +1,11 @@
 package bit.minisys.minicc.ncgen;
 
+import bit.minisys.minicc.ncgen.Symbol.*;
 import bit.minisys.minicc.parser.ast.*;
+import bit.minisys.minicc.pp.internal.S;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 import bit.minisys.minicc.ncgen.IRInstruction.*;
+import org.python.indexer.ast.NBoolOp;
 
 import java.util.*;
 
@@ -22,17 +25,20 @@ import java.util.*;
     1. 全局变量声明 ✅
     2. 局部变量声明 ✅
     3. 递归作用域 ✅
-    4. 无名字符串 ✅
+    4. 无名字符串
     6. 函数调用 ✅
     7. 运算操作 ✅
     8. 循环语句 ✅
     9. 选择语句 ✅
     10. 跳转语句 ✅
+    11. 拉链反填 ✅
 
  */
 
 public class WzcLLVM
 {
+
+
     public String target_data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128";
     public String target_triple = "x86_64-pc-linux-gnu";
     String global_declaration = "";
@@ -40,17 +46,19 @@ public class WzcLLVM
     ASTCompilationUnit ASTRoot = null;
 
     //为了有scope的支持，需要使用栈
-    private Stack<HashMap<String, IdentifierSymbol>> SymbolTableStack;
+    private Sy_Table SymbolTable;
+
     private LinkedList<IR_instruction> InsBuffer;
     private HashMap<String, String> OperatorMap;
-    private HashMap<String, String> RegLineage; //得到一个寄存器的type，LLVM规定寄存器类型需要显示转换 可能需要记录Reg类型的地方: 1.alloca 2.parameters 3.expression 4.load 5.函数
+
+    private HashMap<String, Sy_Item> RegDataBase;
 
     //因为查错的状态是全局性的，因此需要在外面
     boolean now_function_return_exist = false;//用于检测函数是否有return
     String now_function_type_C = null; //用于函数返回类型
 
     //使用break或者continue时的标号
-    private LinkedList<IR_branch> break_statements_buffer;//给break语句的标号进行反填
+    private LinkedList<IR_branch> break_statements_buffer;//给break语句的标号进行反填,日后可改成拉链反填
     private int now_continue_position = 0;
 
     private int register_counter = 0; //虚拟寄存器以及基本块的值
@@ -65,7 +73,8 @@ public class WzcLLVM
         {
             if (item instanceof ASTDeclaration)
             {
-                GlobalDeclarationHandler((ASTDeclaration) item);
+                //todo 重新添加对全局变量的支持
+//                GlobalDeclarationHandler((ASTDeclaration) item);
             }
             else if (item instanceof ASTFunctionDefine)
             {
@@ -79,9 +88,9 @@ public class WzcLLVM
         if (statement instanceof ASTCompoundStatement)
         {
             //准备递归调用，不过在这之前，先新建一个环境
-            SymbolTableStack.push(new HashMap<>());
+            SymbolTable.EnterNewScope();
             CompoundStatementHandler((ASTCompoundStatement) statement);
-            SymbolTableStack.pop();
+            SymbolTable.ExitScope();
         }
         else if (statement instanceof ASTExpressionStatement)
         {
@@ -99,9 +108,13 @@ public class WzcLLVM
         else if (statement instanceof ASTIterationDeclaredStatement)
         {
             iteration_counter++;
-            SymbolTableStack.push(new HashMap<>());
+
+            SymbolTable.EnterNewScope();
+
             DcIterationStatementHandler((ASTIterationDeclaredStatement) statement);
-            SymbolTableStack.pop();
+
+            SymbolTable.ExitScope();
+
             iteration_counter--;
         }
         else if (statement instanceof ASTIterationStatement)
@@ -143,12 +156,11 @@ public class WzcLLVM
     }
 
     //这个很重要
-    void FunctionHandler(ASTFunctionDefine functionDefine)
+    LinkedList<IR_instruction> FunctionHandler(ASTFunctionDefine functionDefine)
     {
         //进行局部环境的初始化
-        SymbolTableStack.push(new HashMap<>());
+        SymbolTable.EnterNewFunction();
         InsBuffer = new LinkedList<>();
-        RegLineage = new HashMap<>();
 
         String func_out_header = "define ";
         now_function_type_C = TypeSpecifierListHandler(functionDefine.specifiers);
@@ -166,7 +178,9 @@ public class WzcLLVM
         func_out_header += " @" + func_name + "(";
 
         StringBuilder para_string = new StringBuilder();
-        LinkedList<String> para_list = new LinkedList<>();
+        String[] para_types = new String[((ASTFunctionDeclarator) functionDefine.declarator).params.size()];
+
+        int count = 0;
 
         //遍历params收集信息
         for (ASTParamsDeclarator para :
@@ -181,31 +195,26 @@ public class WzcLLVM
                     para_string.append(", ");
                 }
                 para_string.append(ConvertCType2LLVMIR(para_type)).append(" ").append(para_reg);
-                RegLineage.put(para_reg, ConvertCType2LLVMIR(para_type));
-                para_list.add(ConvertCType2LLVMIR(para_type));
+
+                para_types[count] = ConvertCType2LLVMIR(para_type);//增加类型
+
+                VariableDeclaratorHandler((ASTVariableDeclarator) para.declarator, para_type);
+                Sy_AtomVar thisVar = SymbolTable.GetAtomTypeIDInfo((((ASTVariableDeclarator) para.declarator).identifier.value.toString())); //todo 目前没有复合类型参数的支持
+
+                RegDataBase.put(para_reg, thisVar);
+                //得到参数对应的寄存器
+                InsBuffer.add(new IR_store(ConvertCType2LLVMIR(para_type), "%" + count, thisVar.reg_addr)); //这样会导致 alloca和store交替出现
+
+                count++;
             }
         }
         func_out_header += para_string;
         func_out_header += ") #0 {\n";
         IR_code += func_out_header;
         GetRegCount();
-        int para_count = 0;//准备进入函数，将形参load一遍
 
-        //函数表注册函数
-        FunctionDecHandler(func_name, now_function_type_C, para_list, false);
-
-        for (ASTParamsDeclarator para :
-                ((ASTFunctionDeclarator) functionDefine.declarator).params)
-        {
-            String para_type = TypeSpecifierListHandler(para.specfiers);
-            if (para.declarator instanceof ASTVariableDeclarator)
-            {
-                String C_type = TypeSpecifierListHandler(para.specfiers);
-                VariableDeclaratorHandler((ASTVariableDeclarator) para.declarator, C_type);
-                InsBuffer.add(new IR_store(ConvertCType2LLVMIR(C_type), "%" + para_count, GetSymbolInfo((((ASTVariableDeclarator) para.declarator).identifier.value.toString())).addr));
-            }
-            para_count++;
-        }
+        //注册当前函数
+        SymbolTable.PutFunctionDec(new Sy_Func(func_name, ConvertCType2LLVMIR(now_function_type_C), para_types));
 
         //真正执行CompoundStatement中的指令
         CompoundStatementHandler(functionDefine.body);
@@ -224,9 +233,6 @@ public class WzcLLVM
             }
         }
 
-        //生成目标代码的支持
-        WzcIRScanner maker=new WzcIRScanner(InsBuffer);
-
         //输出符号
         for (IR_instruction instruction :
                 InsBuffer)
@@ -237,28 +243,22 @@ public class WzcLLVM
                 IR_branch branch = (IR_branch) instruction;
                 if (!branch.is_conditional && branch.dest == null)
                 {
-                    for (Map.Entry<String, IdentifierSymbol> record :
-                            SymbolTableStack.firstElement().entrySet())
-                    {
-                        if (record.getValue().ins_pointer == instruction)
-                        {
-                            SemanticErrorHandler.ES07(record.getKey());
-                            break;
-                        }
-                    }
+                    String label_name = null;
+                    //找对应标号是指向这个语句的
+                    label_name = SymbolTable.GetUnexistLabelName(branch);
+                    SemanticErrorHandler.ES07(label_name);
                 }
             }
         }
 
 
-
-
         IR_code += "}\n";
-        SymbolTableStack.pop();
+
         now_function_type_C = null;
         now_function_return_exist = false;
         this.register_counter = 0;
 
+        return InsBuffer;
     }
 
     void CompoundStatementHandler(ASTCompoundStatement compoundStatement)
@@ -440,47 +440,6 @@ public class WzcLLVM
         }
     }
 
-    //返回一个Reg
-    String ArrayDeclaratorHandler(ASTArrayDeclarator arrayDeclarator, String type_LLVM, boolean isLocal)
-    {
-        LinkedList<Integer> array_dimension = new LinkedList<>();
-        String array_name = "";
-        ASTArrayDeclarator now_declarator = arrayDeclarator;
-        while (true)
-        {
-            array_dimension.push((Integer) ((ASTIntegerConstant) ((ASTArrayDeclarator) now_declarator).expr).value);
-            if ((now_declarator).declarator instanceof ASTArrayDeclarator)
-            {
-                now_declarator = (ASTArrayDeclarator) now_declarator.declarator;
-            }
-            else
-            {
-                if (now_declarator.declarator instanceof ASTVariableDeclarator)
-                {
-                    array_name = ((((ASTVariableDeclarator) now_declarator.declarator).identifier).value);
-                }
-                break;
-            }
-        }
-        if (isLocal)
-        {
-            //todo: 重复定义
-            String addr = "%" + GetRegCount();
-            ArraySymbol array = new ArraySymbol(addr, GetArrayType(type_LLVM, array_dimension), type_LLVM, array_dimension);
-            SymbolTableStack.peek().put(array_name, array);
-            InsBuffer.add(new IR_alloca(addr, array.llvm_type));
-            return addr;
-        }
-        else
-        {
-            String addr = "@" + array_name;
-            ArraySymbol array = new ArraySymbol(addr, GetArrayType(type_LLVM, array_dimension), type_LLVM, array_dimension);
-            SymbolTableStack.firstElement().put(array_name, array);
-            global_declaration += addr + " = " + "common" + " global " + array.llvm_type + " zeroinitializer\n";
-            return addr;
-        }
-    }
-
     //todo 基本块的标号应该怎么处理
     void BreakStatementHandler(ASTBreakStatement breakStatement)
     {
@@ -499,18 +458,26 @@ public class WzcLLVM
     //注意一下基本块，这里可能需要添加一个标号
     void GotoStatementHandler(ASTGotoStatement gotoStatement)
     {
-        String label = gotoStatement.label.value.toString();
-        IdentifierSymbol goto_info = GetSymbolInfo(label);
+        String label_name = gotoStatement.label.value.toString();
+        Sy_Label goto_info = SymbolTable.GetLabel(label_name);
+
         IR_branch goto_ins = new IR_branch(null);
         if (goto_info == null)
         {
-            goto_info = new IdentifierSymbol(null, "label");
-            SymbolTableStack.firstElement().put(label, goto_info);
-            goto_info.ins_pointer = goto_ins;
+            goto_info = new Sy_Label(label_name, null);
+            SymbolTable.PutJMPLabel(goto_info);
+            goto_info.GotoPointer = goto_ins;
         }
         else
         {
-            goto_ins.dest = goto_info.addr;
+            if (goto_info.dest_label_reg == null)
+            {
+                ((IR_branch) goto_info.GotoPointer).ins_pointer = goto_ins;
+            }
+            else
+            {
+                goto_ins.dest = goto_info.dest_label_reg;//这个
+            }
         }
         InsertBranch(goto_ins);
         InsertTag("" + GetRegCount());
@@ -518,24 +485,24 @@ public class WzcLLVM
 
     void LabelStatementHandler(ASTLabeledStatement labeledStatement)
     {
-        String label = labeledStatement.label.value.toString();
-        IdentifierSymbol label_info = GetSymbolInfo(label);
+        String label_name = labeledStatement.label.value.toString();
+        Sy_Label label_info = SymbolTable.GetLabel(label_name);
         if (label_info == null)
         {
-            SymbolTableStack.firstElement().put(label, new IdentifierSymbol("%" + GetRegCount(), "label"));
+            SymbolTable.PutJMPLabel(new Sy_Label(label_name, "%" + GetRegCount()));
             InsertTag("" + (register_counter - 1));
         }
         else
         {
-            if (label_info.addr == null)
+            if (label_info.dest_label_reg == null)
             {
                 InsertTag("" + GetRegCount());
-                LLFT((IR_branch) label_info.ins_pointer, "%" + (register_counter - 1));
-                label_info.addr = "%" + (register_counter - 1);
+                LLFT((IR_branch) label_info.GotoPointer, "%" + (register_counter - 1)); //将label转为标号进行填充，因为没有号码的数字，所以要向前填branch
+                label_info.dest_label_reg = "%" + (register_counter - 1);
             }
             else
             {
-                SemanticErrorHandler.ES07(label);
+                SemanticErrorHandler.ES07(label_name);
             }
         }
         if (labeledStatement.stat != null)
@@ -593,7 +560,7 @@ public class WzcLLVM
     void LLFT(IR_branch instruction, String branch_tag_with_prefix)
     {
         instruction.dest = branch_tag_with_prefix;
-        if (instruction.ins_pointer != null && instruction.ins_pointer instanceof IR_branch)
+        if (instruction.ins_pointer != null)
         {
             LLFT((IR_branch) instruction.ins_pointer, branch_tag_with_prefix);
         }
@@ -605,9 +572,9 @@ public class WzcLLVM
         int now_reg = GetRegCount();
         String var_name = variableDeclarator.identifier.value.toString();
         //Scope,只看当前层是否重复定义
-        if (!SymbolTableStack.peek().containsKey(var_name))
+        if (!SymbolTable.isReDefine(var_name))
         {
-            SymbolTableStack.peek().put(var_name, new IdentifierSymbol("%" + now_reg, ConvertCType2LLVMIR(C_type)));
+            SymbolTable.PutVar(new Sy_AtomVar(var_name, ConvertCType2LLVMIR(C_type), "%" + now_reg));
         }
         //重复定义
         else
@@ -617,7 +584,7 @@ public class WzcLLVM
         //打印
         //声明以后应该alloca
         InsBuffer.add(new IR_alloca("%" + now_reg, ConvertCType2LLVMIR(C_type)));
-        RegLineage.put("%" + now_reg, ConvertCType2LLVMIR(C_type));
+        RegDataBase.put("%" + now_reg, SymbolTable.GetAtomTypeIDInfo(var_name));
 
     }
 
@@ -643,13 +610,14 @@ public class WzcLLVM
                         store_val = ExpressionHandler(il.exprs.get(0));
                     }
                     String var = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
-                    var = GetSymbolInfo(var).addr;
+                    var = SymbolTable.GetAtomTypeIDInfo(var).reg_addr;
                     InsBuffer.add(new IR_store(ConvertCType2LLVMIR(C_type), store_val, var));
                 }
             }
             if (il.declarator instanceof ASTArrayDeclarator)
             {
-                ArrayDeclaratorHandler((ASTArrayDeclarator) il.declarator, ConvertCType2LLVMIR(C_type), true);
+
+//                ArrayDeclaratorHandler((ASTArrayDeclarator) il.declarator, ConvertCType2LLVMIR(C_type), true);
             }
         }
     }
@@ -677,66 +645,10 @@ public class WzcLLVM
         }
         else if (expression instanceof ASTFunctionCall)
         {
-            ASTFunctionCall functionCall = (ASTFunctionCall) expression;
-            String func_name = ((ASTIdentifier) functionCall.funcname).value.toString();
-            GlobalSymbol func_info = GetFuncInfo(func_name);//函数未声明报错已经写在里面了
-            if (func_info == null)
-            {
-                return "none";
-            }
-            else
-            {
-                String func_para = "";
-                int para_count = 0;
-                if (functionCall.argList.size() != func_info.func_para_LLVM.size())
-                {
-                    SemanticErrorHandler.ES04(func_name);//函数参数不对
-                }
-                for (ASTExpression arg : functionCall.argList)
-                {
-                    if (para_count > 0)
-                    {
-                        func_para += ", ";
-                    }
-                    String reg = ExpressionHandler(arg);
-                    if (reg == null)
-                    {
-                        //判断整形之类的
-                        if (arg instanceof ASTStringConstant)
-                        {
-                            reg = NamelessStrHandler(((ASTStringConstant) arg));
-                        }
-                        else if (arg instanceof ASTIntegerConstant)
-                        {
-                            reg += "i32" + " " + ((ASTIntegerConstant) arg).value.toString();
-                        }
-                        else if (arg instanceof ASTCharConstant)
-                        {
 
-                        }
-                        func_para += reg;
-                    }
-                    else
-                    {
-                        func_para += RegLineage.get(reg) + " " + reg;
-                        if (!RegLineage.get(reg).equals(func_info.func_para_LLVM.get(para_count)))//函数操作不相容
-                        {
-                            SemanticErrorHandler.ES04(func_name);
-                        }
-                    }
-                    para_count++;
-                }
-                if (func_info.llvm_type.equals("void"))
-                {
-                    InsBuffer.add(new IR_call(null, func_info.llvm_type, "@" + func_name, null));
-                    return "none";
-                }
-                int rt_reg = GetRegCount();
-                InsBuffer.add(new IR_call("%" + rt_reg, func_info.llvm_type, "@" + func_name, func_para));
-                RegLineage.put("%" + rt_reg, func_info.llvm_type);
-                return "%" + rt_reg;
-            }
+
         }
+        //后缀表达式或一元表达式
         else if (expression instanceof ASTUnaryExpression || expression instanceof ASTPostfixExpression)
         {
             String op = "";
@@ -759,7 +671,8 @@ public class WzcLLVM
             {
                 name = ((ASTIdentifier) tmp).value.toString();
             }
-            String op_type = RegLineage.get(src);
+            String op_type = RegDataBase.get(src).GetLType();
+
             String rt_reg = "";
             switch (op)
             {
@@ -780,10 +693,12 @@ public class WzcLLVM
                 case "++":
                     rt_reg = "%" + GetRegCount();
                     InsBuffer.add(new IR_op(rt_reg, "add", op_type, src, "1"));
-                    InsBuffer.add(new IR_store(op_type, rt_reg, GetSymbolInfo(name).addr));
+                    InsBuffer.add(new IR_store(op_type, rt_reg, SymbolTable.GetAtomTypeIDInfo(name).reg_addr));
                     break;
             }
-            RegLineage.put(rt_reg, op_type);
+
+            RegDataBase.put(rt_reg, RegDataBase.get(src));
+
             return rt_reg;
         }
         else if (expression instanceof ASTBinaryExpression)
@@ -798,15 +713,12 @@ public class WzcLLVM
                 if (src2 == null) //constant
                 {
                     src2 = ((ASTIntegerConstant) thisNode.expr2).value.toString();
-                    op_type = GetSymbolInfo(src1).llvm_type;
+
+                    op_type = SymbolTable.GetAtomTypeIDInfo(src1).GetLType();
                 }
                 else
                 {
-                    op_type = RegLineage.get(src2);
-                    if (!GetSymbolInfo(src1).llvm_type.equals(op_type))
-                    {
-                        SemanticErrorHandler.ES05(op);
-                    }
+                    op_type = RegDataBase.get(src2).GetLType();
                 }
                 if (op.equals("+="))
                 {
@@ -814,14 +726,14 @@ public class WzcLLVM
                     InsBuffer.add(new IR_op("%" + GetRegCount(), "add", op_type, val_reg, src2));
                     src2 = "%" + (register_counter - 1);
                 }
-                InsBuffer.add(new IR_store(op_type, src2, GetSymbolInfo(src1).addr));
+                InsBuffer.add(new IR_store(op_type, src2, SymbolTable.GetAtomTypeIDInfo(src1).reg_addr));
                 return "Assignment";
             }
             else if (op.equals("&&"))//短路
             {
                 String src1 = ExpressionHandler(thisNode.expr1);
                 String rt_reg = "%" + GetRegCount();
-                InsBuffer.add(new IR_compare(rt_reg, "ne", RegLineage.get(src1), src1, "0"));
+                InsBuffer.add(new IR_compare(rt_reg, "ne", RegDataBase.get(src1).GetLType(), src1, "0"));
                 return rt_reg;
             }
             else
@@ -837,7 +749,7 @@ public class WzcLLVM
                 }
                 else
                 {
-                    op_type = RegLineage.get(src1);
+                    op_type = RegDataBase.get(src1).GetLType();
                 }
                 String op_type2 = "";
                 String src2 = ExpressionHandler(thisNode.expr2);
@@ -851,7 +763,7 @@ public class WzcLLVM
                 }
                 else
                 {
-                    op_type2 = RegLineage.get(src2);
+                    op_type2 = RegDataBase.get(src2).GetLType();
                 }
                 String rt_reg = "%" + GetRegCount();
                 //操作符判断
@@ -877,20 +789,16 @@ public class WzcLLVM
                         cmp_type = "ne";
                         break;
                 }
-                if (cmp_type == null)
+                if (cmp_type == null) //todo 寄存器类型系统需要重做
                 {
-                    if (!op_type.equals(op_type2))
-                    {
-                        SemanticErrorHandler.ES05(op);
-                    }
                     op = OperatorMap.get(op);
                     InsBuffer.add(new IR_op(rt_reg, op, op_type, src1, src2));
+                    RegDataBase.put(rt_reg,RegDataBase.get())
                     RegLineage.put(rt_reg, op_type);
                 }
                 else
                 {
                     InsBuffer.add(new IR_compare(rt_reg, cmp_type, op_type, src1, src2));
-                    RegLineage.put(rt_reg, "i1");
                 }
                 return rt_reg;
             }
@@ -900,130 +808,34 @@ public class WzcLLVM
         {
             ASTIdentifier thisNode = (ASTIdentifier) expression;
             //未声明使用报错
-            IdentifierSymbol detail = GetSymbolInfo(thisNode.value.toString());
-            String src = "";
-            if (detail == null) //未出现，进行报错
+            Sy_Item detail = SymbolTable.GetSymbolInfo(thisNode.value.toString());
+            if (detail instanceof Sy_PolyVar)
             {
-                SemanticErrorHandler.ES01(true, thisNode.value.toString());
-                String new_reg = "%" + GetRegCount();
-                InsBuffer.add(new IR_op(new_reg, "add", "i32", "0", "0"));
-                return new_reg;
+
             }
             else
             {
-                src = detail.addr;
-                String new_reg = "%" + GetRegCount();
-                InsBuffer.add(new IR_load(new_reg, detail.llvm_type, src));
-                RegLineage.put(new_reg, detail.llvm_type);
-                return new_reg;
+                Sy_AtomVar atom_detail = (Sy_AtomVar) detail;
+                String src = "";
+                if (detail == null) //未出现，进行报错
+                {
+                    SemanticErrorHandler.ES01(true, thisNode.value.toString());
+                    String new_reg = "%" + GetRegCount();
+                    InsBuffer.add(new IR_op(new_reg, "add", "i32", "0", "0"));
+                    return new_reg;
+                }
+                else
+                {
+                    src = atom_detail.reg_addr;
+                    String new_reg = "%" + GetRegCount();
+                    InsBuffer.add(new IR_load(new_reg, atom_detail.GetLType(), src));
+                    RegLineage.put(new_reg, atom_detail.GetLType());
+                    return new_reg;
+                }
             }
 
         }
         return "none";
-    }
-
-    //无名字符串支持 返回字符串的地址
-    String NamelessStrHandler(ASTStringConstant stringConstant)
-    {
-        String rt_String = "i8*";
-        String strContent = stringConstant.value.toString();
-        IdentifierSymbol str = SymbolTableStack.firstElement().get("\"" + strContent + "\"");
-        if (str == null)
-        {
-            str = new GlobalSymbol(strContent, "@.str" + nameless_str_counter, strContent.length());
-            nameless_str_counter++;
-            SymbolTableStack.firstElement().put("\"" + strContent + "\"", str);
-            global_declaration += ((GlobalSymbol) str).GetIRFormat(null);
-        }
-
-        rt_String += " getelementptr inbounds ";
-        rt_String += "([" + strContent.length() + " x i8], [" + strContent.length() + " x i8]* " + str.addr + ", i64 0, i64 0)";
-        return rt_String;
-    }
-
-    GlobalSymbol FunctionDecHandler(String func_name, String C_rt_type, LinkedList<String> para_type_LLVM, boolean is_external)
-    {
-        IdentifierSymbol func_info = SymbolTableStack.firstElement().get(func_name);
-        if ((GlobalSymbol) func_info != null)
-        {
-            if (!is_external && !((GlobalSymbol) func_info).function_implements)
-            {
-                ((GlobalSymbol) func_info).function_implements = true;
-            }
-            else
-            {
-                SemanticErrorHandler.ES02(false, func_name);
-            }
-            return (GlobalSymbol) func_info;
-        }
-        GlobalSymbol func_symbol = new GlobalSymbol(ConvertCType2LLVMIR(C_rt_type), para_type_LLVM);
-        SymbolTableStack.firstElement().put(func_name, func_symbol);
-        if (is_external)
-        {
-            global_declaration += func_symbol.GetIRFormat(func_name);
-        }
-        return func_symbol;
-    }
-
-    GlobalSymbol GetFuncInfo(String func_name)
-    {
-        IdentifierSymbol func = SymbolTableStack.firstElement().get(func_name);
-        if (func != null && func instanceof GlobalSymbol)
-        {
-            return (GlobalSymbol) func;
-        }
-        SemanticErrorHandler.ES01(false, func_name);
-        return null;
-    }
-
-    void GlobalDeclarationHandler(ASTDeclaration declaration)
-    {
-        String type = TypeSpecifierListHandler(declaration.specifiers);
-
-        type = ConvertCType2LLVMIR(type);
-
-        //todo: 函数定义
-        for (ASTInitList il : declaration.initLists)
-        {
-            if (il.declarator instanceof ASTVariableDeclarator)
-            {
-                String global_name = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
-                if (GetSymbolInfo(global_name) == null)
-                {
-                    SymbolTableStack.firstElement().put(global_name, new IdentifierSymbol("@" + global_name, type));
-                }
-                //重复定义
-                else
-                {
-                    SemanticErrorHandler.ES02(true, global_name);
-                }
-                String num = "0";
-                if (il.exprs != null && il.exprs.size() >= 1)
-                {
-                    if (il.exprs.get(0) instanceof ASTIntegerConstant)
-                    {
-                        num = ((ASTIntegerConstant) il.exprs.get(0)).value.toString();
-                    }
-                }
-                global_declaration += "@" + global_name + " = " + "global" + " " + type + " " + num;
-            }
-            else if (il.declarator instanceof ASTFunctionDeclarator)
-            {
-                ASTFunctionDeclarator functionDeclarator = (ASTFunctionDeclarator) il.declarator;
-                String func_name = ((ASTVariableDeclarator) functionDeclarator.declarator).identifier.value.toString();
-                LinkedList<String> para_type = new LinkedList<>();
-                for (ASTParamsDeclarator para :
-                        functionDeclarator.params)
-                {
-                    para_type.add(TypeSpecifierListHandler(para.specfiers));
-                }
-                FunctionDecHandler(func_name, type, para_type, true);
-            }
-            else if (il.declarator instanceof ASTArrayDeclarator)
-            {
-                ArrayDeclaratorHandler((ASTArrayDeclarator) il.declarator, type, false);
-            }
-        }
     }
 
     String TypeSpecifierListHandler(List<ASTToken> specifiers)
@@ -1085,25 +897,11 @@ public class WzcLLVM
         return t;
     }
 
-    IdentifierSymbol GetSymbolInfo(String SymbolName)
-    {
-        for (int j = SymbolTableStack.size() - 1; j >= 0; j--)
-        {
-            //最好把这个东西的使用禁止掉
-            HashMap<String, IdentifierSymbol> syTable = SymbolTableStack.get(j);
-            if (syTable.containsKey(SymbolName))
-            {
-                return syTable.get(SymbolName);
-            }
-        }
-        return null;//没有找到符号
-    }
-
     public WzcLLVM(ASTCompilationUnit ASTNode)
     {
         this.ASTRoot = ASTNode;
-        this.SymbolTableStack = new Stack<>();
-        this.SymbolTableStack.push(new HashMap<>());
+        this.SymbolTable = new Sy_Table();
+
         this.break_statements_buffer = new LinkedList<>();
 
         this.InsBuffer = new LinkedList<>();
@@ -1117,127 +915,6 @@ public class WzcLLVM
         OperatorMap.put("/", "sdiv");
         OperatorMap.put("<<", "shl");
         OperatorMap.put("%", "srem");
-
-        LinkedList<String>para=new LinkedList<>();
-        para.add("i8*");
-        FunctionDecHandler("Mars_PrintStr","void",para,true);
-        FunctionDecHandler("Mars_GetInt","i32",new LinkedList<>(),true);
-
-        para=new LinkedList<>();
-        para.add("i32");
-        FunctionDecHandler("Mars_PrintInt", "void", para, true);
-    }
-
-    class GlobalSymbol extends IdentifierSymbol
-    {
-        LinkedList<String> func_para_LLVM;
-        boolean is_function = false;
-        String string_content = "";
-        public boolean function_implements = false;
-
-        GlobalSymbol(String addr, String i_type)
-        {
-            super(addr, i_type);
-        }
-
-        GlobalSymbol(String rt_type, LinkedList<String> para_type_LLVM)
-        {
-            super("function", rt_type);
-            this.func_para_LLVM = para_type_LLVM;
-            is_function = true;
-        }
-
-        GlobalSymbol(String string_content, String string_name, int string_len)
-        {
-            super(string_name, "[" + string_len + " x i8]");
-            string_content = string_content;
-        }
-
-        public String GetIRFormat(String Name)
-        {
-            String rt_str = "";
-            if (is_function)
-            {
-                rt_str += "declare";
-                rt_str += " " + this.llvm_type;
-                rt_str += " @" + Name;
-                rt_str += "(";
-                int para_count = 0;
-                for (String para :
-                        func_para_LLVM)
-                {
-                    if (para_count > 0)
-                    {
-                        rt_str += ", ";
-                    }
-                    para_count++;
-                    if (para.equals("..."))
-                    {
-                        rt_str += "...";
-                    }
-                    else
-                    {
-                        rt_str += ConvertCType2LLVMIR(para);
-                    }
-                }
-                rt_str += ")" + " #1";
-            }
-            else
-            {
-                rt_str += super.addr + " = " + "private unnamed_addr constant" + super.llvm_type + " c\"" + string_content + "\\00\"";
-            }
-            return rt_str;
-        }
-
-    }
-
-    class ArraySymbol extends IdentifierSymbol
-    {
-        String array_atom_type_LLVM = "";
-        LinkedList<Integer> dimension_info;
-
-        ArraySymbol(String addr, String llvm_type, String array_atom_type_LLVM, LinkedList<Integer> dimension_info)
-        {
-            super(addr, llvm_type);
-            this.array_atom_type_LLVM = array_atom_type_LLVM;
-            this.dimension_info = dimension_info;
-        }
-
-        //因为是64位系统，所以地址全是i64?
-        String GetArrayPtr(LinkedList<Integer> access_addr)
-        {
-
-            return array_atom_type_LLVM;
-        }
-
-    }
-
-    public static String GetArrayType(String atom_type_LLVM, LinkedList<Integer> AccessInfo)
-    {
-        String type_info = "";
-        String right_brackets = "";
-        for (Integer i :
-                AccessInfo)
-        {
-            type_info += "[" + i + " x ";
-            right_brackets += "]";
-        }
-        type_info += atom_type_LLVM + right_brackets;
-        return type_info;
-    }
-
-    class IdentifierSymbol
-    {
-        public String addr;
-        public String llvm_type;
-
-        IdentifierSymbol(String addr, String llvm_type)
-        {
-            this.addr = addr;
-            this.llvm_type = llvm_type;
-        }
-
-        public IR_instruction ins_pointer = null;//准备为拉链反填做支持,拉链反填的标号将会放在addr处，如果addr为空，那么说明需要通过这个进行反填
     }
 }
 
