@@ -42,26 +42,30 @@ public class Sy_Func implements Sy_Item
             }
             rt_str += func_para_type[i] + " " + params[i];
         }
-        return rt_str;
+        return rt_str+")";
     }
 
-    public String CallFunction(String[] para_type, String[] params)
+    public boolean FunctionCheck(String[] para_type, String[] params)
     {
-        String rt_str = "call" + " " + func_type + " @" + func_name;
+        if (params.length != func_para_type.length)
+        {
+            SemanticErrorHandler.ES04(func_name);
+            return false;
+        }
         if (func_para_type.length != para_type.length)
         {
             SemanticErrorHandler.ES04(func_name);
-            return rt_str;
+            return false;
         }
         for (int i = 0; i < para_type.length; i++)
         {
             if (!para_type[i].equals(func_para_type[i]))
             {
                 SemanticErrorHandler.ES04(func_name);
-                return rt_str;
+                return false;
             }
         }
-        return CallFunction(params);
+        return true;
     }
 
     @Override

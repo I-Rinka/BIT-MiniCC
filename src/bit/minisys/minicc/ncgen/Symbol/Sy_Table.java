@@ -1,5 +1,6 @@
 package bit.minisys.minicc.ncgen.Symbol;
 
+import bit.minisys.minicc.ncgen.IRInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.IRInstruction.IR_branch;
 import bit.minisys.minicc.ncgen.WzcLLVM;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
@@ -55,6 +56,21 @@ public class Sy_Table
         Local_SyT.put(label.GetName(), label);
     }
 
+    public void PutStr(String str_origin, Sy_Str str)
+    {
+        Global_SyT.put(str_origin, str);
+    }
+
+    public Sy_Str GetStr(String str_origin)
+    {
+        Sy_Item str = Global_SyT.get(str_origin);
+        if (str instanceof Sy_Str)
+        {
+            return (Sy_Str) str;
+        }
+        return null;
+    }
+
     public void PutVar(Sy_AtomVar var)
     {
         Now_Scope_SyT.put(var.GetName(), var);
@@ -90,6 +106,16 @@ public class Sy_Table
         if (val instanceof Sy_Label)
         {
             return (Sy_Label) val;
+        }
+        return null;
+    }
+
+    public Sy_Func GetFunction(String func_name)
+    {
+        Sy_Item func = Global_SyT.get(func_name);
+        if (func instanceof Sy_Func)
+        {
+            return (Sy_Func) func;
         }
         return null;
     }

@@ -1,18 +1,34 @@
 package bit.minisys.minicc.ncgen.IRInstruction;
 
+import bit.minisys.minicc.ncgen.IRInfo.FunctionContent;
+import bit.minisys.minicc.ncgen.Symbol.Sy_Func;
+import bit.minisys.minicc.semantic.SemanticErrorHandler;
+
 public class IR_call implements IR_instruction
 {
-    String dest;
+    String dest = null;
     String type;
     String func_name;
-    String para_list = null;
+    String para_list[];
+    Sy_Func target_function;
 
-    public IR_call(String dest, String ltype, String func_name, String para_list)
+    public IR_call(String dest, Sy_Func target_function, String[] para_list)
     {
         this.dest = dest;
-        this.type = ltype;
-        this.func_name = func_name;
+        this.type = target_function.GetLType();
+        this.func_name = target_function.GetName();
         this.para_list = para_list;
+        this.target_function = target_function;
+    }
+
+    public IR_call(String dest, Sy_Func target_function, String[] para_list, String[] para_type)
+    {
+        this.dest = dest;
+        this.type = target_function.GetLType();
+        this.func_name = target_function.GetName();
+        this.para_list = para_list;
+        this.target_function = target_function;
+        target_function.FunctionCheck(para_type, para_list);
     }
 
     @Override
@@ -23,12 +39,8 @@ public class IR_call implements IR_instruction
         {
             rt_str += dest + " = ";
         }
-        rt_str += "call" + " " + type + " " + func_name + "(";
-        if (para_list != null)
-        {
-            rt_str += para_list;
-        }
-        rt_str += ")";
+
+        rt_str += target_function.CallFunction(para_list); //如果参数不对的话，java会在这里报错
         return rt_str;
     }
 }
