@@ -19,14 +19,15 @@ public class Sy_PolyVar implements Sy_Item, Sy_PolyItem
         this.reg_addr = reg_addr;
     }
 
-    public String GetElementPrt(int index)
+    public String GetElementPrt(String index)
     {
         String rt_str = "getelementptr";
         rt_str += " " + GetLType() + ", " + GetLType() + "*" + " " + reg_addr + ", i32 " + self_index + ", i32 " + index;
-        if (index > item_count)
-        {
-            SemanticErrorHandler.ES06();
-        }
+        //todo: 有没有可以看这个字符串是否能转换为int的函数
+//        if (index > item_count)
+//        {
+//            SemanticErrorHandler.ES06();
+//        }
         return rt_str;
     }
 

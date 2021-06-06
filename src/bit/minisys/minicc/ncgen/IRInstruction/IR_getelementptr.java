@@ -5,11 +5,11 @@ import bit.minisys.minicc.ncgen.Symbol.Sy_PolyItem;
 public class IR_getelementptr implements IR_instruction
 {
     Sy_PolyItem get_ptr_sentence;
-    public int offset;
+    public String offset;
     String base;
     String dest;
 
-    public IR_getelementptr(String dest, String base, int offset, Sy_PolyItem polyItem)
+    public IR_getelementptr(String dest, String base, String offset, Sy_PolyItem polyItem)
     {
         this.get_ptr_sentence = polyItem;
         this.base = base;

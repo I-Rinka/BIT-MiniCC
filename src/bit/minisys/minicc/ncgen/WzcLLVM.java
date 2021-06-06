@@ -393,7 +393,7 @@ public class WzcLLVM
         }
 
         False_label = GetRegCount() + "";
-        InsertBranch("%" + False_label);
+        InsertBranch("%" + Start_label);
         InsertTag(False_label);
         if (condition != null)
         {
@@ -446,7 +446,7 @@ public class WzcLLVM
         }
 
         False_label = GetRegCount() + "";
-        InsertBranch("%"+False_label);
+        InsertBranch("%"+Start_label);
         InsertTag(False_label + "");
         if (condition != null)
         {
@@ -690,8 +690,15 @@ public class WzcLLVM
             }
         }
         Sy_PolyVar poly = (Sy_PolyVar) SymbolTable.GetSymbolInfo(array_name);
+
+        String offset=ExpressionHandler(arrayAccess.elements.get(0));
+        if (offset==null)
+        {
+            offset=ConstantHandler(arrayAccess.elements.get(0));
+        }
+
         String reg_addr = GetReg(poly.GetInsideItem().GetLType());
-        InsBuffer.add(new IR_getelementptr(reg_addr, poly.reg_addr, 0, poly));
+        InsBuffer.add(new IR_getelementptr(reg_addr, poly.reg_addr, offset, poly));
 
 //        for (int i = 0; i < access_info.size(); i++)//todo: 查看一下有没有反了的可能
 //        {
@@ -724,7 +731,7 @@ public class WzcLLVM
                 nameless_str_counter++;
             }
             String rt_reg = GetReg("i8*");
-            InsBuffer.add(new IR_getelementptr(rt_reg, str.GetName(), 0, str));
+            InsBuffer.add(new IR_getelementptr(rt_reg, str.GetName(), "0", str));
             //无名字符串: 首先查找，如果没找到，则增加新的。 无名字符串的键：其实是字符串值本身
             return rt_reg;
         }
@@ -911,7 +918,7 @@ public class WzcLLVM
                     InsBuffer.add(new IR_op("%" + GetRegCount(), "add", op_type, val_reg, src2));
                     src2 = "%" + (register_counter - 1);
                 }
-                else if (op.equals("+="))
+                else if (op.equals("-=")) //
                 {
                     String val_reg = ExpressionHandler(thisNode.expr1);
                     InsBuffer.add(new IR_op("%" + GetRegCount(), "sub", op_type, val_reg, src2));

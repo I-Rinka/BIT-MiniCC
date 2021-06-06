@@ -26,7 +26,7 @@ public class Sy_Str implements Sy_Item, Sy_PolyItem
     }
 
     @Override
-    public String GetElementPrt(int index)
+    public String GetElementPrt(String index)
     {
         String type = "[" + char_count + " x " + "i8" + "]";
         return "getelementptr" + " " + type + ", " + type + "* " + "@" + name + ", " + "i32 0, i32 0";
