@@ -452,6 +452,7 @@ public class WzcLLVMIR
             }
         }
         if (isLocal)
+
         {
             //todo: 重复定义
             String addr = "%" + GetRegCount();

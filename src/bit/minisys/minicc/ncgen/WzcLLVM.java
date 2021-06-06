@@ -1,5 +1,6 @@
 package bit.minisys.minicc.ncgen;
 
+import bit.minisys.minicc.icgen.WzcLLVMIR;
 import bit.minisys.minicc.ncgen.IRInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.Symbol.*;
 import bit.minisys.minicc.parser.ast.*;
@@ -445,7 +446,7 @@ public class WzcLLVM
         }
 
         False_label = GetRegCount() + "";
-        InsertBranch(False_label);
+        InsertBranch("%"+False_label);
         InsertTag(False_label + "");
         if (condition != null)
         {
@@ -616,13 +617,12 @@ public class WzcLLVM
                 if (il.exprs.size() > 0)
                 {
                     String store_val = "";
-                    if (il.exprs.get(0) instanceof ASTIntegerConstant)
+
+                    store_val = ExpressionHandler(il.exprs.get(0));
+
+                    if (store_val == null)
                     {
-                        store_val = ((ASTIntegerConstant) il.exprs.get(0)).value.toString();
-                    }
-                    else
-                    {
-                        store_val = ExpressionHandler(il.exprs.get(0));
+                        store_val = ConstantHandler(il.exprs.get(0));
                     }
                     String var = ((ASTVariableDeclarator) il.declarator).identifier.value.toString();
                     var = SymbolTable.GetAtomTypeIDInfo(var).reg_addr;
@@ -631,8 +631,34 @@ public class WzcLLVM
             }
             if (il.declarator instanceof ASTArrayDeclarator)
             {
-
-//                ArrayDeclaratorHandler((ASTArrayDeclarator) il.declarator, ConvertCType2LLVMIR(C_type), true);
+                Stack<Integer> array_dimension = new Stack<>();
+                String array_name = "";
+                ASTArrayDeclarator now_declarator = (ASTArrayDeclarator) il.declarator;
+                while (true)
+                {
+                    array_dimension.push((Integer) ((ASTIntegerConstant) ((ASTArrayDeclarator) now_declarator).expr).value);
+                    if ((now_declarator).declarator instanceof ASTArrayDeclarator)
+                    {
+                        now_declarator = (ASTArrayDeclarator) now_declarator.declarator;
+                    }
+                    else
+                    {
+                        if (now_declarator.declarator instanceof ASTVariableDeclarator)
+                        {
+                            array_name = ((((ASTVariableDeclarator) now_declarator.declarator).identifier).value);
+                        }
+                        break;
+                    }
+                }
+                Sy_PolyVar now_poly = new Sy_PolyVar(null, null, new Sy_AtomVar(null, ConvertCType2LLVMIR(C_type), null), array_dimension.pop());
+                while (!array_dimension.empty())
+                {
+                    now_poly = new Sy_PolyVar(null, null, now_poly, array_dimension.pop());
+                }
+                now_poly.name = array_name;
+                SymbolTable.PutSymbol(now_poly);
+                now_poly.reg_addr = "%" + register_counter;
+                InsBuffer.add(new IR_alloca(GetReg(now_poly.GetLType()), now_poly.GetLType()));
             }
         }
     }
@@ -641,9 +667,39 @@ public class WzcLLVM
     String ArrayAccessHandler(ASTArrayAccess arrayAccess)
     {
         //如果expression是变量，需要分多次访问
-        String rt_reg = "%" + GetRegCount();
+        ASTArrayAccess now_array = arrayAccess;
+        LinkedList<Integer> access_info = new LinkedList<>();
+        String array_name = "";
+        while (true)
+        {
+            if (now_array.elements.get(0) instanceof ASTIntegerConstant)
+            {
+                access_info.push(Integer.valueOf(((ASTIntegerConstant) now_array.elements.get(0)).value.toString()));
+            }
+            if (now_array.arrayName instanceof ASTArrayAccess)
+            {
+                now_array = (ASTArrayAccess) now_array.arrayName;
+            }
+            else
+            {
+                if (now_array.arrayName instanceof ASTIdentifier)
+                {
+                    array_name = ((ASTIdentifier) now_array.arrayName).value.toString();
+                }
+                break;
+            }
+        }
+        Sy_PolyVar poly = (Sy_PolyVar) SymbolTable.GetSymbolInfo(array_name);
+        String reg_addr = GetReg(poly.GetInsideItem().GetLType());
+        InsBuffer.add(new IR_getelementptr(reg_addr, poly.reg_addr, 0, poly));
 
-        return rt_reg;
+//        for (int i = 0; i < access_info.size(); i++)//todo: 查看一下有没有反了的可能
+//        {
+//            InsBuffer.add(new IR_getelementptr(GetReg(poly.GetInsideItem().GetLType()), reg_addr, access_info.get(i), poly));
+//            reg_addr = "%" + (register_counter - 1);
+//
+//        }
+        return reg_addr;
     }
 
     //返回一个常量，或者和这个常量有关的寄存器
@@ -826,9 +882,19 @@ public class WzcLLVM
             ASTBinaryExpression thisNode = (ASTBinaryExpression) expression;
             String op = thisNode.op.value.toString();
             String op_type = "";
-            if (op.equals("=") || op.equals("+="))
+            if (op.equals("=") || op.equals("+=") || op.equals("-="))
             {
-                String src1 = ((ASTIdentifier) thisNode.expr1).value.toString();
+                boolean is_reg = false;
+                String src1 = "";
+                if (thisNode.expr1 instanceof ASTIdentifier)
+                {
+                    src1 = ((ASTIdentifier) thisNode.expr1).value.toString();
+                }
+                else
+                {
+                    src1 = ExpressionHandler(thisNode.expr1);
+                    is_reg = true;
+                }
                 String src2 = ExpressionHandler(thisNode.expr2);
                 if (src2 == null) //constant
                 {
@@ -845,7 +911,20 @@ public class WzcLLVM
                     InsBuffer.add(new IR_op("%" + GetRegCount(), "add", op_type, val_reg, src2));
                     src2 = "%" + (register_counter - 1);
                 }
-                InsBuffer.add(new IR_store(op_type, src2, SymbolTable.GetAtomTypeIDInfo(src1).reg_addr));
+                else if (op.equals("+="))
+                {
+                    String val_reg = ExpressionHandler(thisNode.expr1);
+                    InsBuffer.add(new IR_op("%" + GetRegCount(), "sub", op_type, val_reg, src2));
+                    src2 = "%" + (register_counter - 1);
+                }
+                if (is_reg)
+                {
+                    InsBuffer.add(new IR_store(op_type, src2, src1));
+                }
+                else
+                {
+                    InsBuffer.add(new IR_store(op_type, src2, SymbolTable.GetAtomTypeIDInfo(src1).reg_addr));
+                }
                 return "Assignment";
             }
             else if (op.equals("&&"))//短路

@@ -7,8 +7,9 @@ public class Sy_PolyVar implements Sy_Item, Sy_PolyItem
     Sy_Item inside_Item;
     int item_count = 0;
     public int self_index = 0;
-    String name;
-    String reg_addr;
+    public String name;
+    public String reg_addr;
+    String core_ltype = null;
 
     public Sy_PolyVar(String name, String reg_addr, Sy_Item inside_Item, int repeat_count)
     {
@@ -21,7 +22,7 @@ public class Sy_PolyVar implements Sy_Item, Sy_PolyItem
     public String GetElementPrt(int index)
     {
         String rt_str = "getelementptr";
-        rt_str += " " + GetLType() + ", " + GetLType() + "*" + " " + reg_addr + ", i32 " + self_index + ", i32" + index;
+        rt_str += " " + GetLType() + ", " + GetLType() + "*" + " " + reg_addr + ", i32 " + self_index + ", i32 " + index;
         if (index > item_count)
         {
             SemanticErrorHandler.ES06();
