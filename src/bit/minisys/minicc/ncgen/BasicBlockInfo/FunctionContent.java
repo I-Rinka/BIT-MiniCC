@@ -1,4 +1,4 @@
-package bit.minisys.minicc.ncgen.IRInfo;
+package bit.minisys.minicc.ncgen.BasicBlockInfo;
 
 import bit.minisys.minicc.ncgen.IRInstruction.IR_instruction;
 
@@ -16,5 +16,10 @@ public class FunctionContent
         this.name = func_name;
         this.InsBuffer = InsBuffer;
         this.used_param = used_param;
+    }
+
+    public String GetFunctionIRString()
+    {
+
     }
 }

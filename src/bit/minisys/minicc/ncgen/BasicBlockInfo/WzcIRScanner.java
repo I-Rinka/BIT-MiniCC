@@ -1,8 +1,6 @@
-package bit.minisys.minicc.ncgen;
+package bit.minisys.minicc.ncgen.BasicBlockInfo;
 
-import bit.minisys.minicc.icgen.internal.IRBuilder;
 import bit.minisys.minicc.ncgen.IRInstruction.*;
-import bit.minisys.minicc.pp.internal.H;
 
 import java.util.HashMap;
 import java.util.LinkedList;

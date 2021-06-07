@@ -1,10 +1,6 @@
 package bit.minisys.minicc.ncgen.Symbol;
 
-import bit.minisys.minicc.ncgen.IRInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.IRInstruction.IR_branch;
-import bit.minisys.minicc.ncgen.WzcLLVM;
-import bit.minisys.minicc.semantic.SemanticErrorHandler;
-import org.python.modules._py_compile;
 
 import java.util.HashMap;
 import java.util.Map;

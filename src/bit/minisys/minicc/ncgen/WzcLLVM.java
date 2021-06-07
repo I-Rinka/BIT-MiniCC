@@ -1,12 +1,10 @@
 package bit.minisys.minicc.ncgen;
 
-import bit.minisys.minicc.icgen.WzcLLVMIR;
-import bit.minisys.minicc.ncgen.IRInfo.FunctionContent;
+import bit.minisys.minicc.ncgen.BasicBlockInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.Symbol.*;
 import bit.minisys.minicc.parser.ast.*;
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 import bit.minisys.minicc.ncgen.IRInstruction.*;
-import org.python.antlr.ast.Str;
 
 import java.util.*;
 

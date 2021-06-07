@@ -1,8 +1,6 @@
 package bit.minisys.minicc.ncgen.IRInstruction;
 
-import bit.minisys.minicc.ncgen.IRInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.Symbol.Sy_Func;
-import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
 public class IR_call implements IR_instruction
 {

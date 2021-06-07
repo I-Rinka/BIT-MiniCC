@@ -1,4 +1,4 @@
-package bit.minisys.minicc.ncgen;
+package bit.minisys.minicc.ncgen.BasicBlockInfo;
 
 import bit.minisys.minicc.ncgen.IRInstruction.IR_instruction;
 
