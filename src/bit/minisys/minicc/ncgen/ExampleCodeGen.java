@@ -1,14 +1,7 @@
 package bit.minisys.minicc.ncgen;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import bit.minisys.minicc.MiniCCCfg;
-import bit.minisys.minicc.icgen.internal.IRBuilder;
-import bit.minisys.minicc.icgen.internal.MiniCCICGen;
 import bit.minisys.minicc.internal.util.MiniCCUtil;
-import bit.minisys.minicc.ncgen.IMiniCCCodeGen;
 
 public class ExampleCodeGen implements IMiniCCCodeGen
 {

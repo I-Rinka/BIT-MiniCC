@@ -36,19 +36,13 @@ import java.util.*;
 
 public class WzcLLVM
 {
-
-
-    public String target_data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128";
-    public String target_triple = "x86_64-pc-linux-gnu";
-    String global_declaration = "";
-    String IR_code = "";
     ASTCompilationUnit ASTRoot = null;
 
     //为了有scope的支持，需要使用栈
-    private Sy_Table SymbolTable;
+    private final Sy_Table SymbolTable;
 
     private LinkedList<IR_instruction> InsBuffer;
-    private HashMap<String, String> OperatorMap;
+    private final HashMap<String, String> OperatorMap;
 
     private HashMap<String, String> RegDataBase;
 
@@ -57,7 +51,7 @@ public class WzcLLVM
     String now_function_type_C = null; //用于函数返回类型
 
     //使用break或者continue时的标号
-    private LinkedList<IR_branch> break_statements_buffer;//给break语句的标号进行反填,日后可改成拉链反填
+    private final LinkedList<IR_branch> break_statements_buffer;//给break语句的标号进行反填,日后可改成拉链反填
     private int now_continue_position = 0;
 
     private int register_counter = 0; //虚拟寄存器以及基本块的值
@@ -74,7 +68,32 @@ public class WzcLLVM
         SymbolTable.PutFunctionDec(new Sy_Func("Mars_PrintInt", "void", new String[]{"i32"}));
     }
 
-    void Run()
+    LinkedList<FunctionContent> functions;
+
+    public LinkedList<FunctionContent> GetFunctions()
+    {
+        return functions;
+    }
+
+    public String GetIRCode()
+    {
+        StringBuilder IR_Code = new StringBuilder();
+        //添加global
+        for (FunctionContent function :
+                functions)
+        {
+            IR_Code.append(function.GetFunctionIRString());
+        }
+
+        return IR_Code.toString();
+    }
+
+    void GetGlobalDeclaration()
+    {
+
+    }
+
+    public void Run()
     {
         AddLibFunction();
         for (ASTNode item : ASTRoot.items)
@@ -86,7 +105,7 @@ public class WzcLLVM
             }
             else if (item instanceof ASTFunctionDefine)
             {
-                FunctionHandler((ASTFunctionDefine) item);
+                functions.add(FunctionHandler((ASTFunctionDefine) item));
             }
         }
     }
@@ -200,14 +219,15 @@ public class WzcLLVM
             String para_type = TypeSpecifierListHandler(para.specfiers);
             if (para.declarator instanceof ASTVariableDeclarator)
             {
-                GetReg(ConvertCType2LLVMIR(para_type));
+                params_for_FunctionContent.add(GetReg(ConvertCType2LLVMIR(para_type)));
                 if (!para_string.toString().equals(""))
                 {
                     para_string.append(", ");
                 }
-                para_string.append(ConvertCType2LLVMIR(para_type)).append(" ").append("%" + (register_counter - 1));
+                para_string.append(ConvertCType2LLVMIR(para_type)).append(" ").append("%").append(register_counter - 1);
             }
         }
+        FunctionContent rt_value = new FunctionContent(func_name, InsBuffer, params_for_FunctionContent);
 
         GetRegCount(); //函数基本块起点
 
@@ -229,14 +249,16 @@ public class WzcLLVM
         }
         func_out_header += para_string;
         func_out_header += ") #0 {\n";
-        IR_code += func_out_header;
 
+        rt_value.head_str = func_out_header;
+//        IR_code += func_out_header;
         //注册当前函数
         SymbolTable.PutFunctionDec(new Sy_Func(func_name, ConvertCType2LLVMIR(now_function_type_C), para_types));
 
-        //真正执行CompoundStatement中的指令
+        //真正执行CompoundStatement中指令收集
         CompoundStatementHandler(functionDefine.body);
 
+        //函数不含return
         if (!now_function_return_exist)
         {
             SemanticErrorHandler.ES08(func_name);
@@ -251,11 +273,11 @@ public class WzcLLVM
             }
         }
 
-        //输出符号
+        // 找不存在的label
         for (IR_instruction instruction :
                 InsBuffer)
         {
-            IR_code += "  " + instruction.toString() + "\n";
+//            IR_code += "  " + instruction.toString() + "\n";
             if (instruction instanceof IR_branch) //未填goto
             {
                 IR_branch branch = (IR_branch) instruction;
@@ -269,13 +291,11 @@ public class WzcLLVM
             }
         }
 
-        IR_code += "}\n";
-
         now_function_type_C = null;
         now_function_return_exist = false;
         this.register_counter = 0;
 
-        return new FunctionContent(func_name, InsBuffer, params_for_FunctionContent);
+        return rt_value;
     }
 
     void CompoundStatementHandler(ASTCompoundStatement compoundStatement)
@@ -457,7 +477,6 @@ public class WzcLLVM
         }
     }
 
-    //todo 基本块的标号应该怎么处理
     void BreakStatementHandler(ASTBreakStatement breakStatement)
     {
         IR_branch break_statement = InsertBranch((String) null);
@@ -563,7 +582,6 @@ public class WzcLLVM
     }
 
     //查上一条指令是不是tag，如果是的话，需要加入一条无意义的branch
-    //label不要带%！
     void InsertTag(String label_no_prefix)
     {
         if (InsBuffer.size() > 0 && InsBuffer.getLast() instanceof IR_tag)//上一条指令也是label
@@ -661,7 +679,6 @@ public class WzcLLVM
         }
     }
 
-    //todo: 变量数组访问
     String ArrayAccessHandler(ASTArrayAccess arrayAccess)
     {
         //如果expression是变量，需要分多次访问
@@ -1083,15 +1100,6 @@ public class WzcLLVM
         return "unknownType";
     }
 
-    public String GetResult()
-    {
-        Run();
-        return "target datalayout = \"" + target_data_layout + "\"\n" +
-                "target triple = \"" + target_triple + "\"\n" +
-                global_declaration + "\n" +
-                IR_code;
-    }
-
     int GetRegCount()
     {
         int t = this.register_counter;
@@ -1110,11 +1118,10 @@ public class WzcLLVM
     {
         this.ASTRoot = ASTNode;
         this.SymbolTable = new Sy_Table();
-
         this.break_statements_buffer = new LinkedList<>();
-
+        functions = new LinkedList<>();
+        // global
         this.InsBuffer = new LinkedList<>();
-
         OperatorMap = new HashMap<>();
         //构造运算符的映射
         OperatorMap.put("+", "add");
@@ -1125,4 +1132,3 @@ public class WzcLLVM
         OperatorMap.put("%", "srem");
     }
 }
-
