@@ -8,7 +8,7 @@ public class Sy_Func implements Sy_Item
     String func_type = null;
     public int params_number = 0;
 
-    String[] func_para_type;
+    public String[] func_para_type;
 
     public Sy_Func(String name, String func_rt_ltype)
     {
@@ -42,7 +42,7 @@ public class Sy_Func implements Sy_Item
             }
             rt_str += func_para_type[i] + " " + params[i];
         }
-        return rt_str+")";
+        return rt_str + ")";
     }
 
     public boolean FunctionCheck(String[] para_type, String[] params)

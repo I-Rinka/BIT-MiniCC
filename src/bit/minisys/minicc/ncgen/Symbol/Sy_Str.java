@@ -3,7 +3,7 @@ package bit.minisys.minicc.ncgen.Symbol;
 public class Sy_Str implements Sy_Item, Sy_PolyItem
 {
     String name;
-    String content;
+    public String content;
     int char_count;
 
     public Sy_Str(int nameless_count, String str_content)
@@ -26,7 +26,7 @@ public class Sy_Str implements Sy_Item, Sy_PolyItem
     }
 
     @Override
-    public String GetElementPrt(String index,String base)
+    public String GetElementPrt(String index, String base)
     {
         String type = "[" + char_count + " x " + "i8" + "]";
         return "getelementptr" + " " + type + ", " + type + "* " + "@" + name + ", " + "i32 0, i32 0";

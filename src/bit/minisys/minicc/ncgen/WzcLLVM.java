@@ -60,12 +60,11 @@ public class WzcLLVM
 
     private boolean is_condition_expression = false;//条件判断expression的行为有些不一样
 
+    private final LinkedList<IR_instruction> Global_declar;
 
-    void AddLibFunction()
+    public void AddLibFunction(Sy_Func func)
     {
-        SymbolTable.PutFunctionDec(new Sy_Func("Mars_PrintStr", "void", new String[]{"i8*"}));
-        SymbolTable.PutFunctionDec(new Sy_Func("Mars_GetInt", "i32", new String[]{}));
-        SymbolTable.PutFunctionDec(new Sy_Func("Mars_PrintInt", "void", new String[]{"i32"}));
+        SymbolTable.PutFunctionDec(func);
     }
 
     LinkedList<FunctionContent> functions;
@@ -78,6 +77,12 @@ public class WzcLLVM
     public String GetIRCode()
     {
         StringBuilder IR_Code = new StringBuilder();
+        for (IR_instruction dec :
+                Global_declar)
+        {
+            IR_Code.append(dec.toString());
+        }
+
         //添加global
         for (FunctionContent function :
                 functions)
@@ -88,14 +93,13 @@ public class WzcLLVM
         return IR_Code.toString();
     }
 
-    void GetGlobalDeclaration()
+    LinkedList<IR_instruction> GetGlobalDeclaration()
     {
-
+        return Global_declar;
     }
 
     public void Run()
     {
-        AddLibFunction();
         for (ASTNode item : ASTRoot.items)
         {
             if (item instanceof ASTDeclaration)
@@ -747,6 +751,7 @@ public class WzcLLVM
             if (str == null)
             {
                 str = new Sy_Str(nameless_str_counter, stringConstant.value.toString());
+                Global_declar.add(new IR_gobal_strdec(str));
                 SymbolTable.PutStr(stringConstant.value.toString(), str);
                 nameless_str_counter++;
             }
@@ -1122,6 +1127,8 @@ public class WzcLLVM
         functions = new LinkedList<>();
         // global
         this.InsBuffer = new LinkedList<>();
+
+        this.Global_declar = new LinkedList<>();
         OperatorMap = new HashMap<>();
         //构造运算符的映射
         OperatorMap.put("+", "add");
