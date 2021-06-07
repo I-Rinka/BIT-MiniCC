@@ -20,6 +20,6 @@ public class IR_getelementptr implements IR_instruction
     @Override
     public String toString()
     {
-        return dest + " = " + get_ptr_sentence.GetElementPrt(offset);
+        return dest + " = " + get_ptr_sentence.GetElementPrt(offset,base);
     }
 }

@@ -2,6 +2,9 @@ package bit.minisys.minicc.ncgen.Symbol;
 
 import bit.minisys.minicc.semantic.SemanticErrorHandler;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Sy_PolyVar implements Sy_Item, Sy_PolyItem
 {
     Sy_Item inside_Item;
@@ -19,15 +22,30 @@ public class Sy_PolyVar implements Sy_Item, Sy_PolyItem
         this.reg_addr = reg_addr;
     }
 
-    public String GetElementPrt(String index)
+    public static boolean isNumeric(String str)
+    {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum = pattern.matcher(str);
+        if (!isNum.matches())
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public String GetElementPrt(String index, String base)
     {
         String rt_str = "getelementptr";
-        rt_str += " " + GetLType() + ", " + GetLType() + "*" + " " + reg_addr + ", i32 " + self_index + ", i32 " + index;
+        rt_str += " " + GetLType() + ", " + GetLType() + "*" + " " + base + ", i32 " + self_index + ", i32 " + index;
         //todo: 有没有可以看这个字符串是否能转换为int的函数
-//        if (index > item_count)
-//        {
-//            SemanticErrorHandler.ES06();
-//        }
+        if (isNumeric(index))
+        {
+            if (Integer.parseInt(index) >= item_count)
+            {
+                SemanticErrorHandler.ES06();
+            }
+        }
+
         return rt_str;
     }
 

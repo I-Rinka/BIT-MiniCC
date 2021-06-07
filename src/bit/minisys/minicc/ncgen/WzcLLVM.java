@@ -26,7 +26,7 @@ import java.util.*;
     1. 全局变量声明 ✅
     2. 局部变量声明 ✅
     3. 递归作用域 ✅
-    4. 无名字符串
+    4. 无名字符串 ✅
     6. 函数调用 ✅
     7. 运算操作 ✅
     8. 循环语句 ✅
@@ -446,7 +446,7 @@ public class WzcLLVM
         }
 
         False_label = GetRegCount() + "";
-        InsertBranch("%"+Start_label);
+        InsertBranch("%" + Start_label);
         InsertTag(False_label + "");
         if (condition != null)
         {
@@ -668,13 +668,13 @@ public class WzcLLVM
     {
         //如果expression是变量，需要分多次访问
         ASTArrayAccess now_array = arrayAccess;
-        LinkedList<Integer> access_info = new LinkedList<>();
+        LinkedList<ASTExpression> access_info = new LinkedList<>(); //访存得改成expression
         String array_name = "";
         while (true)
         {
-            if (now_array.elements.get(0) instanceof ASTIntegerConstant)
+            if (now_array.elements != null && now_array.elements.get(0) != null)
             {
-                access_info.push(Integer.valueOf(((ASTIntegerConstant) now_array.elements.get(0)).value.toString()));
+                access_info.push(now_array.elements.get(0));
             }
             if (now_array.arrayName instanceof ASTArrayAccess)
             {
@@ -690,22 +690,27 @@ public class WzcLLVM
             }
         }
         Sy_PolyVar poly = (Sy_PolyVar) SymbolTable.GetSymbolInfo(array_name);
+        String offset = "";
+        String now_base = poly.reg_addr;
 
-        String offset=ExpressionHandler(arrayAccess.elements.get(0));
-        if (offset==null)
+        String reg_addr = null;
+        for (int i = 0; i < access_info.size(); i++)
         {
-            offset=ConstantHandler(arrayAccess.elements.get(0));
+
+            offset = ExpressionHandler(access_info.get(i));
+            if (offset == null)
+            {
+                offset = ConstantHandler(access_info.get(i));//可以在这里查它是不是不是整形
+
+            }
+            reg_addr = GetReg(poly.GetInsideItem().GetLType());
+            InsBuffer.add(new IR_getelementptr(reg_addr, now_base, offset, poly));
+            if (poly.GetInsideItem() instanceof Sy_PolyVar) //给下一个复合变量做准备
+            {
+                poly = (Sy_PolyVar) poly.GetInsideItem();
+                now_base = "%" + (register_counter - 1);
+            }
         }
-
-        String reg_addr = GetReg(poly.GetInsideItem().GetLType());
-        InsBuffer.add(new IR_getelementptr(reg_addr, poly.reg_addr, offset, poly));
-
-//        for (int i = 0; i < access_info.size(); i++)//todo: 查看一下有没有反了的可能
-//        {
-//            InsBuffer.add(new IR_getelementptr(GetReg(poly.GetInsideItem().GetLType()), reg_addr, access_info.get(i), poly));
-//            reg_addr = "%" + (register_counter - 1);
-//
-//        }
         return reg_addr;
     }
 
@@ -1115,8 +1120,7 @@ public class WzcLLVM
         OperatorMap = new HashMap<>();
         //构造运算符的映射
         OperatorMap.put("+", "add");
-        OperatorMap.put("-", "sub" +
-                "");
+        OperatorMap.put("-", "sub");
         OperatorMap.put("*", "mul");
         OperatorMap.put("/", "sdiv");
         OperatorMap.put("<<", "shl");
