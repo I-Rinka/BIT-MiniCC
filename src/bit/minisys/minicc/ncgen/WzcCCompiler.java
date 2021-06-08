@@ -1,7 +1,7 @@
 package bit.minisys.minicc.ncgen;
 
-import bit.minisys.minicc.MiniCCCfg;
 import bit.minisys.minicc.internal.util.MiniCCUtil;
+import bit.minisys.minicc.ncgen.RISCV.RVMaker;
 import bit.minisys.minicc.ncgen.Symbol.Sy_Func;
 import bit.minisys.minicc.parser.ast.ASTCompilationUnit;
 
@@ -32,6 +32,14 @@ public class WzcCCompiler
             ir_gen.AddLibFunction(new Sy_Func("Mars_PrintInt", "void", new String[]{"i32"}));
 
             ir_gen.Run();
+
+            System.out.println("IR Outputes in " + MiniCCUtil.removeAllExt(OutFile_Path) + ".ll");
+            ir_gen.GetIRCode();
+            System.out.println("Compiled Code path: " + OutFile_Path);
+            FileOutputStream fileOutputStreamll = new FileOutputStream(MiniCCUtil.removeAllExt(OutFile_Path) + ".ll");
+            fileOutputStreamll.write(ir_gen.GetIRCode().getBytes());
+            fileOutputStreamll.close();
+
 
             WzcTargetMaker maker = null;
 

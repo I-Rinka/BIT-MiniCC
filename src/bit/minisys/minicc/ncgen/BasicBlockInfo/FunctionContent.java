@@ -11,8 +11,8 @@ public class FunctionContent
     public String name;
     public String ltype;
     public String head_str;
+    public LinkedList<String> used_param;
     LinkedList<IR_instruction> InsBuffer;
-    LinkedList<String> used_param;
 
     public FunctionContent(String func_name, LinkedList<IR_instruction> InsBuffer, LinkedList<String> used_param)
     {

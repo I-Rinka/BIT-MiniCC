@@ -37,6 +37,7 @@ public class WzcIRScanner //todo: 扫描基本块信息。信息既能被编译�
             {
                 BasicBlocks.add(new BasicBlock());
                 BasicBlocks.getLast().tag = ((IR_tag) instruct).target_label;
+                BasicBlocks.getLast().DAGS.add(((IR_tag) instruct));
                 tagToBasicBlock.put(BasicBlocks.getLast().tag, BasicBlocks.getLast());
             }
             else if (instruct instanceof IR_branch)
@@ -94,7 +95,7 @@ public class WzcIRScanner //todo: 扫描基本块信息。信息既能被编译�
             {
                 break;
             }
-            BasicBlock block = block_traverse.pop();
+            BasicBlock block = block_traverse.pollFirst();
             hasVisited.put(block, true);
 
             HashMap<String, Integer> VRegRleaseLine = new HashMap<>();
@@ -148,7 +149,6 @@ public class WzcIRScanner //todo: 扫描基本块信息。信息既能被编译�
                     {
 //                        VRegRleaseLine.put(((IR_alloca) instruction).dest, 0); alloca的寄存器不应该被释放，因为它直接是地址
                         block.DEF_live_reg.add(((IR_alloca) instruction).dest);
-                        AllocaRegOffset.put(((IR_alloca) instruction).dest, FuncAllocaCount); //如果alloca的是复合类型，那么需要增加复合类型的栈空间
                         if (((IR_alloca) instruction).type.contains("["))
                         {
                             LinkedList<Integer> size_info = GetPolyTypeSizeInfo(((IR_alloca) instruction).type);
@@ -159,10 +159,12 @@ public class WzcIRScanner //todo: 扫描基本块信息。信息既能被编译�
                                 size *= sz;
                             }
                             FuncAllocaCount += size;
+                            AllocaRegOffset.put(((IR_alloca) instruction).dest, FuncAllocaCount); //如果alloca的是复合类型，那么需要增加复合类型的栈空间
                         }
                         else
                         {
                             FuncAllocaCount++;
+                            AllocaRegOffset.put(((IR_alloca) instruction).dest, FuncAllocaCount); //如果alloca的是复合类型，那么需要增加复合类型的栈空间
                         }
                     }
                 }

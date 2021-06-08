@@ -1,30 +1,26 @@
-void perfectNumber(int n){
-	int p[80];  //淇濆瓨鍒嗚В鐨勫洜瀛�
-	int i,num,count,s,c = 0;
-	for(num = 2; num < n; num++)
-	{
-		count = 0;
-		s = num;
-		for(i = 1; i < num/2+1; i++)      //寰幆澶勭悊姣忎釜鏁�
-		{
-			if(num % i == 0)          //鑳借i鏁撮櫎
-			{
-				p[count++]  = i;      //淇濆瓨鍥犲瓙锛岃璁℃暟鍣╟ount澧炲姞1
-				s -= i;               //鍑忓幓涓�涓洜瀛�
+int prime(int n){
+	int sum = 0;
+	int i,j,flag = 1;
+	for(i = 2; i<=n; i++){
+		flag = 1;
+		for(j = 2; j*j <= i; j++){
+			if(i%j == 0){
+				flag = 0;
+				break;
 			}
 		}
-		if( 0 == s)
-		{
-			Mars_PrintInt(num);
-			c++;
+		if(flag == 1){
+			sum ++;
+			Mars_PrintInt(i);
 		}
 	}
-//	Mars_PrintStr("The sum is :\n");
-	Mars_PrintInt(c);
-	return ;
+	return sum;
 }
 int main(){
-//	Mars_PrintStr("All perfect numbers within 100:\n");	// A perfect number is a number equal to the sum of its factors
-	perfectNumber(100);
+	Mars_PrintStr("Please input a number:\n");
+	int n = Mars_GetInt();
+	int res = prime(n);
+	Mars_PrintStr("The number of prime numbers within n is:\n");
+	Mars_PrintInt(res);
     return 0;
 }

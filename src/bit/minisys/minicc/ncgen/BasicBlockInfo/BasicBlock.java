@@ -2,6 +2,7 @@ package bit.minisys.minicc.ncgen.BasicBlockInfo;
 
 import bit.minisys.minicc.ncgen.IRInstruction.IR_instruction;
 
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -22,6 +23,11 @@ public class BasicBlock
     LinkedHashSet<String> USE_live_reg;
 
     HashMap<String, Integer> VRegReleaseLine;//对应在当前DAG的行号 应该释放的行号：虚拟寄存器在右值最后一次出现。当在行号内却不释放的情况：此虚拟寄存器在基本块的出口处
+
+    public HashMap<String, Integer> GetRegReleaseInfo()
+    {
+        return VRegReleaseLine;
+    }
 
     public BasicBlock()
     {

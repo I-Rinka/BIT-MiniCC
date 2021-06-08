@@ -14,7 +14,7 @@ public class IR_gobal_strdec implements IR_instruction
     @Override
     public String toString()
     {
-        return "@" + str.GetName() + " = " + str.GetLType() + " " + "\"" + str.content + "\"";
+        return "@" + str.GetName() + " = " + str.GetLType() + " " + str.content + "\n";
     }
 
     int GetLen()
