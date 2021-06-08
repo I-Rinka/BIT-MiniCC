@@ -1,8 +1,6 @@
 package bit.minisys.minicc.ncgen.BasicBlockInfo;
 
-import bit.minisys.minicc.ncgen.IRInstruction.IR_branch;
-import bit.minisys.minicc.ncgen.IRInstruction.IR_instruction;
-import bit.minisys.minicc.semantic.SemanticErrorHandler;
+import bit.minisys.minicc.ncgen.IR.IRInstruction.IR_instruction;
 
 import java.util.LinkedList;
 

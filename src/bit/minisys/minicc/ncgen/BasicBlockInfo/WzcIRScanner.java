@@ -1,13 +1,7 @@
 package bit.minisys.minicc.ncgen.BasicBlockInfo;
 
-import bit.minisys.minicc.ncgen.IRInstruction.*;
+import bit.minisys.minicc.ncgen.IR.IRInstruction.*;
 import bit.minisys.minicc.ncgen.Util.JudgeConstant;
-import bit.minisys.minicc.pp.internal.H;
-import bit.minisys.minicc.pp.internal.L;
-import bit.minisys.minicc.pp.internal.P;
-import org.antlr.runtime.UnwantedTokenException;
-import org.python.antlr.op.In;
-import org.python.indexer.ast.NReturn;
 
 import java.util.Arrays;
 import java.util.HashMap;

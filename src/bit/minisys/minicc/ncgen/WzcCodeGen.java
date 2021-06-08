@@ -32,7 +32,6 @@ public class WzcCodeGen implements IMiniCCCodeGen
 
         System.out.println("7. Target code generation finished!");
 
-        oFile="test/nc_tests/riscv1.asm";
         return oFile;
     }
 }

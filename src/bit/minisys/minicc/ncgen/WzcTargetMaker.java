@@ -1,7 +1,6 @@
 package bit.minisys.minicc.ncgen;
 
-import bit.minisys.minicc.ncgen.BasicBlockInfo.FunctionContent;
-import bit.minisys.minicc.ncgen.IRInstruction.IR_instruction;
+import bit.minisys.minicc.ncgen.IR.IRInstruction.IR_instruction;
 
 import java.util.LinkedList;
 

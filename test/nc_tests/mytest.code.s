@@ -1,56 +1,58 @@
-
 main:
-t0t0
-sw t0,-12(fp)
-t0t0
-sw t0,-16(fp)
-li a7,10
-ecall
-
+  mv a0,t0
+  call Mars_PrintStr
+  call Mars_GetInt
+  sw a0,-8(fp)
+  lw t1,-8(fp)
+  mv a0,t1
+  call prime
+  sw a0,-12(fp)
+  mv a0,t1
+  call Mars_PrintStr
+  lw t2,-12(fp)
+  mv a0,t2
+  call Mars_PrintInt
 prime:
-sw null,-12(fp)
-li t0,0
-sw t0,-16(fp)
-li t0,1
-sw t0,-28(fp)
-li t0,2
-sw t0,-20(fp)
-jal x0,.L7
-.L7:
-bgt null,null,.L40
-.L11:
-li t0,1
-sw t0,-28(fp)
-li t0,2
-sw t0,-24(fp)
-jal x0,.L12
-.L12:
-mul t0,null,null
-bgt null,null,.L29
-.L18:
-null t0,null,null
-null t0,null,.L25
-.L23:
-li t0,0
-sw t0,-28(fp)
-jal x0,.L29
+  sw a0,-20(fp)
+  sw zero,-24(fp)
+  addi t0,zero,1
+  sw t0,-36(fp)
+  addi t0,zero,2
+  sw t0,-28(fp)
+  lw t0,-28(fp)
+  lw t0,-20(fp)
+  bgt t0,t0,.L40
+  addi t0,zero,1
+  sw t0,-36(fp)
+  addi t0,zero,2
+  sw t0,-32(fp)
+  lw t0,-32(fp)
+  lw t0,-32(fp)
+  mul t0,t0,t0
+  lw t0,-28(fp)
+  bgt t0,t0,.L29
+  lw t0,-28(fp)
+  lw t0,-32(fp)
+  rem t0,t0,t0
+  bne t0,zero,.L25
+  sw zero,-36(fp)
 .L25:
-jal x0,.L26
-.L26:
-addi t0,null,1
-sw t0,-24(fp)
-jal x0,.L12
+  lw t0,-32(fp)
+  addi t0,t0,1
+  sw t0,-32(fp)
 .L29:
-null null,null,.L36
-.L32:
-addi t0,null,1
-sw t0,-16(fp)
-jal x0,.L36
+  lw t0,-36(fp)
+  addi t0,zero,1
+  bne t0,t0,.L36
+  lw t0,-24(fp)
+  addi t0,t0,1
+  sw t0,-24(fp)
+  lw t0,-28(fp)
+  mv a0,t0
+  call Mars_PrintInt
 .L36:
-jal x0,.L37
-.L37:
-addi t0,null,1
-sw t0,-20(fp)
-jal x0,.L7
+  lw t0,-28(fp)
+  addi t0,t0,1
+  sw t0,-28(fp)
 .L40:
-提升栈帧ret
+  lw t0,-24(fp)

@@ -1,8 +1,8 @@
 package bit.minisys.minicc.ncgen;
 
 import bit.minisys.minicc.internal.util.MiniCCUtil;
-import bit.minisys.minicc.ncgen.RISCV.RVMaker;
-import bit.minisys.minicc.ncgen.Symbol.Sy_Func;
+import bit.minisys.minicc.ncgen.ISA.RISCV.RVMaker;
+import bit.minisys.minicc.ncgen.IR.Symbol.Sy_Func;
 import bit.minisys.minicc.parser.ast.ASTCompilationUnit;
 
 import java.io.FileOutputStream;
@@ -35,7 +35,6 @@ public class WzcCCompiler
 
             System.out.println("IR Outputes in " + MiniCCUtil.removeAllExt(OutFile_Path) + ".ll");
             ir_gen.GetIRCode();
-            System.out.println("Compiled Code path: " + OutFile_Path);
             FileOutputStream fileOutputStreamll = new FileOutputStream(MiniCCUtil.removeAllExt(OutFile_Path) + ".ll");
             fileOutputStreamll.write(ir_gen.GetIRCode().getBytes());
             fileOutputStreamll.close();
