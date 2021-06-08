@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 public class BasicBlock
 {
-    String tag;
+    public String tag;
     public LinkedList<IR_instruction> DAGS;
     LinkedList<String> out_edge;
     LinkedList<String> in_edge;
