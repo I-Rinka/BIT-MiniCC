@@ -4,10 +4,10 @@ import bit.minisys.minicc.ncgen.Symbol.Sy_Func;
 
 public class IR_call implements IR_instruction
 {
-    String dest = null;
+    public String dest = null;
     String type;
     String func_name;
-    String para_list[];
+    public String[] para_list;
     Sy_Func target_function;
 
     public IR_call(String dest, Sy_Func target_function, String[] para_list)

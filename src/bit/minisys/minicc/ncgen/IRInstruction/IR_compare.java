@@ -5,8 +5,8 @@ public class IR_compare implements IR_instruction
     String dest;
     String op;
     String type;
-    String src1;
-    String src2;
+    public String src1;
+    public String src2;
     public IR_compare(String dest,String op,String ltype,String src1,String src2)
     {
         this.dest=dest;

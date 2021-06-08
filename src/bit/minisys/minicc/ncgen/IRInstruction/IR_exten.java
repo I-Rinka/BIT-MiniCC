@@ -1,13 +1,13 @@
 package bit.minisys.minicc.ncgen.IRInstruction;
 
-public class IR_ext implements IR_instruction
+public class IR_exten implements IR_instruction
 {
     String dest;
     String op;
     String src_type;
     String src;
     String target_type;
-    public IR_ext(String dest,String op,String src_ltype,String src,String target_ltype)
+    public IR_exten(String dest, String op, String src_ltype, String src, String target_ltype)
     {
         this.dest=dest;
         this.op=op;

@@ -3,8 +3,8 @@ package bit.minisys.minicc.ncgen.IRInstruction;
 public class IR_store implements IR_instruction
 {
     String type;
-    String src;
-    String dest;
+    public String src;
+    public String dest;
     public String postfix;
 
     public IR_store(String type, String src, String dest)

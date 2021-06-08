@@ -893,7 +893,7 @@ public class WzcLLVM
                     {
                         InsBuffer.add(new IR_op(GetReg("i1"), "xor", "i1", "%" + (register_counter - 2), "true"));
                         rt_reg = GetReg(op_type);
-                        InsBuffer.add(new IR_ext(rt_reg, "zext", "i1", "%" + (register_counter - 2), op_type));
+                        InsBuffer.add(new IR_exten(rt_reg, "zext", "i1", "%" + (register_counter - 2), op_type));
                     }
                     break;
                 case "~":

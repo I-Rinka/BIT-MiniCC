@@ -32,4 +32,9 @@ public class FunctionContent
         }
         return out_str + "}\n";
     }
+
+    public LinkedList<IR_instruction> GetFunctionInstruction()
+    {
+        return InsBuffer;
+    }
 }

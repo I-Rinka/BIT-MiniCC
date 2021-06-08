@@ -2,8 +2,8 @@ package bit.minisys.minicc.ncgen.IRInstruction;
 
 public class IR_alloca implements IR_instruction
 {
-    String dest;
-    String type;
+    public String dest;
+    public String type;
     public String postfix = null;
 
     public IR_alloca(String dest, String ltype)

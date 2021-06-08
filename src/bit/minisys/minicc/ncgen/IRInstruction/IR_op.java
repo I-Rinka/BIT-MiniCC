@@ -2,12 +2,12 @@ package bit.minisys.minicc.ncgen.IRInstruction;
 
 public class IR_op implements IR_instruction
 {
-    String dest;
-    String op;
+    public String dest;
+    public String op;
     public String prefix1 = null;
     String type;
-    String src1;
-    String src2;
+    public String src1;
+    public String src2;
     public String postfix = null;
 
     public IR_op(String dest, String op, String ltype, String src1, String src2)
@@ -23,7 +23,7 @@ public class IR_op implements IR_instruction
     public String toString()
     {
         String rt_str = "";
-        rt_str += dest + " " + "=" + " " + op+" ";
+        rt_str += dest + " " + "=" + " " + op + " ";
         if (prefix1 != null)
         {
             rt_str += prefix1 + " ";
