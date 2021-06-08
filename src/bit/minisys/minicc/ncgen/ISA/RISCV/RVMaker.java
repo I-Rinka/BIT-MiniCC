@@ -1,12 +1,16 @@
 package bit.minisys.minicc.ncgen.ISA.RISCV;
 
+import bit.minisys.minicc.icgen.internal.IRBuilder;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.BasicBlock;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.WzcIRScanner;
 import bit.minisys.minicc.ncgen.IR.IRInstruction.*;
+import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyItem;
+import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyVar;
 import bit.minisys.minicc.ncgen.ISA.RISCV.instructions.*;
 import bit.minisys.minicc.ncgen.Util.JudgeConstant;
 import bit.minisys.minicc.ncgen.WzcTargetMaker;
+import bit.minisys.minicc.pp.internal.R;
 
 import java.util.*;
 
@@ -21,6 +25,7 @@ public class RVMaker implements WzcTargetMaker
     PriorityQueue<Integer> SReg;
     HashMap<String, String> V2P_Reg_Map;//虚拟寄存器到物理寄存器的映射
 
+    int NOW_USED_S_REG = 1;
     LinkedList<RV_instruction> NOW_FUNC_CODE;
     LinkedList<String> NOW_USING_V_Reg;
     int NOW_FRAME_SIZE = 0;
@@ -39,12 +44,25 @@ public class RVMaker implements WzcTargetMaker
             }
             else
             {
-                return "s" + SReg.poll(); // todo: 栈帧增加,抛弃处理
+                if (!SReg.isEmpty())
+                {
+                    NOW_FRAME_SIZE += 4;
+                    NOW_USED_S_REG++;//Sreg要在开头压栈
+                    return "s" + SReg.poll();
+                }
+                else //Spill,抛弃处理
+                {
+                    NOW_FRAME_SIZE += 4;
+                    NOW_FUNC_CODE.add(new RV_store(V2P_Reg_Map.get(NOW_USING_V_Reg.peek()), "fp", -NOW_FRAME_SIZE));
+                    V2P_Reg_Map.replace(NOW_USING_V_Reg.peek(), "-" + NOW_FRAME_SIZE);
+                    ReleaseReg(V2P_Reg_Map.get(NOW_USING_V_Reg.pop()));
+                    return GetReg();
+                }
             }
         }
     }
 
-    String GetReg(String V_Reg) //先不考虑spill
+    String GetReg(String V_Reg)
     {
         NOW_USING_V_Reg.add(V_Reg);
         if (JudgeConstant.isNumeric(V_Reg))
@@ -281,9 +299,14 @@ public class RVMaker implements WzcTargetMaker
                     Tag2Print.add(".L" + branch.false_dest.substring(1));
                 }
 
-                else if (instruction instanceof IR_branch)
+                else if (instruction instanceof IR_branch)//无条件跳转
                 {
-
+                    IR_branch branch = (IR_branch) instruction;
+                    if (!branch.is_conditional)
+                    {
+                        NOW_FUNC_CODE.add(new RV_jmp(".L" + branch.dest.substring(1)));
+                        Tag2Print.add(".L" + branch.dest.substring(1));
+                    }
                 }
 
                 else if (instruction instanceof IR_tag)
@@ -294,11 +317,24 @@ public class RVMaker implements WzcTargetMaker
                 else if (instruction instanceof IR_getelementptr)
                 {
                     //todo: search poly item's type
+                    IR_getelementptr getelementptr = (IR_getelementptr) instruction;
+                    if (getelementptr.get_ptr_sentence instanceof Sy_PolyVar)
+                    {
+
+                    }
+                    else
+                    {
+                        //字符串
+                    }
 
                 }
 
-                else if (instruction instanceof IR_ret) //todo: change support
+                else if (instruction instanceof IR_ret)
                 {
+                    NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE - 4));
+                    NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE - 8));
+                    NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE));
+
                     NOW_FUNC_CODE.add(new RV_ret());
                 }
             }
@@ -306,6 +342,18 @@ public class RVMaker implements WzcTargetMaker
 
         StringBuilder rt_str = new StringBuilder();
         rt_str.append(functionContent.name).append(":").append("\n");
+        //栈帧初始化
+        NOW_FUNC_CODE.push(new RV_addi("fp", "sp", NOW_FRAME_SIZE));
+
+        for (int i = 1; i < NOW_USED_S_REG; i++)
+        {
+            NOW_FUNC_CODE.push(new RV_store("s" + i, "sp", NOW_FRAME_SIZE - 4 * (i + 2)));
+        }
+
+        NOW_FUNC_CODE.push(new RV_store("fp", "sp", NOW_FRAME_SIZE - 8));
+        NOW_FUNC_CODE.push(new RV_store("ra", "sp", NOW_FRAME_SIZE - 4));
+        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -NOW_FRAME_SIZE));
+
         for (RV_instruction ins :
                 NOW_FUNC_CODE)
         {
@@ -321,7 +369,7 @@ public class RVMaker implements WzcTargetMaker
                 rt_str.append("  ").append(ins.toString());
             }
         }
-        return rt_str.toString();
+        return rt_str.toString()+"\n";
     }
 
     /*
@@ -334,7 +382,6 @@ public class RVMaker implements WzcTargetMaker
         return null;
     }
 
-
     String Lib_Function = "";
 
     public void AddLibFunctionBody(String body)
@@ -345,8 +392,29 @@ public class RVMaker implements WzcTargetMaker
     @Override
     public String GetTargetCode()
     {
+        //todo: 这个只是临时支持
+        String lib_rv = "" +
+                "Mars_PrintStr:\n" +
+//                "  li a7,4\n" +
+//                "  ecall\n" +
+                "  ret\n" +
+
+                "Mars_GetInt:\n" +
+                "  li a7,5\n" +
+                "  ecall\n" +
+                "  ret\n" +
+
+                "Mars_PrintInt:\n" +
+                "  li a7,1\n" +
+                "  ecall\n" +
+                "  ret\n";
+        AddLibFunctionBody(lib_rv);
         //这里把字符串输出搞定
         Output += GetCodeHeader(this.header);
+        if (Output.equals("null"))
+        {
+            Output = "";
+        }
         //在这里应该加上一个返回的GetCodeHeader
         for (String func_code :
                 FuncRVCode)

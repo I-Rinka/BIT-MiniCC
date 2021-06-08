@@ -4,7 +4,7 @@ import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyItem;
 
 public class IR_getelementptr implements IR_instruction
 {
-    Sy_PolyItem get_ptr_sentence;
+    public Sy_PolyItem get_ptr_sentence;
     public String offset;
     String base;
     String dest;
@@ -20,6 +20,6 @@ public class IR_getelementptr implements IR_instruction
     @Override
     public String toString()
     {
-        return dest + " = " + get_ptr_sentence.GetElementPrt(offset,base);
+        return dest + " = " + get_ptr_sentence.GetElementPrt(offset, base);
     }
 }
