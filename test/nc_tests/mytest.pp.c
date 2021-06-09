@@ -1,30 +1,19 @@
-void perfectNumber(int n){
-	int p[80];  //淇濆瓨鍒嗚В鐨勫洜瀛�
-	int i,num,count,s,c = 0;
-	for(num = 2; num < n; num++)
-	{
-		count = 0;
-		s = num;
-		for(i = 1; i < num/2+1; i++)      //寰幆澶勭悊姣忎釜鏁�
-		{
-			if(num % i == 0)          //鑳借i鏁撮櫎
-			{
-				p[count++]  = i;      //淇濆瓨鍥犲瓙锛岃璁℃暟鍣╟ount澧炲姞1
-				s -= i;               //鍑忓幓涓�涓洜瀛�
-			}
-		}
-		if( 0 == s)
-		{
-			Mars_PrintInt(num);
-			c++;
-		}
+int fibonacci(int num){
+	int res;
+	if(num < 1){
+		res = 0;
+	}else if(num <= 2){
+		res = 1;
+	}else{
+		res = fibonacci(num-1)+fibonacci(num-2);
 	}
-//	Mars_PrintStr("The sum is :\n");
-	Mars_PrintInt(c);
-	return ;
+	return res;
 }
 int main(){
-//	Mars_PrintStr("All perfect numbers within 100:\n");	// A perfect number is a number equal to the sum of its factors
-	perfectNumber(100);
+	Mars_PrintStr("Please input a number:\n");
+	int n = Mars_GetInt();
+	int res = fibonacci(n);
+	Mars_PrintStr("This number's fibonacci value is :\n");
+	Mars_PrintInt(res);
     return 0;
 }

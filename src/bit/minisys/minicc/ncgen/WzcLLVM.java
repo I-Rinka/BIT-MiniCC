@@ -751,7 +751,7 @@ public class WzcLLVM
             if (str == null)
             {
                 str = new Sy_Str(nameless_str_counter, stringConstant.value.toString());
-                Global_declar.add(new IR_gobal_strdec(str));
+                Global_declar.add(new IR_global_strdec(str));
                 SymbolTable.PutStr(stringConstant.value.toString(), str);
                 nameless_str_counter++;
             }

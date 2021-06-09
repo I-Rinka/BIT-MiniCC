@@ -5,10 +5,11 @@ import bit.minisys.minicc.ncgen.BasicBlockInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.WzcIRScanner;
 import bit.minisys.minicc.ncgen.IR.IRInstruction.*;
 import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyVar;
+import bit.minisys.minicc.ncgen.IR.Symbol.Sy_Str;
 import bit.minisys.minicc.ncgen.ISA.RISCV.instructions.*;
 import bit.minisys.minicc.ncgen.Util.JudgeConstant;
 import bit.minisys.minicc.ncgen.WzcTargetMaker;
-import bit.minisys.minicc.pp.internal.R;
+import bit.minisys.minicc.pp.internal.S;
 
 import java.util.*;
 
@@ -398,7 +399,10 @@ public class RVMaker implements WzcTargetMaker
                     }
                     else
                     {
+                        Sy_Str str_info = (Sy_Str) getelementptr.get_ptr_sentence;
                         //todo: 字符串
+                        V2P_Reg_Map.put(getelementptr.dest, new Reg_Info("a0"));
+                        NOW_FUNC_CODE.add(new RV_la("a0", str_info.GetName()));
                     }
 
                 }
@@ -467,7 +471,19 @@ public class RVMaker implements WzcTargetMaker
     @Override
     public String GetCodeHeader(LinkedList<IR_instruction> declaration)
     {
-        return null;
+        StringBuilder header = new StringBuilder();
+        header.append(".data").append("\n");
+        for (IR_instruction dec :
+                declaration)
+        {
+            if (dec instanceof IR_global_strdec)
+            {
+                IR_global_strdec strdec = (IR_global_strdec) dec;
+                header.append(strdec.str_name.GetName()).append(": ").append(".asciz ").append(strdec.str_name.content).append("\n");
+            }
+
+        }
+        return header.toString();
     }
 
     String Lib_Function = "";
@@ -483,8 +499,8 @@ public class RVMaker implements WzcTargetMaker
         //todo: 这个只是临时支持
         String lib_rv = "" +
                 "Mars_PrintStr:\n" +
-//                "  li a7,4\n" +
-//                "  ecall\n" +
+                "  li a7,4\n" +
+                "  ecall\n" +
                 "  ret\n" +
 
                 "Mars_GetInt:\n" +
@@ -507,6 +523,7 @@ public class RVMaker implements WzcTargetMaker
         {
             Output = "";
         }
+        Output += ".text\n";
         //在这里应该加上一个返回的GetCodeHeader
         for (String func_code :
                 FuncRVCode)
