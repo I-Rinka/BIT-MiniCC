@@ -541,6 +541,10 @@ public class RVMaker implements WzcTargetMaker
                 "Mars_PrintInt:\n" +
                 "  li a7,1\n" +
                 "  ecall\n" +
+                //打印换行符
+                "  li a7,11\n" +
+                "  li a0,10\n" +
+                "  ecall\n" +
                 "  ret\n";
         AddLibFunctionBody(lib_rv);
         //这里把字符串输出搞定

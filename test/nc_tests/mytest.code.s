@@ -95,4 +95,7 @@ Mars_GetInt:
 Mars_PrintInt:
   li a7,1
   ecall
+  li a7,11
+  li a0,10
+  ecall
   ret
