@@ -1,8 +1,11 @@
 main:
-  addi sp,sp,-4
-  sw ra,8(sp)
-  sw fp,4(sp)
-  addi fp,sp,8
+  addi sp,sp,-12
+  sw ra,16(sp)
+  sw fp,12(sp)
+  addi fp,sp,16
+  sw t0,16(fp)
+  lw a0,12(fp)
+  sw t0,12(fp)
   mv a0,t0
   call Mars_PrintStr
   call Mars_GetInt
@@ -16,17 +19,19 @@ main:
   lw t0,-16(fp)
   mv a0,t0
   call Mars_PrintInt
-  lw ra,8(sp)
-  lw fp,4(sp)
-  addi sp,sp,12
+  lw ra,16(sp)
+  lw fp,12(sp)
+  addi sp,sp,20
+  add a0,zero,zero
   addi a7,zero,10
   ecall
 
 prime:
-  addi sp,sp,-16
-  sw ra,20(sp)
-  sw fp,16(sp)
-  addi fp,sp,20
+  addi sp,sp,-20
+  sw ra,24(sp)
+  sw fp,20(sp)
+  addi fp,sp,24
+  sw t0,24(fp)
   sw a0,-12(fp)
   sw zero,-16(fp)
   addi t0,zero,1
@@ -75,9 +80,10 @@ prime:
   jal x0,.L7
 .L40:
   lw t0,-16(fp)
-  lw ra,20(sp)
-  lw fp,16(sp)
-  addi sp,sp,24
+  lw ra,24(sp)
+  lw fp,20(sp)
+  addi sp,sp,28
+  add a0,t0,zero
   ret
 
 Mars_PrintStr:

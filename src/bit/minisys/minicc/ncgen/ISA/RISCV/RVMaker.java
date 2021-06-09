@@ -1,17 +1,13 @@
 package bit.minisys.minicc.ncgen.ISA.RISCV;
 
-import bit.minisys.minicc.icgen.internal.IRBuilder;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.BasicBlock;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.FunctionContent;
 import bit.minisys.minicc.ncgen.BasicBlockInfo.WzcIRScanner;
 import bit.minisys.minicc.ncgen.IR.IRInstruction.*;
-import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyItem;
 import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyVar;
 import bit.minisys.minicc.ncgen.ISA.RISCV.instructions.*;
 import bit.minisys.minicc.ncgen.Util.JudgeConstant;
 import bit.minisys.minicc.ncgen.WzcTargetMaker;
-import bit.minisys.minicc.pp.internal.R;
-import bit.minisys.minicc.pp.internal.V;
 
 import java.util.*;
 
@@ -25,7 +21,28 @@ public class RVMaker implements WzcTargetMaker
     Boolean[] AReg;
     Boolean[] SReg;
 
-    HashMap<String, String> V2P_Reg_Map;//虚拟寄存器到物理寄存器的映射
+    class Reg_Info
+    {
+        int offset;
+        String base_reg;
+        String reg;
+        boolean is_reg = true;
+
+        Reg_Info(String reg)
+        {
+            this.reg = reg;
+        }
+
+        Reg_Info(int offset, String base_reg)
+        {
+            is_reg = false;
+            this.base_reg = base_reg;
+            this.offset = offset;
+        }
+    }
+
+    HashMap<String, Reg_Info> V2P_Reg_Map;//虚拟寄存器到物理寄存器的映射
+
 
     int NOW_USED_S_REG = 1;
     LinkedList<RV_instruction> NOW_FUNC_CODE;
@@ -64,12 +81,68 @@ public class RVMaker implements WzcTargetMaker
             }
         }
         //spill
-        String release_vreg = NOW_USING_V_Reg.peek();
-        ReleaseVReg(NOW_USING_V_Reg.peek());
-        V2P_Reg_Map.replace(V2P_Reg_Map.get(release_vreg), "-" + NOW_FRAME_SIZE);
         NOW_FRAME_SIZE += 4;
+        String release_vreg = NOW_USING_V_Reg.peek();
+        String release_preg = V2P_Reg_Map.get(release_vreg).reg;
+        ReleaseVReg(NOW_USING_V_Reg.peek());
+
+        Reg_Info info = new Reg_Info(-NOW_FRAME_SIZE, "fp");
+        NOW_FUNC_CODE.add(new RV_store(release_preg, info.base_reg, info.offset));
+
+        V2P_Reg_Map.replace(release_vreg, info);
 
         return GetReg();
+    }
+
+    //这个函数会间接删掉NOW_USING_REG中的东西
+    void ProtectAllReg()
+    {
+        for (String vreg :
+                NOW_USING_V_Reg)
+        {
+            String p_reg = "";
+            Reg_Info info = V2P_Reg_Map.get(vreg);
+            if (info.is_reg)
+            {
+                p_reg = info.reg;
+            }
+            else
+            {
+                p_reg = info.base_reg;
+            }
+            if (p_reg.contains("s"))
+            {
+                continue;
+            }
+            NOW_FRAME_SIZE += 4;
+            NOW_FUNC_CODE.push(new RV_store(p_reg, "fp", NOW_FRAME_SIZE));
+        }
+    }
+
+    void RestoreAllReg()
+    {
+        int f_size = NOW_FRAME_SIZE;
+        for (int i = NOW_USING_V_Reg.size() - 1; i > 0; i--)
+        {
+            String vreg = NOW_USING_V_Reg.get(i);
+
+            String p_reg = "";
+            Reg_Info info = V2P_Reg_Map.get(vreg);
+            if (info.is_reg)
+            {
+                p_reg = info.reg;
+            }
+            else
+            {
+                p_reg = info.base_reg;
+            }
+            if (p_reg.contains("s"))
+            {
+                continue;
+            }
+            NOW_FUNC_CODE.push(new RV_load(p_reg, "fp", f_size));
+            f_size -= 4;
+        }
     }
 
     String GetReg(String V_Reg)
@@ -87,15 +160,28 @@ public class RVMaker implements WzcTargetMaker
         }
         if (V2P_Reg_Map.containsKey(V_Reg))
         {
-            return V2P_Reg_Map.get(V_Reg);
+            Reg_Info info = V2P_Reg_Map.get(V_Reg);
+
+            if (info.is_reg)
+            {
+                return info.reg;
+            }
+            else
+            {
+                String new_reg = GetReg();
+                NOW_FUNC_CODE.add(new RV_load(new_reg, info.base_reg, info.offset));
+                info.is_reg = true;
+                info.reg = new_reg;
+                return new_reg;
+            }
         }
         String P_reg = GetReg();
-        V2P_Reg_Map.put(V_Reg, P_reg);
+        V2P_Reg_Map.put(V_Reg, new Reg_Info(P_reg));
         NOW_USING_V_Reg.add(V_Reg);
         return P_reg;
     }
 
-    String GetAddr(String V_Reg)
+    Reg_Info GetAddr(String V_Reg)
     {
         return V2P_Reg_Map.get(V_Reg);
     }
@@ -103,7 +189,18 @@ public class RVMaker implements WzcTargetMaker
     void ReleaseVReg(String vreg)
     {
         NOW_USING_V_Reg.remove(vreg);
-        ReleasePReg(V2P_Reg_Map.get(vreg));
+        Reg_Info info = V2P_Reg_Map.get(vreg);
+        if (info.is_reg)
+        {
+            ReleasePReg(V2P_Reg_Map.get(vreg).reg);
+        }
+        else
+        {
+            if (!info.base_reg.equals("fp"))
+            {
+                ReleasePReg(V2P_Reg_Map.get(vreg).base_reg);
+            }
+        }
     }
 
     void ReleasePReg(String preg)
@@ -192,19 +289,22 @@ public class RVMaker implements WzcTargetMaker
         WzcIRScanner func_info = new WzcIRScanner(functionContent.GetFunctionInstruction());
         func_info.ScanInfo();
 
+        NOW_FRAME_SIZE = (func_info.FuncAllocaCount) * 4;
+        NOW_USING_V_Reg = new LinkedList<>();
+        NOW_FUNC_CODE = new LinkedList<>();
+
         //把所有alloca都映射了
         //V2P_Reg_Map中只有两种情况：相对于fp的指针、以及物理寄存器
         for (String para : functionContent.used_param) // todo: 参数多于8的情况
         {
-            V2P_Reg_Map.put(para, "a" + para.substring(1));
+            NOW_USING_V_Reg.add(para);
+            V2P_Reg_Map.put(para, new Reg_Info("a" + para.substring(1)));
+            AReg[Integer.parseInt(para.substring(1))] = false;
         }
         for (HashMap.Entry<String, Integer> met : func_info.GetAllocaMap().entrySet())
         {
-            V2P_Reg_Map.put(met.getKey(), "-" + (met.getValue() + 2) * 4);
+            V2P_Reg_Map.put(met.getKey(), new Reg_Info(-(met.getValue() + 2) * 4, "fp"));
         }
-        NOW_FRAME_SIZE = (func_info.FuncAllocaCount) * 4;
-        NOW_USING_V_Reg = new LinkedList<>();
-        NOW_FUNC_CODE = new LinkedList<>();
 
         //开始真正遍历基本块，
         for (int b = 0; b < func_info.GetBasicBlocks().size(); b++)
@@ -218,7 +318,7 @@ public class RVMaker implements WzcTargetMaker
             {
                 IR_instruction instruction = block.DAGS.get(i);
 
-                if (!(instruction instanceof IR_compare))
+                if (!(instruction instanceof IR_compare) && !(instruction instanceof IR_call) && !(instruction instanceof IR_getelementptr))
                 {
                     ReleaseNowReg(block, i);
                 }
@@ -247,21 +347,20 @@ public class RVMaker implements WzcTargetMaker
                 else if (instruction instanceof IR_store)
                 {
                     IR_store store = (IR_store) instruction;
-                    int offset = Integer.parseInt(GetAddr(store.dest));
-                    NOW_FUNC_CODE.add(new RV_store(GetReg(store.src), "fp", offset));
+                    NOW_FUNC_CODE.add(new RV_store(GetReg(store.src), GetAddr(store.dest).base_reg, GetAddr(store.dest).offset));
 
                 }
 
                 else if (instruction instanceof IR_load)
                 {
                     IR_load load = (IR_load) instruction;
-                    int offset = Integer.parseInt(GetAddr(load.src));
-                    NOW_FUNC_CODE.add(new RV_load(GetReg(load.dest), "fp", offset));
+                    NOW_FUNC_CODE.add(new RV_load(GetReg(load.dest), GetAddr(load.src).base_reg, GetAddr(load.src).offset));
                 }
                 else if (instruction instanceof IR_call)
                 {
                     IR_call call = (IR_call) instruction;
                     String[] paras = ((IR_call) instruction).para_list;
+                    ProtectAllReg();
                     //todo: 注意保护现场！
                     for (int j = 0; j < paras.length; j++)
                     {
@@ -270,9 +369,12 @@ public class RVMaker implements WzcTargetMaker
                     NOW_FUNC_CODE.add(new RV_call(call.func_name));
                     if (call.dest != null)
                     {
-                        V2P_Reg_Map.put(call.dest, "a0");
+                        V2P_Reg_Map.put(call.dest, new Reg_Info("a0"));
+                        AReg[0] = false;
                         NOW_USING_V_Reg.add(call.dest);
                     }
+                    RestoreAllReg();
+                    ReleaseNowReg(block, i);
                 }
 
                 else if (instruction instanceof IR_compare)
@@ -331,10 +433,14 @@ public class RVMaker implements WzcTargetMaker
 
                 else if (instruction instanceof IR_ret)
                 {
-                    //todo:如果是main，就使用别的方式退出
+                    IR_ret ir_ret = (IR_ret) instruction;
                     NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE));
                     NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE - 4));
                     NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE + 4));
+                    if (ir_ret.value != null)
+                    {
+                        NOW_FUNC_CODE.add(new RV_3addr_ins("add", "a0", GetReg(ir_ret.value), "zero"));
+                    }
 
                     if (functionContent.name.equals("main"))
                     {
