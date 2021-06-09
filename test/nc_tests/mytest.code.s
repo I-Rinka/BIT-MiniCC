@@ -1,8 +1,8 @@
 main:
-  addi sp,sp,-12
-  sw ra,8(sp)
-  sw fp,4(sp)
-  addi fp,sp,8
+  addi sp,sp,-16
+  sw ra,12(sp)
+  sw fp,8(sp)
+  addi fp,sp,16
   mv a0,t0
   call Mars_PrintStr
   call Mars_GetInt
@@ -16,18 +16,18 @@ main:
   lw t3,-16(fp)
   mv a0,t3
   call Mars_PrintInt
-  lw ra,8(sp)
-  lw fp,4(sp)
-  addi sp,sp,12
+  lw fp,8(sp)
+  lw ra,12(sp)
+  addi sp,sp,16
   mv a0,zero
   addi a7,zero,10
   ecall
 
 fibonacci:
-  addi sp,sp,-16
-  sw ra,12(sp)
-  sw fp,8(sp)
-  addi fp,sp,12
+  addi sp,sp,-20
+  sw ra,16(sp)
+  sw fp,12(sp)
+  addi fp,sp,20
   sw a0,-12(fp)
   lw t0,-12(fp)
   addi t1,zero,1
@@ -58,9 +58,9 @@ fibonacci:
 .L19:
 .L20:
   lw t0,-16(fp)
-  lw ra,12(sp)
-  lw fp,8(sp)
-  addi sp,sp,16
+  lw fp,12(sp)
+  lw ra,16(sp)
+  addi sp,sp,20
   mv a0,t0
   ret
 

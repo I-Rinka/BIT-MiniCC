@@ -82,7 +82,7 @@ public class RVMaker implements WzcTargetMaker
             }
         }
         //spill
-
+        //todo: spill的时候：1. 先在死亡寄存器中寻找 2.栈区分配
         return "Spill will be support in future";
     }
 
@@ -291,6 +291,7 @@ public class RVMaker implements WzcTargetMaker
                     Reg_Info info = V2P_Reg_Map.get(load.src);
                     NOW_FUNC_CODE.add(new RV_load(GetReg(load.dest), info.base_reg, info.offset));
                 }
+
                 else if (instruction instanceof IR_call)
                 {
                     IR_call call = (IR_call) instruction;
@@ -373,11 +374,7 @@ public class RVMaker implements WzcTargetMaker
                     {
                         Sy_PolyVar polyVar = (Sy_PolyVar) getelementptr.get_ptr_sentence;
                         String size = GetReg(getelementptr.offset);
-                        while (polyVar.GetInsideItem() instanceof Sy_PolyVar)
-                        {
-                            i++;
-                            polyVar = (Sy_PolyVar) polyVar.GetInsideItem();
-                        }
+
 
                     }
                     else
@@ -390,9 +387,9 @@ public class RVMaker implements WzcTargetMaker
                 else if (instruction instanceof IR_ret)
                 {
                     //todo:如果是main，就使用别的方式退出
-                    NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE));
-                    NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE - 4));
-                    NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE + 4));
+                    NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE));
+                    NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE+4));
+                    NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE + 8));
 
                     if (((IR_ret) instruction).value != null)
                     {
@@ -414,16 +411,16 @@ public class RVMaker implements WzcTargetMaker
         StringBuilder rt_str = new StringBuilder();
         rt_str.append(functionContent.name).append(":").append("\n");
         //栈帧初始化
-        NOW_FUNC_CODE.push(new RV_addi("fp", "sp", NOW_FRAME_SIZE));
+        NOW_FUNC_CODE.push(new RV_addi("fp", "sp", NOW_FRAME_SIZE + 8));
 
         for (int i = 1; i < NOW_USED_S_REG; i++)
         {
             NOW_FUNC_CODE.push(new RV_store("s" + i, "sp", NOW_FRAME_SIZE - 4 * (i + 2)));
         }
 
-        NOW_FUNC_CODE.push(new RV_store("fp", "sp", NOW_FRAME_SIZE - 4));
-        NOW_FUNC_CODE.push(new RV_store("ra", "sp", NOW_FRAME_SIZE));
-        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -(NOW_FRAME_SIZE + 4)));
+        NOW_FUNC_CODE.push(new RV_store("fp", "sp", NOW_FRAME_SIZE));
+        NOW_FUNC_CODE.push(new RV_store("ra", "sp", NOW_FRAME_SIZE + 4));
+        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -(NOW_FRAME_SIZE + 8)));
 
         for (RV_instruction ins :
                 NOW_FUNC_CODE)
