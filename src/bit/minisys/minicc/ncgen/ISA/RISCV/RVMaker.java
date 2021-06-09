@@ -267,9 +267,14 @@ public class RVMaker implements WzcTargetMaker
                             NOW_FUNC_CODE.add(new RV_addi(GetReg(op.dest), GetReg(op.src1), -Integer.parseInt(op.src2)));
 
                         }
-                        else
+                        else if (op.op.equals("add"))
                         {
                             NOW_FUNC_CODE.add(new RV_addi(GetReg(op.dest), GetReg(op.src1), Integer.parseInt(op.src2)));
+                        }
+                        else
+                        {
+                            String load_const = GetReg(op.src2);
+                            NOW_FUNC_CODE.add(new RV_3addr_ins(LLVM2RVIns.get(op.op), GetReg(op.dest), GetReg(op.src1), load_const));
                         }
                     }
                     else
@@ -368,7 +373,6 @@ public class RVMaker implements WzcTargetMaker
 
                 else if (instruction instanceof IR_getelementptr)
                 {
-                    //todo: search poly item's type
                     IR_getelementptr getelementptr = (IR_getelementptr) instruction;
                     if (getelementptr.get_ptr_sentence instanceof Sy_PolyVar)
                     {
@@ -376,6 +380,7 @@ public class RVMaker implements WzcTargetMaker
                         String size = GetReg(getelementptr.offset);
                         if (JudgeConstant.isNumeric(getelementptr.offset))
                         {
+                            //todo: 偏移量是数的情况
                         }
                         else
                         {
@@ -393,7 +398,7 @@ public class RVMaker implements WzcTargetMaker
                     }
                     else
                     {
-                        //字符串
+                        //todo: 字符串
                     }
 
                 }

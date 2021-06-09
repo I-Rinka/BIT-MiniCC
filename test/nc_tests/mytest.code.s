@@ -34,7 +34,8 @@ perfectNumber:
 .L15:
   lw t0,-336(fp)
   lw t1,-340(fp)
-  addi t2,t1,2
+  addi t2,zero,2
+  div t2,t1,t2
   addi t3,t2,1
   bge t0,t3,.L38
   lw t0,-340(fp)
