@@ -8,6 +8,7 @@ import bit.minisys.minicc.ncgen.IR.Symbol.Sy_PolyVar;
 import bit.minisys.minicc.ncgen.ISA.RISCV.instructions.*;
 import bit.minisys.minicc.ncgen.Util.JudgeConstant;
 import bit.minisys.minicc.ncgen.WzcTargetMaker;
+import bit.minisys.minicc.pp.internal.R;
 
 import java.util.*;
 
@@ -81,68 +82,42 @@ public class RVMaker implements WzcTargetMaker
             }
         }
         //spill
-        NOW_FRAME_SIZE += 4;
-        String release_vreg = NOW_USING_V_Reg.peek();
-        String release_preg = V2P_Reg_Map.get(release_vreg).reg;
-        ReleaseVReg(NOW_USING_V_Reg.peek());
 
-        Reg_Info info = new Reg_Info(-NOW_FRAME_SIZE, "fp");
-        NOW_FUNC_CODE.add(new RV_store(release_preg, info.base_reg, info.offset));
-
-        V2P_Reg_Map.replace(release_vreg, info);
-
-        return GetReg();
+        return "Spill will be support in future";
     }
 
-    //这个函数会间接删掉NOW_USING_REG中的东西
-    void ProtectAllReg()
+    void ReleasePReg(String P_Reg)
     {
-        for (String vreg :
-                NOW_USING_V_Reg)
+        if (P_Reg.contains("t"))
         {
-            String p_reg = "";
-            Reg_Info info = V2P_Reg_Map.get(vreg);
-            if (info.is_reg)
-            {
-                p_reg = info.reg;
-            }
-            else
-            {
-                p_reg = info.base_reg;
-            }
-            if (p_reg.contains("s"))
-            {
-                continue;
-            }
-            NOW_FRAME_SIZE += 4;
-            NOW_FUNC_CODE.push(new RV_store(p_reg, "fp", NOW_FRAME_SIZE));
+            TReg[Integer.parseInt(P_Reg.substring(1))] = true;
+        }
+        else if (P_Reg.contains("a"))
+        {
+            AReg[Integer.parseInt(P_Reg.substring(1))] = true;
+        }
+        else if (P_Reg.contains("s"))
+        {
+            SReg[Integer.parseInt(P_Reg.substring(1))] = true;
         }
     }
 
-    void RestoreAllReg()
+    void ReleaseVReg(String V_Reg)
     {
-        int f_size = NOW_FRAME_SIZE;
-        for (int i = NOW_USING_V_Reg.size() - 1; i > 0; i--)
+        Reg_Info info = V2P_Reg_Map.get(V_Reg);
+        if (info.is_reg)
         {
-            String vreg = NOW_USING_V_Reg.get(i);
-
-            String p_reg = "";
-            Reg_Info info = V2P_Reg_Map.get(vreg);
-            if (info.is_reg)
-            {
-                p_reg = info.reg;
-            }
-            else
-            {
-                p_reg = info.base_reg;
-            }
-            if (p_reg.contains("s"))
-            {
-                continue;
-            }
-            NOW_FUNC_CODE.push(new RV_load(p_reg, "fp", f_size));
-            f_size -= 4;
+            ReleasePReg(info.reg);
         }
+        else
+        {
+            ReleasePReg(info.base_reg);
+        }
+    }
+
+    Reg_Info GetAddr(String V_Reg)
+    {
+        return V2P_Reg_Map.get(V_Reg);
     }
 
     String GetReg(String V_Reg)
@@ -181,44 +156,6 @@ public class RVMaker implements WzcTargetMaker
         return P_reg;
     }
 
-    Reg_Info GetAddr(String V_Reg)
-    {
-        return V2P_Reg_Map.get(V_Reg);
-    }
-
-    void ReleaseVReg(String vreg)
-    {
-        NOW_USING_V_Reg.remove(vreg);
-        Reg_Info info = V2P_Reg_Map.get(vreg);
-        if (info.is_reg)
-        {
-            ReleasePReg(V2P_Reg_Map.get(vreg).reg);
-        }
-        else
-        {
-            if (!info.base_reg.equals("fp"))
-            {
-                ReleasePReg(V2P_Reg_Map.get(vreg).base_reg);
-            }
-        }
-    }
-
-    void ReleasePReg(String preg)
-    {
-        if (preg.contains("t"))
-        {
-
-            TReg[Integer.parseInt(preg.substring(1))] = true;
-        }
-        else if (preg.contains("a"))
-        {
-            AReg[Integer.parseInt(preg.substring(1))] = true;
-        }
-        else if (preg.contains("s"))
-        {
-            SReg[Integer.parseInt(preg.substring(1))] = true;
-        }
-    }
 
     public RVMaker(LinkedList<FunctionContent> Functions, LinkedList<IR_instruction> dec)
     {
@@ -262,8 +199,9 @@ public class RVMaker implements WzcTargetMaker
         }
         for (int i = 1; i < 12; i++)
         {
-            SReg[i] = false;
+            SReg[i] = true;
         }
+        SReg[0] = false;
 
         HashMap<String, String> LLVM2RVIns = new HashMap<>();
         LLVM2RVIns.put("load", "lw");
@@ -289,27 +227,28 @@ public class RVMaker implements WzcTargetMaker
         WzcIRScanner func_info = new WzcIRScanner(functionContent.GetFunctionInstruction());
         func_info.ScanInfo();
 
-        NOW_FRAME_SIZE = (func_info.FuncAllocaCount) * 4;
-        NOW_USING_V_Reg = new LinkedList<>();
-        NOW_FUNC_CODE = new LinkedList<>();
-
         //把所有alloca都映射了
         //V2P_Reg_Map中只有两种情况：相对于fp的指针、以及物理寄存器
         for (String para : functionContent.used_param) // todo: 参数多于8的情况
         {
-            NOW_USING_V_Reg.add(para);
             V2P_Reg_Map.put(para, new Reg_Info("a" + para.substring(1)));
-            AReg[Integer.parseInt(para.substring(1))] = false;
         }
         for (HashMap.Entry<String, Integer> met : func_info.GetAllocaMap().entrySet())
         {
             V2P_Reg_Map.put(met.getKey(), new Reg_Info(-(met.getValue() + 2) * 4, "fp"));
         }
-
-        //开始真正遍历基本块，
+        NOW_FRAME_SIZE = (func_info.FuncAllocaCount) * 4;
+        NOW_FUNC_CODE = new LinkedList<>();
+        NOW_USING_V_Reg = new LinkedList<>();
         for (int b = 0; b < func_info.GetBasicBlocks().size(); b++)
         {
             BasicBlock block = func_info.GetBasicBlocks().get(b);
+            for (String v_reg :
+                    NOW_USING_V_Reg)
+            {
+                ReleaseVReg(v_reg);
+            }
+            NOW_USING_V_Reg.clear();
             if (block.GetVRegReleaseInfo() == null) //这个块不可达 todo: 添加不可达块的支持！
             {
                 continue;
@@ -317,11 +256,6 @@ public class RVMaker implements WzcTargetMaker
             for (int i = 0; i < block.DAGS.size(); i++)
             {
                 IR_instruction instruction = block.DAGS.get(i);
-
-                if (!(instruction instanceof IR_compare) && !(instruction instanceof IR_call) && !(instruction instanceof IR_getelementptr))
-                {
-                    ReleaseNowReg(block, i);
-                }
 
                 if (instruction instanceof IR_op)
                 {
@@ -347,34 +281,57 @@ public class RVMaker implements WzcTargetMaker
                 else if (instruction instanceof IR_store)
                 {
                     IR_store store = (IR_store) instruction;
-                    NOW_FUNC_CODE.add(new RV_store(GetReg(store.src), GetAddr(store.dest).base_reg, GetAddr(store.dest).offset));
-
+                    Reg_Info info = V2P_Reg_Map.get(store.dest);
+                    NOW_FUNC_CODE.add(new RV_store(GetReg(store.src), info.base_reg, info.offset));
                 }
 
                 else if (instruction instanceof IR_load)
                 {
                     IR_load load = (IR_load) instruction;
-                    NOW_FUNC_CODE.add(new RV_load(GetReg(load.dest), GetAddr(load.src).base_reg, GetAddr(load.src).offset));
+                    Reg_Info info = V2P_Reg_Map.get(load.src);
+                    NOW_FUNC_CODE.add(new RV_load(GetReg(load.dest), info.base_reg, info.offset));
                 }
                 else if (instruction instanceof IR_call)
                 {
                     IR_call call = (IR_call) instruction;
                     String[] paras = ((IR_call) instruction).para_list;
-                    ProtectAllReg();
+                    int frame_size = NOW_FRAME_SIZE;
+                    for (String vreg :
+                            NOW_USING_V_Reg)
+                    {
+                        if (block.GetVRegReleaseInfo().get(vreg) > i)
+                        {
+                            NOW_FRAME_SIZE += 4;
+                            NOW_FUNC_CODE.add(new RV_store(GetReg(vreg), "fp", -NOW_FRAME_SIZE));
+                        }
+                    }
                     //todo: 注意保护现场！
                     for (int j = 0; j < paras.length; j++)
                     {
                         NOW_FUNC_CODE.add(new RV_mv("a" + j, GetReg(paras[j])));
                     }
                     NOW_FUNC_CODE.add(new RV_call(call.func_name));
+
+                    for (int j = NOW_USING_V_Reg.size() - 1; j > 0; j--)
+                    {
+                        String vreg = NOW_USING_V_Reg.get(j);
+                        if (block.GetVRegReleaseInfo().get(vreg) > i)
+                        {
+                            frame_size += 4;
+                            if (GetReg(vreg).equals("a0"))
+                            {
+                                V2P_Reg_Map.remove(vreg);
+                                NOW_FUNC_CODE.add(new RV_load(GetReg(vreg), "fp", -frame_size));
+                            }
+                            NOW_FUNC_CODE.add(new RV_store(GetReg(vreg), "fp", -frame_size));
+                        }
+                    }
+
                     if (call.dest != null)
                     {
                         V2P_Reg_Map.put(call.dest, new Reg_Info("a0"));
-                        AReg[0] = false;
                         NOW_USING_V_Reg.add(call.dest);
                     }
-                    RestoreAllReg();
-                    ReleaseNowReg(block, i);
                 }
 
                 else if (instruction instanceof IR_compare)
@@ -383,7 +340,6 @@ public class RVMaker implements WzcTargetMaker
                     i++;
                     IR_branch branch = (IR_branch) block.DAGS.get(i);
                     NOW_FUNC_CODE.add(new RV_branch(LLVM2RVIns.get(compare.op), GetReg(compare.src1), GetReg(compare.src2), ".L" + branch.false_dest.substring(1)));
-                    ReleaseNowReg(block, i); //这里有个特例，因为CMP可能从右值中载入，此时不能让同样在右边的寄存器释放……
                     Tag2Print.add(".L" + branch.false_dest.substring(1));
                 }
 
@@ -433,13 +389,14 @@ public class RVMaker implements WzcTargetMaker
 
                 else if (instruction instanceof IR_ret)
                 {
-                    IR_ret ir_ret = (IR_ret) instruction;
+                    //todo:如果是main，就使用别的方式退出
                     NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE));
                     NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE - 4));
                     NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE + 4));
-                    if (ir_ret.value != null)
+
+                    if (((IR_ret) instruction).value != null)
                     {
-                        NOW_FUNC_CODE.add(new RV_3addr_ins("add", "a0", GetReg(ir_ret.value), "zero"));
+                        NOW_FUNC_CODE.add(new RV_mv("a0", GetReg(((IR_ret) instruction).value)));
                     }
 
                     if (functionContent.name.equals("main"))
@@ -454,7 +411,6 @@ public class RVMaker implements WzcTargetMaker
                 }
             }
         }
-
         StringBuilder rt_str = new StringBuilder();
         rt_str.append(functionContent.name).append(":").append("\n");
         //栈帧初始化
@@ -467,7 +423,7 @@ public class RVMaker implements WzcTargetMaker
 
         NOW_FUNC_CODE.push(new RV_store("fp", "sp", NOW_FRAME_SIZE - 4));
         NOW_FUNC_CODE.push(new RV_store("ra", "sp", NOW_FRAME_SIZE));
-        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -NOW_FRAME_SIZE + 4));
+        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -(NOW_FRAME_SIZE + 4)));
 
         for (RV_instruction ins :
                 NOW_FUNC_CODE)
@@ -485,25 +441,7 @@ public class RVMaker implements WzcTargetMaker
             }
         }
         return rt_str.toString() + "\n";
-    }
 
-    void ReleaseNowReg(BasicBlock block, int line) //右值可以使用释放的，但是左值不行
-    {
-        for (int j = NOW_USING_V_Reg.size() - 1; j >= 0; j--)
-        {
-            String V_Reg = NOW_USING_V_Reg.get(j);
-            if (null != block.GetVRegReleaseInfo().get(V_Reg))
-            {
-                if (line >= block.GetVRegReleaseInfo().get(V_Reg))
-                {
-                    ReleaseVReg(V_Reg);
-                }
-            }
-            else
-            {
-                System.out.println("Outch!\n");
-            }
-        }
     }
 
     /*

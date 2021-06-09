@@ -1,89 +1,67 @@
 main:
   addi sp,sp,-12
-  sw ra,16(sp)
-  sw fp,12(sp)
-  addi fp,sp,16
-  sw t0,16(fp)
-  lw a0,12(fp)
-  sw t0,12(fp)
+  sw ra,8(sp)
+  sw fp,4(sp)
+  addi fp,sp,8
   mv a0,t0
   call Mars_PrintStr
   call Mars_GetInt
   sw a0,-12(fp)
-  lw t0,-12(fp)
-  mv a0,t0
-  call prime
+  lw t1,-12(fp)
+  mv a0,t1
+  call fibonacci
   sw a0,-16(fp)
-  mv a0,t0
+  mv a0,t2
   call Mars_PrintStr
-  lw t0,-16(fp)
-  mv a0,t0
+  lw t3,-16(fp)
+  mv a0,t3
   call Mars_PrintInt
-  lw ra,16(sp)
-  lw fp,12(sp)
-  addi sp,sp,20
-  add a0,zero,zero
+  lw ra,8(sp)
+  lw fp,4(sp)
+  addi sp,sp,12
+  mv a0,zero
   addi a7,zero,10
   ecall
 
-prime:
-  addi sp,sp,-20
-  sw ra,24(sp)
-  sw fp,20(sp)
-  addi fp,sp,24
-  sw t0,24(fp)
+fibonacci:
+  addi sp,sp,-16
+  sw ra,12(sp)
+  sw fp,8(sp)
+  addi fp,sp,12
   sw a0,-12(fp)
-  sw zero,-16(fp)
-  addi t0,zero,1
-  sw t0,-28(fp)
-  addi t0,zero,2
-  sw t0,-20(fp)
-.L7:
-  lw t0,-20(fp)
-  lw t1,-12(fp)
-  bgt t0,t1,.L40
-  addi t0,zero,1
-  sw t0,-28(fp)
-  addi t0,zero,2
-  sw t0,-24(fp)
-.L12:
-  lw t0,-24(fp)
-  lw t1,-24(fp)
-  mul t0,t0,t1
-  lw t1,-20(fp)
-  bgt t0,t1,.L29
-  lw t0,-20(fp)
-  lw t1,-24(fp)
-  rem t0,t0,t1
-  bne t0,zero,.L25
-  sw zero,-28(fp)
-  jal x0,.L29
-.L25:
-  lw t0,-24(fp)
-  addi t0,t0,1
-  sw t0,-24(fp)
-  jal x0,.L12
-.L29:
-  lw t0,-28(fp)
+  lw t0,-12(fp)
   addi t1,zero,1
-  bne t0,t1,.L36
-  lw t0,-16(fp)
-  addi t0,t0,1
+  bge t0,t1,.L7
+  sw zero,-16(fp)
+  jal x0,.L20
+.L7:
+  lw t0,-12(fp)
+  addi t1,zero,2
+  bgt t0,t1,.L11
+  addi t0,zero,1
   sw t0,-16(fp)
-  lw t0,-20(fp)
-  mv a0,t0
-  call Mars_PrintInt
-.L36:
-  lw t0,-20(fp)
-  addi t0,t0,1
-  sw t0,-20(fp)
-  jal x0,.L7
-.L40:
+  jal x0,.L19
+.L11:
+  lw t0,-12(fp)
+  addi t1,t0,-1
+  mv a0,t1
+  call fibonacci
+  lw t2,-12(fp)
+  addi t3,t2,-2
+  sw a0,-12(fp)
+  mv a0,t3
+  call fibonacci
+  lw t4,-12(fp)
+  sw t4,-12(fp)
+  add t5,t4,a0
+  sw t5,-16(fp)
+.L19:
+.L20:
   lw t0,-16(fp)
-  lw ra,24(sp)
-  lw fp,20(sp)
-  addi sp,sp,28
-  add a0,t0,zero
+  lw ra,12(sp)
+  lw fp,8(sp)
+  addi sp,sp,16
+  mv a0,t0
   ret
 
 Mars_PrintStr:
