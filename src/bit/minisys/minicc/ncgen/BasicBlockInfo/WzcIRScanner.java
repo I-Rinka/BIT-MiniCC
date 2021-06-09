@@ -137,6 +137,10 @@ public class WzcIRScanner //todo: 扫描基本块信息。信息既能被编译�
                     reg_array.add(((IR_op) instruction).src1);
                     reg_array.add(((IR_op) instruction).src2);
                 }
+                else if (instruction instanceof IR_getelementptr)
+                {
+                    reg_array.add(((IR_getelementptr) instruction).offset);
+                }
                 else if (instruction instanceof IR_alloca)
                 {
                     if (((IR_alloca) instruction).dest != null)

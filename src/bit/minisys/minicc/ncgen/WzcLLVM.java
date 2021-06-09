@@ -398,7 +398,7 @@ public class WzcLLVM
             is_condition_expression = true;
             String ans_reg = ExpressionHandler(itDeclaredStatement.cond.getLast());
             True_label += GetRegCount();
-            condition = new IR_branch(ans_reg, True_label, null);
+            condition = new IR_branch(ans_reg, "%" + True_label, null);
             InsertBranch(condition);
             InsertTag(True_label);
             is_condition_expression = false;

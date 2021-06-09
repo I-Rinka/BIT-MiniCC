@@ -19,12 +19,12 @@ void perfectNumber(int n){
 			c++;
 		}
 	}
-//	Mars_PrintStr("The sum is :\n");
+	Mars_PrintStr("The sum is :\n");
 	Mars_PrintInt(c);
 	return ;
 }
 int main(){
-//	Mars_PrintStr("All perfect numbers within 100:\n");	// A perfect number is a number equal to the sum of its factors
+	Mars_PrintStr("All perfect numbers within 100:\n");	// A perfect number is a number equal to the sum of its factors
 	perfectNumber(100);
     return 0;
 }
