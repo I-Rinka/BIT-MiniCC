@@ -237,7 +237,7 @@ public class RVMaker implements WzcTargetMaker
         {
             V2P_Reg_Map.put(met.getKey(), new Reg_Info(-(met.getValue() + 2) * 4, "fp"));
         }
-        NOW_FRAME_SIZE = (func_info.FuncAllocaCount) * 4;
+        NOW_FRAME_SIZE = (func_info.FuncAllocaCount + 2) * 4 + 4;
         NOW_FUNC_CODE = new LinkedList<>();
         NOW_USING_V_Reg = new LinkedList<>();
         for (int b = 0; b < func_info.GetBasicBlocks().size(); b++)
@@ -374,7 +374,21 @@ public class RVMaker implements WzcTargetMaker
                     {
                         Sy_PolyVar polyVar = (Sy_PolyVar) getelementptr.get_ptr_sentence;
                         String size = GetReg(getelementptr.offset);
+                        if (JudgeConstant.isNumeric(getelementptr.offset))
+                        {
+                        }
+                        else
+                        {
+                            String offset_p_reg = V2P_Reg_Map.get(getelementptr.offset).reg;
 
+                            NOW_FUNC_CODE.add(new RV_3addr_ins("add", offset_p_reg, offset_p_reg, offset_p_reg)); //offset*2
+                            NOW_FUNC_CODE.add(new RV_3addr_ins("add", offset_p_reg, offset_p_reg, offset_p_reg)); //offset*4
+
+                            Reg_Info addr = GetAddr(getelementptr.base);
+                            String new_base_p_reg = GetReg(getelementptr.dest);
+                            NOW_FUNC_CODE.add(new RV_3addr_ins("add", new_base_p_reg, addr.base_reg, offset_p_reg));
+                            V2P_Reg_Map.put(getelementptr.dest, new Reg_Info(addr.offset, new_base_p_reg));
+                        }
 
                     }
                     else
@@ -387,9 +401,9 @@ public class RVMaker implements WzcTargetMaker
                 else if (instruction instanceof IR_ret)
                 {
                     //todo:如果是main，就使用别的方式退出
-                    NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE));
-                    NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE+4));
-                    NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE + 8));
+                    NOW_FUNC_CODE.add(new RV_load("fp", "sp", NOW_FRAME_SIZE - 8));
+                    NOW_FUNC_CODE.add(new RV_load("ra", "sp", NOW_FRAME_SIZE - 4));
+                    NOW_FUNC_CODE.add(new RV_addi("sp", "sp", NOW_FRAME_SIZE));
 
                     if (((IR_ret) instruction).value != null)
                     {
@@ -411,16 +425,16 @@ public class RVMaker implements WzcTargetMaker
         StringBuilder rt_str = new StringBuilder();
         rt_str.append(functionContent.name).append(":").append("\n");
         //栈帧初始化
-        NOW_FUNC_CODE.push(new RV_addi("fp", "sp", NOW_FRAME_SIZE + 8));
+        NOW_FUNC_CODE.push(new RV_addi("fp", "sp", NOW_FRAME_SIZE));
 
-        for (int i = 1; i < NOW_USED_S_REG; i++)
-        {
-            NOW_FUNC_CODE.push(new RV_store("s" + i, "sp", NOW_FRAME_SIZE - 4 * (i + 2)));
-        }
+//        for (int i = 1; i < NOW_USED_S_REG; i++)
+//        {
+//            NOW_FUNC_CODE.push(new RV_store("s" + i, "sp", NOW_FRAME_SIZE - 4 * (i + 2)));
+//        }
 
-        NOW_FUNC_CODE.push(new RV_store("fp", "sp", NOW_FRAME_SIZE));
-        NOW_FUNC_CODE.push(new RV_store("ra", "sp", NOW_FRAME_SIZE + 4));
-        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -(NOW_FRAME_SIZE + 8)));
+        NOW_FUNC_CODE.push(new RV_store("fp", "sp", NOW_FRAME_SIZE - 8));
+        NOW_FUNC_CODE.push(new RV_store("ra", "sp", NOW_FRAME_SIZE - 4));
+        NOW_FUNC_CODE.push(new RV_addi("sp", "sp", -NOW_FRAME_SIZE));
 
         for (RV_instruction ins :
                 NOW_FUNC_CODE)

@@ -6,8 +6,8 @@ public class IR_getelementptr implements IR_instruction
 {
     public Sy_PolyItem get_ptr_sentence;
     public String offset;
-    String base;
-    String dest;
+    public String base;
+    public String dest;
 
     public IR_getelementptr(String dest, String base, String offset, Sy_PolyItem polyItem)
     {
