@@ -12,7 +12,7 @@ define i32 @main() #0 {
   4:
   %5 = load i32, i32* %3
   %6 = icmp slt i32 %5, 10
-  br i1 %6, label 7, label %14
+  br i1 %6, label %7, label %14
   7:
   %8 = load i32, i32* %3
   %9 = getelementptr [10 x i32], [10 x i32]* %1, i32 0, i32 %8
@@ -33,7 +33,7 @@ define i32 @main() #0 {
   17:
   %18 = load i32, i32* %16
   %19 = icmp slt i32 %18, 10
-  br i1 %19, label 20, label %26
+  br i1 %19, label %20, label %26
   20:
   %21 = load i32, i32* %16
   %22 = getelementptr [10 x i32], [10 x i32]* %1, i32 0, i32 %21
@@ -53,7 +53,7 @@ define i32 @main() #0 {
   29:
   %30 = load i32, i32* %28
   %31 = icmp slt i32 %30, 10
-  br i1 %31, label 32, label %68
+  br i1 %31, label %32, label %68
   32:
   %33 = alloca i32
   store i32 0, i32* %33
@@ -64,7 +64,7 @@ define i32 @main() #0 {
   %37 = sub i32 10, %36
   %38 = sub i32 %37, 1
   %39 = icmp slt i32 %35, %38
-  br i1 %39, label 40, label %64
+  br i1 %39, label %40, label %64
   40:
   %41 = load i32, i32* %33
   %42 = getelementptr [10 x i32], [10 x i32]* %1, i32 0, i32 %41
@@ -113,7 +113,7 @@ define i32 @main() #0 {
   71:
   %72 = load i32, i32* %70
   %73 = icmp slt i32 %72, 10
-  br i1 %73, label 74, label %80
+  br i1 %73, label %74, label %80
   74:
   %75 = load i32, i32* %70
   %76 = getelementptr [10 x i32], [10 x i32]* %1, i32 0, i32 %75

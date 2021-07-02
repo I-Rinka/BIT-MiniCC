@@ -58,7 +58,7 @@ fibonacci:
   mv a0,t3
   call fibonacci
   lw t4,-24(fp)
-  sw t4,-24(fp)
+  lw t4,-24(fp)
   add t5,t4,a0
   sw t5,-16(fp)
 .L19:

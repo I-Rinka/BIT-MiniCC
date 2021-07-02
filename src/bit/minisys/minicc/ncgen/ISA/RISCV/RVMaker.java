@@ -76,9 +76,9 @@ public class RVMaker implements WzcTargetMaker
         }
         for (int i = 1; i < SReg.length; i++)
         {
-            if (TReg[i])
+            if (SReg[i])
             {
-                TReg[i] = false;
+                SReg[i] = false;
                 return "t" + i;
             }
         }
@@ -306,11 +306,17 @@ public class RVMaker implements WzcTargetMaker
                     for (String vreg :
                             NOW_USING_V_Reg)
                     {
-                        if (block.GetVRegReleaseInfo().get(vreg) > i)
+                        if (block.GetVRegReleaseInfo().get(vreg) == null)
                         {
                             NOW_FRAME_SIZE += 4;
                             NOW_FUNC_CODE.add(new RV_store(GetReg(vreg), "fp", -NOW_FRAME_SIZE));
                         }
+                        else if (block.GetVRegReleaseInfo().get(vreg) != null && block.GetVRegReleaseInfo().get(vreg) > i)
+                        {
+                            NOW_FRAME_SIZE += 4;
+                            NOW_FUNC_CODE.add(new RV_store(GetReg(vreg), "fp", -NOW_FRAME_SIZE));
+                        }
+
                     }
                     //todo: 注意保护现场！
                     for (int j = 0; j < paras.length; j++)
@@ -322,7 +328,12 @@ public class RVMaker implements WzcTargetMaker
                     for (int j = NOW_USING_V_Reg.size() - 1; j > 0; j--)
                     {
                         String vreg = NOW_USING_V_Reg.get(j);
-                        if (block.GetVRegReleaseInfo().get(vreg) > i)
+                        if (block.GetVRegReleaseInfo().get(vreg) == null)
+                        {
+                            frame_size += 4;
+                            NOW_FUNC_CODE.add(new RV_load(GetReg(vreg), "fp", -frame_size));
+                        }
+                        else if (block.GetVRegReleaseInfo().get(vreg) != null && block.GetVRegReleaseInfo().get(vreg) > i)
                         {
                             frame_size += 4;
                             if (GetReg(vreg).equals("a0"))
@@ -330,7 +341,7 @@ public class RVMaker implements WzcTargetMaker
                                 V2P_Reg_Map.remove(vreg);
                                 NOW_FUNC_CODE.add(new RV_load(GetReg(vreg), "fp", -frame_size));
                             }
-                            NOW_FUNC_CODE.add(new RV_store(GetReg(vreg), "fp", -frame_size));
+                            NOW_FUNC_CODE.add(new RV_load(GetReg(vreg), "fp", -frame_size));
                         }
                     }
 
